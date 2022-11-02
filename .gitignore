@@ -1,3 +1,5 @@
-*pdf
-__pychache__
-.ipynb_checkpoints
+*.pdf
+*__pychache__
+*.ipynb_checkpoints
+*.pylint.d
+*__pycache__
