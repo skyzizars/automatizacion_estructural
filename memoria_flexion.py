@@ -1,5 +1,9 @@
 from pylatex import Document, Section, Subsection
+<<<<<<< HEAD
 from pylatex.utils import NoEscape, bold, escape_latex
+=======
+from pylatex.utils import NoEscape, bold
+>>>>>>> 3b0e4aaa8e1e9c3b5895a6d4eb2cd8e4f10985a2
 
 def datos(b,h,r,fc,beta_1,fy):
     d = h-r
@@ -77,6 +81,7 @@ def corte(Vu,V_max, V_c,Vs,estribo, A_estribo, S, Vp,S_max,Lo,So, espaciamiento)
     return text
 
 
+<<<<<<< HEAD
 def replace_variables(text,variables, values):
     for i , var in enumerate(variables):
         var = 'var:' + var
@@ -95,6 +100,8 @@ def acero_maximo_pb(rho_b, As_max):
     return replace_variables(text, ['rho_b','rho_max','As_max'], [rho_b,rho_max,As_max])
 
 
+=======
+>>>>>>> 3b0e4aaa8e1e9c3b5895a6d4eb2cd8e4f10985a2
 if __name__ == '__main__':
     doc = Document()
     text = corte(6.77,23.28,5.88,6.77-5.88,'3/8',1.42,15.2,1.5,[35,60],40,[9,15,17,30],((1,5),(10,10),('R',20)))
