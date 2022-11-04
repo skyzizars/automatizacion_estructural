@@ -1,6 +1,6 @@
 import numpy as np
 import math
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 
 def def_units():
@@ -26,9 +26,13 @@ def def_rebar():
     A_5 = d_5 ** 2 /4 * math.pi
     A_6 = d_6 ** 2 /4 * math.pi
     A_8 = d_8 ** 2 /4 * math.pi
-    
+
 def_units()
 def_rebar()
+    
+def vector_function(function,C,*args):
+    vect_f = [function(*args,c) for c in C]
+    return np.array(vect_f)
 
 
 def create_rebar_matrix(d_p,d_s,n_f,n_c):
@@ -40,9 +44,26 @@ def create_rebar_matrix(d_p,d_s,n_f,n_c):
     reb_mat = np.vstack([reb_mat,fila])
     return reb_mat
 
-def vector_function(function,C,*args):
-    vect_f = [function(*args,c) for c in C]
-    return np.array(vect_f)
+#Data de acero de refuerzo
+def rebar_data(steel):
+    d_p = steel['d_p']
+    d_s = steel['d_s']
+    n_f = steel['n_f']
+    n_c = steel['n_c']
+    
+    reb_matx = create_rebar_matrix(d_p,d_s,n_f,n_c)
+    area_matx = reb_matx**2*math.pi/4
+    Aref = area_matx.sum()
+    return reb_matx, area_matx, Aref
+
+#Resistencia a la compresión pura
+def compress_resist(d_conc,d_steel,A_ref,phi):
+    fc = d_conc['fc']
+    fy = d_steel['fy']
+    Ag = d_conc['b']*d_conc['h']
+    P_n = 0.85*fc*(Ag-A_ref)+A_ref*fy #Resistemcia Nominal
+    phiP_n = phi*0.8*P_n #Resistencia reducida
+    return P_n,phiP_n
 
 #Vector de distancias a las varillas de refuerzos
 def dist_vector(b,r,d_p,d_st,n):
@@ -128,28 +149,6 @@ def vect_momentum_n(A_comp,x_c,rsm,fc,b,theta):
         vect_Mn.append(momemtum_n(A_comp_i,x_c[i],rsm[i],fc,b,theta))
     return np.array(vect_Mn)
 
-# Concreto
-fc  = 21* MPa  #Resistencia a la compresion
-eps_u = 0.003 #Deformación unitaria ultima
-
-#Acero
-fy = 420 * MPa #Esfuerzo a la fluencia del acero
-Es = 200000 * MPa #Módulo de elasticidad del acero
-eps_y = 0.0021 #Deformación de fluencia del acero
-
-b = 35 * cm
-h = 75 * cm
-r = 4 * cm #recubrimiento
-Ag = b*h #Área bruta
-
-#Refuerzo en la columna:
-d_p = d_5 #diámetro principal
-d_s = d_5 #diámetro secundario
-d_st = d_3 #diámetro del estribo
-n_f = 6 #filas de acero
-n_c = 3 #columnas de acero
-
-
 def flex_comp_data(d_conc,d_steel,geom,steel,phi,theta):
     fc = d_conc['fc']
     eps_u = d_conc['eps_u']
@@ -224,16 +223,24 @@ def flex_comp_data(d_conc,d_steel,geom,steel,phi,theta):
     return vect_Pn, vect_phi_Pn, vect_Mn_x, vect_Mn_y, vect_phi_Mn_x, vect_phi_Mn_y
   
 def plot_flex_comp(vect_Pn,vect_Mn_x,vect_Mn_y,ax):
-    ax.plot(vect_Mn_x/10**6,vect_Mn_y/10**6, vect_Pn/1000
+    ax.plot(vect_Mn_x/10**6,vect_Mn_y/10**6, vect_Pn/10**6
             ,linestyle = ':',alpha=0.7,color='#23987C')
-    ax.plot(-vect_Mn_x/10**6,-vect_Mn_y/10**6, vect_Pn/1000
+    ax.plot(-vect_Mn_x/10**6,-vect_Mn_y/10**6, vect_Pn/10**6
             ,linestyle = ':',alpha=0.7,color='#23987C')
-    ax.plot(-vect_Mn_x/10**6,vect_Mn_y/10**6, vect_Pn/1000
+    ax.plot(-vect_Mn_x/10**6,vect_Mn_y/10**6, vect_Pn/10**6
             ,linestyle = ':',alpha=0.7,color='#23987C')
-    ax.plot(-vect_Mn_x/10**6,vect_Mn_y/10**6, vect_Pn/1000
+    ax.plot(vect_Mn_x/10**6,-vect_Mn_y/10**6, vect_Pn/10**6
             ,linestyle = ':',alpha=0.7,color='#23987C')
 
   
+def find_a(b,Pn,P_min):
+    aux = abs(Pn-abs(P_min)).min()
+    a = [i/100*b for i in range(101)]
+    for i, val in enumerate(abs(Pn-abs(P_min))):
+        if val == aux:
+            return a[i],i,aux
+    
+    
 if __name__ == '__main__':
     pass
     

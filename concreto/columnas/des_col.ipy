@@ -1,0 +1,217 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+import columnas_utils as col
+import pandas as pd
+%cd ..\..\etabs_oapi
+import sismo_utils as sis
+import etabs_utils as etb
+%cd ..\concreto\columnas
+
+
+# Definicion de las unidades
+N = 1
+m = 1
+cm = 1/100
+Pa = 1
+MPa = 10**6
+pulg = 2.54 / 100
+
+# Definicion de varillas de acero:
+d_3 = 3/8 * pulg
+d_4 = 1/4 * pulg
+d_5 = 5/8 * pulg
+d_6 = 3/4 * pulg
+d_8 = 1 * pulg
+
+A_3 = d_3 ** 2 /4 * math.pi
+A_4 = d_4 ** 2 /4 * math.pi
+A_5 = d_5 ** 2 /4 * math.pi
+A_6 = d_6 ** 2 /4 * math.pi
+A_8 = d_8 ** 2 /4 * math.pi
+
+#Dimensiones de la columna
+geom = {'b':35*cm,
+       'h':75*cm,
+       'r':4*cm}
+
+
+# Concreto
+d_conc = {'fc': 21*MPa, #Resistencia a la compresion
+          'eps_u':0.003} #Deformación unitaria ultima
+
+#Acero de refuerzo
+d_steel = {'fy' : 420*MPa, #Esfuerzo a la fluencia del acero
+          'Es' : 200000*MPa, #Módulo de elasticidad del acero
+          'eps_y' : 0.0021} #Deformación de fluencia del acero
+
+steel = {'d_p' : d_5, #diámetro principal
+        'd_s' : d_5, #diámetro secundario
+        'd_st' : d_3, #diámetro del estribo
+        'n_f' : 6, #filas de acero
+        'n_c' : 3} #columnas de acero
+
+#Procesando data de acero: (matriz de refuerzos, matriz de areas y Area de refuerzo):
+reb_matx, area_matx, Aref = col.rebar_data(steel)
+
+phi = 0.65 #factor de minoración
+Ag = geom['b']*geom['h']
+fc = d_conc['fc']
+fy = d_steel['fy']
+P_n = 0.85*fc*(Ag-Aref)+Aref*fy #Resistemcia Nominal
+phiP_n = phi*0.8*P_n #Resistencia reducida
+
+#Importación de cargas
+cargas = pd.read_csv('cargas.csv',sep=';')
+
+#Conversion de unidades
+cargas.P = cargas.P*9.81*10**3
+cargas.M2 = cargas.M2*9.81*10**3
+cargas.M3 = cargas.M3*9.81*10**3
+
+#Datos a flexocompresión
+theta = np.array(range(21))*4.5
+
+flex_comp_data = col.vector_function(col.flex_comp_data,theta,
+                                     d_conc,d_steel,geom,steel,phi)
+
+Pn = flex_comp_data[:,0]
+phi_Pn = flex_comp_data[:,1]
+Mn_x = flex_comp_data[:,2]
+Mn_y = flex_comp_data[:,3]
+phi_Mn_x = flex_comp_data[:,4]
+phi_Mn_y = flex_comp_data[:,5]
+
+#Diagrama a flexocompresión
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+for i,theta_ in enumerate(theta):
+    col.plot_flex_comp(phi_Pn[i],phi_Mn_x[i],phi_Mn_y[i],ax)
+
+#Diagrama 3D    
+ax.scatter(cargas['M2']/10**6,cargas['M3']/10**6,cargas['P']*-1/10**6)
+plt.title('Diagrama de Flexocompresión')
+ax.set_xlabel("$\phi Mn_x$ (MN-m)")
+ax.set_ylabel("$\phi Mn_x$ (MN-m)")
+ax.set_zlabel("$\phi Pn$ (MN)")
+plt.show()
+
+#Diagrama en el eje x    
+fig, ax = plt.subplots()
+ax.plot(phi_Mn_x[1]/10**6, phi_Pn[1]/10**6)
+ax.plot(-phi_Mn_x[1]/10**6, phi_Pn[1]/10**6)
+ax.plot(phi_Mn_x[1]/10**6, phi_Pn[1]/10**6)
+ax.plot(-phi_Mn_x[1]/10**6, phi_Pn[1]/10**6)
+ax.scatter(cargas['M2']/10**6,cargas['P']*-1/10**6)
+ax.set_xlabel("$\phi Mn_x$ (MN-m)")
+ax.set_ylabel("$\phi Pn$ (MN)")
+plt.show()
+
+#Diagrama en el eje y  
+fig, ax = plt.subplots()
+ax.plot(phi_Mn_y[-1]/10**6, phi_Pn[-1]/10**6)
+ax.plot(-phi_Mn_y[-1]/10**6, phi_Pn[-1]/10**6)
+ax.plot(phi_Mn_y[-1]/10**6, phi_Pn[-1]/10**6)
+ax.plot(-phi_Mn_y[-1]/10**6, phi_Pn[-1]/10**6)
+ax.scatter(cargas['M3']/10**6,cargas['P']*-1/10**6)
+ax.set_xlabel("$\phi Mn_x$ (MN-m)")
+ax.set_ylabel("$\phi Pn$ (MN)")
+plt.show()
+
+#Comprobacion Viga Debil Columna Fuerte
+#Datos de la viga
+bv = 25*cm
+hv = 40*cm
+dv = hv-9*cm #peralte efectivo
+As = 4*A_5 #4 aceros #5
+
+#Momento Resistente máximo con acero en tracción solamente
+phi_f = 0.9
+av = As*fy/(0.5*fc*bv) #Altura del bloque en compresión
+Mnv = As*fy*(dv-av/2)
+phi_Mnv = phi_f*Mnv
+
+P_min = cargas[cargas.Piso!=6]['P'].max()
+
+#Valor de a para la carga mínima
+b = geom['b']
+a_des,i = col.find_a(b,Pn[0],P_min)
+
+#Momento de diseño
+Mnx_des = Mn_x[0][i]
+
+#Verificación:
+if 2*Mnx_des > 1.2*(2*Mnv):
+    print('OK')
+else:
+    print('Viga más fuerte que la columna')
+    
+#Verificación por longitud de desarrollo en la columna
+lu = 1.95
+lamb = 1
+psi_g = 1
+psi_e = 1
+psi_s1 = 1
+psi_s2 = 0.8
+psi_ts = 1.3
+psi_ti = 1
+db = 0.75 * pulg
+
+#restricciones de la norma:
+psi_ts_e = psi_ts*psi_e 
+if psi_ts_e > 1.7:
+    psi_ts_e = 1.7
+    
+sqrt_fc = (fc/10**6)**0.5*MPa
+if sqrt_fc > 8.3*MPa:
+   sqrt_fc = 8.3*MPa
+    
+ld3 = fy/(1.1*lamb*sqrt_fc)*psi_g*psi_e*psi_s2*psi_g*db
+
+#Verificación
+if 1.25*ld3 <= lu/2:
+    print('Ok')
+else:
+    print('El acero no puede desarrolarse en la columna')
+
+#Considerando el efecto de los estribos:
+r = geom['r']
+d_st = steel['d_st']
+nb = steel['n_c']
+
+cb1 = r+d_st+db*0.5
+cb2 = (b-2*r-2*d_st-db)/(nb-1)/2
+cb = min(cb1,cb2)
+
+k_tr = 0
+
+#restricciones de la norma
+alpha = (cb+k_tr)/db
+if alpha > 2.5:
+    alpha = 2.5
+
+#Por tanto:
+ld3 = ld3/alpha 
+
+#Verificación
+if 1.25*ld3 <= lu/2:
+    print('Ok')
+else:
+    print('El acero no puede desarrolarse en la columna')
+
+
+#Longitud de confinamiento
+hn = 2.1*m
+h = geom['h']
+Lo = max(b,h,hn/6,45*cm)
+
+#Confinamiento de barras:
+P_max = cargas.P.min()
+
+if 0.3*fc*Ag < P_max:
+    print('Es necesario confinar todas las barras longitudinales')
+    
+#Separación del esfuerzo transversal
+
+
+import columnas_utils as col
