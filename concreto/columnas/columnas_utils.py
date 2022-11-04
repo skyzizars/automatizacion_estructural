@@ -238,7 +238,7 @@ def find_a(b,Pn,P_min):
     a = [i/100*b for i in range(101)]
     for i, val in enumerate(abs(Pn-abs(P_min))):
         if val == aux:
-            return a[i],i,aux
+            return a[i],i
     
     
 if __name__ == '__main__':
