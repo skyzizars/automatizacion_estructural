@@ -12,10 +12,36 @@
 \newcommand*{\grabto}[2]{\IfFileExists{#2}{}{\immediate\write18{curl \detokenize{#1 -o #2}}}}
 
 \begin{document}
-    \begin{center}
-        \textbf{Diseño de Columnas}
-    \end{center}
-       
+    \subsection{Diseño de columnas}
+        Diseñaremos la columna en el eje A con interseción del eje 5:
+        \textbf{Geometría de la columna:}
+        \begin{itemize}
+            \item Ancho: b = 30 cm
+            \item Peralte: h = 65 cm            
+        \end{itemize}
+        \textbf{Datos del refuerzo:}
+        \begin{itemize}
+            \item Recubrimiento: $r_e$ = 4 cm
+            \item Diámetro del acero longitudinal: $d_b$ = 5/8"
+            \item Diámetro de los estribos: $d_e$ = 3/8"
+        \end{itemize}
+        \textbf{Factores de minoración:}
+        \begin{itemize}
+            \item Factor de minoración a compresión: $\phi_{c}$ = 0.70 (Art 9.3.2.2)
+            \item Factor de minoración a flexocompresión: $\phi_{fc}$ = 0.70 - 0.90 ($\phi$ incrementa linealmente de 0,7 a 0,9 a medida que $\phi Pn$ disminuye desde 0,1 $f'_cAg$ o $\phi Pb$, el que sea menor, hasta cero - Art 9.3.2.2)
+        \end{itemize}
+        
+        \subsubsection{Diseño por flexión y carga axial:}
+        Un elemento es considerado como columna cuando la carga axial amplificada en compresión $P_u$ excede $0.1 \cdot f'_c Ag$. (Art 21.5.1.1 y 21.6.11)\\
+        La cuantía mínima para elementos en compresión no debe ser menor que 1\% (Art. 10.9.1)\\
+        La resistencia máxima de diseño a compresión pura será: (Ecu. 10.2)
+        \[ \phi P_n = 0.80 \cdot \phi_c \cdot [0.85 \cdot f'_c \cdot (Ag - A_{st}) + f_y \cdot A_{st} ] \]
+
+        \subsubsection{Resistencia a corte}
+        
+
+        
+
 
 
 \end{document}
