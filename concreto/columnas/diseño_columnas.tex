@@ -38,10 +38,117 @@
         \[ \phi P_n = 0.80 \cdot \phi_c \cdot [0.85 \cdot f'_c \cdot (Ag - A_{st}) + f_y \cdot A_{st} ] \]
 
         \subsubsection{Resistencia a corte}
+        La resistencia a cortante del concreto a compresión y tracción está dado respectivamente por:
+        \begin{align*}
+            &\phi V_c = \phi_c \cdot 0.53 \cdot \sqrt{f'_c} \cdot b \cdot d \cdot \left( 1 + \frac{N_u}{140 \cdot A_g} \right)   \hspace{2cm} & \text{(Ecu 11.4 E-060)}\\ 
+            &\phi V_c = \phi_c \cdot 0.53 \cdot \sqrt{f'_c} \cdot b \cdot d \cdot \left( 1 - \frac{N_u}{35 \cdot A_g} \right) & \text{(Ecu 11.8 E-060)}
+        \end{align*}
+
+        Donde:
+        $N_u$: Carga Axial \\
+        $A_g$: Área bruta de la sección \\
+        d: Peralte efectivo en la dirección de análisis \\
+        b: Ancho de la columna en la dirección de análisis \\
+        Los peraltes efectivos en las direcciones fuerte y débil de la columna serán: 
+        \begin{align*}
+            d_x = h_c - r_e - d_e - d_b/2\\
+            d_y = c_c - r_e - d_e - d_b/2
+        \end{align*}
+        Las capacidades máximas de los estribos a corte en las direcciones fuerte y débil de la columna serán:
+        \begin{align*}
+            V_{ex,max} = 2.1 \cdot \sqrt{210} \cdot 65 \cdot 59.26 = 117.22ton \\
+            V_{ey,max} = 2.1 \cdot \sqrt{210} \cdot 30 \cdot 24.26 = 117.22ton
+        \end{align*}
+
+        \begin{tabular}{cccccccccc}
+                \multicolumn{10}{l} {Combinación: 1.25 (CM+CV) +SY:}\\
+                \hline
+                Piso & h (m) & Pu (ton) & a (cm) & Mn (ton.m) & Vu (ton) & $\phi$Vc (ton) & Ve & ramas & s (cm) \\
+                \hline
+                1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+                1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+                1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+                1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+                1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+                1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+                1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+                1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+                1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+        \end{tabular}
         
+        \subsubsection{Refuerzo transversal en zonas de confinamiento}
+        Longitud de confinamiento será la menor de: (Art. 21.4.5.3 y 21.6.4.4 E-060)
+        \begin{enumerate}
+            \item La sexta parte de la luz libre de la columna: $h_n/6$
+            \item La mayor dimensión del elemento: max($b_c,h_c$)
+            \item 50 cm
+        \end{enumerate}
+        El espaciamiento de refuerzo transversal dentro de la zona de confinamiento será el menor de: (Art. 21.4.5.3 y 21.6.4.2 E-060)
+
+        \begin{center}
+            \begin{tabular}{ll}
+                \hline
+                Sistemas de muros & Sistemas de pórticos duales \\
+                \hline
+                $\bullet 8d_b$ & $\bullet 6d_b$ \\
+                $\bullet min(b,h)/2$ & $\bullet min(b/h)/3$ \\
+                $\bullet 10 cm$ & $\bullet 10 cm$ \\
+                \hline
+            \end{tabular}
+        \end{center}
+
+        El espaciamiento del refuerzo transversal fuera de la zona de confinamiento será el menor de: (Art. 21.4.5.4 y 21.6.4.5 E-060)
+
+       \begin{center}
+            \begin{tabular}{ll}
+                \hline
+                Sistemas de muros & Sistemas de pórticos duales \\
+                \hline
+                $\bullet 16d_b$ &  \\
+                $\bullet 48d_e$ & $\bullet 10d_b$ \\
+                $\bullet 30 cm$ & $\bullet 25 cm$ \\
+                $\bullet min(b,h)$  \\
+                \hline
+            \end{tabular}
+        \end{center}
+
+        Refuerzo transversal mínimo en columnas:
+        \begin{align*}
+            &A_{sh} = 0.3\frac{s \cdot b_c \cdot f'_c}{f_{yh}} \left[ \frac{A_g}{A_ch} -1  \right] &(a)\\
+            &A_{sh} = 0.09 \frac{s \cdot b_c \cdot f'_c}{f_{yh}} &(b)
+        \end{align*}
+
+        Donde: \\
+        $A_{sh}$: Área de refuerzo transversal\\
+        $b_c$: dimensión del núcleo confinado del elemento normal al refuerzo medida centro a centro del refuerzo de confinamiento\\
+        $A_{ch}$: área del núcleo confinado medida al exterior del refuerzo de confinamiento\\
+        $A_g$: área de la sección bruta de la columna\\
+        $s$: separación del refuerzo transversal\\
+        $f_{yh}$: esfuerzo de fluencia del refuerzo transversal\\
+
+        Nota:\\
+        Cuando la resistencia de diseñno del núcleo de la sección transversal del elemento satisface
+        los requisitos de las combinaciones de carga de diseño, incluyendo el efecto sísmico, no
+        es necesario satisfacer la ecuación (a)\\
+
+        \subsubsection{Requisitos adicionales para columnas de sistamas de pórticos o duales}
+        Los elementos estructurales que cumplan con las siguientes condiciones 
+        \begin{itemize}
+            \item La carga axial amplificada excede $0.1 \cdot f'_c \cdot A_g = 40.94$ ton
+            \item La menor dimensión debe ser mínimamente B=25cm
+            \item La relación entre la menor dimensión y la mayor será menor que B/L $\geq$ 0.25      
+        \end{itemize}
+
+        \textbf{Resistencia mínima a flexión en las columnas:}\\
+        Las resistencias a flexión en las columnas en las caras de los nudos deben satisfacer la siguiente ecuación: (Art. 21.6.6.2 E-060)\\
+        \[\Sigma M_{nc} \geq 1.2 \Sigma M_{nv}\]
+        Donde:
+        $M_{nc}$:suma de los momentos nominales de flexión de las columnas que llegan al nudo, evaluados en las caras del nudo. La resistencia a la flexión de la columna debe calcularse para la fuerza axial amplificad, consistente con la direccion de las fuerzas laterales consideradas, que conduzca a la resistencia a la flexión más baja\\
+        $M_{nv}$: suma de los momentos resistentes nominales a flexión de las vigas que llegan al nudo evaluados en las caras del nudo.
+
+         
+
+
 
         
-
-
-
 \end{document}
