@@ -139,16 +139,32 @@
             \item La relación entre la menor dimensión y la mayor será menor que B/L $\geq$ 0.25      
         \end{itemize}
 
-        \textbf{Resistencia mínima a flexión en las columnas:}\\
+        \noindent \textbf{Resistencia mínima a flexión en las columnas:}\\
+        \textbf{Criterio Columna fuerte Viga Débil}\\
         Las resistencias a flexión en las columnas en las caras de los nudos deben satisfacer la siguiente ecuación: (Art. 21.6.6.2 E-060)\\
         \[\Sigma M_{nc} \geq 1.2 \Sigma M_{nv}\]
-        Donde:
-        $M_{nc}$:suma de los momentos nominales de flexión de las columnas que llegan al nudo, evaluados en las caras del nudo. La resistencia a la flexión de la columna debe calcularse para la fuerza axial amplificad, consistente con la direccion de las fuerzas laterales consideradas, que conduzca a la resistencia a la flexión más baja\\
-        $M_{nv}$: suma de los momentos resistentes nominales a flexión de las vigas que llegan al nudo evaluados en las caras del nudo.
+        Donde:\\
+        $M_{nc}$: suma de los momentos nominales de flexión de las columnas que llegan al nudo, evaluados en las caras del nudo. La resistencia a la flexión de la columna debe calcularse para la fuerza axial amplificad, consistente con la direccion de las fuerzas laterales consideradas, que conduzca a la resistencia a la flexión más baja\\
+        $M_{nv}$: suma de los momentos resistentes nominales a flexión de las vigas que llegan al nudo evaluados en las caras del nudo.\\ \\
+        \textbf{Resistencia a Cortante en el nudo} \\
+        Dentro del nudo deben colocarse estribos cerrado de confinamiento como refuerzo transversal a menos que dicho nudo esté confinado por elementos estructurales.\\
+        Se considera que un elemento (viga) proporciona confinamiento al nudo si al menos tres cuartas partes de la cara lateral del nudo está cubierta por el elemento que llega al nudo. \\
+        En estos casos podemos colocar la mitad de la cantidad quererida en el Art. 21.6.4.1 E-060 dentro del peralte del elemento de menor altura, además se permite que el espaciamiento mínimo (Art. 21.6.4.2) se incremente a 150 mm. \\
+        La resistencia $V_n$ en el nudo no debe ser mayor que las fuerzas especificadas a continuación, para concreto de peso normal: (Art. 21.7.4) \\
+    
+        \begin{tabular}{ll}
+            Para nudos confinado en las cuatro caras: & $5.3 \cdot \sqrt{f'_c} \cdot A_j$ \\
+            Para nudos confinados en tres caras o en dos caras opuestas: & $4.0 \cdot \sqrt{f'_c} \cdot A_j$ \\
+            Para otros casos: & $3.2 \cdot \sqrt{f'_c} \cdot A_j$  
+        \end{tabular} \\ \\
 
-         
-
-
-
+        \noindent Donde: \\
+        $A_j$: área efectiva de la sección transversal dentro del nudo en la dirección de análisis, calculada como el producto de la profundidad del nudo por su ancho efectivo.\\
+        La profundidad del nudo es la dimensión total de la columna en la dirección de análisis.\\
+        El ancho efectivo del nudo es el ancho total de la columna, excepto que la viga llega a una columna más ancha que esta, el ancho efectivo del nudo no debe exceder el menor de:
+        \begin{itemize}
+            \item el ancho de la viga mas la profundidad del nudo. Si el ancho difiere a ambos lados de la columna, se utilizará el promedio de ellos.
+            \item dos veces la distancia del eje longitudinal de la viga al borde más cercano de la columna
+        \end{itemize}        
         
 \end{document}
