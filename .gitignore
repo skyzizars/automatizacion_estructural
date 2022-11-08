@@ -1,5 +1,5 @@
 *.pdf
-*\__pychache__
+*\__pycache__
 *\.ipynb_checkpoints
 *\.pylint.d
 *.aux
@@ -7,4 +7,3 @@
 *.fls
 *.log
 *synctex.gz
-\__pychache__
