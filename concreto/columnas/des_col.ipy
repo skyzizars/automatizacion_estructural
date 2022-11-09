@@ -30,26 +30,59 @@ A_5 = d_5 ** 2 /4 * math.pi
 A_6 = d_6 ** 2 /4 * math.pi
 A_8 = d_8 ** 2 /4 * math.pi
 
-#Dimensiones de la columna
-geom = {'b':35*cm,
-       'h':75*cm,
-       'r':4*cm}
-
+#Definiendo geometría de la columna
+b = 35*cm
+h = 75*cm
+r = 4*cm
+column = col.Column(b, h, r)
 
 # Concreto
-d_conc = {'fc': 21*MPa, #Resistencia a la compresion
-          'eps_u':0.003} #Deformación unitaria ultima
+fc = 21*MPa #Resistencia a la compresion
+eps_u = 0.003 #Deformación unitaria ultima
+column.set_concrete(fc, eps_u)
 
 #Acero de refuerzo
-d_steel = {'fy' : 420*MPa, #Esfuerzo a la fluencia del acero
-          'Es' : 200000*MPa, #Módulo de elasticidad del acero
-          'eps_y' : 0.0021} #Deformación de fluencia del acero
+fy = 420*MPa #Esfuerzo a la fluencia del acero
+Es = 200000*MPa #Módulo de elasticidad del acero
+eps_y = fy/Es #Deformación de fluencia del acero
+column.set_steel_reb(fy, Es)
 
-steel = {'d_p' : d_5, #diámetro principal
-        'd_s' : d_5, #diámetro secundario
-        'd_st' : d_3, #diámetro del estribo
-        'n_f' : 6, #filas de acero
-        'n_c' : 3} #columnas de acero
+d_p = d_5 #diámetro principal
+d_s = d_5 #diámetro secundario
+d_st = d_3 #diámetro del estribo
+n_f = 6  #filas de acero
+n_c = 3 #columnas de acero
+column.set_rebar(d_p, d_s, d_st, n_f, n_c)
+
+#factor de minoración
+phi = 0.65
+column.compress_resist(phi)
+
+import columnas_utils as col
+column = col.Column(b, h, r)
+column.set_concrete(fc, eps_u)
+column.set_steel_reb(fy, Es)
+column.set_rebar(d_p, d_s, d_st, n_f, n_c)
+column.compress_resist()
+
+n_theta = len(column.biaxial_f_c.theta.unique())
+
+#Importación de cargas
+cargas = pd.read_csv('cargas.csv',sep=';')
+
+#Conversion de unidades
+cargas.P = cargas.P*9.81*10**3
+cargas.M2 = cargas.M2*9.81*10**3
+cargas.M3 = cargas.M3*9.81*10**3
+
+#Datos a flexocompresión
+theta = np.array(range(21))*4.5
+
+
+column.biaxial_flex_comp()
+m = column.biaxial_f_c
+
+n = column.biaxial_f_c[column.biaxial_f_c.theta==0].phi_Mn_x
 
 #Procesando data de acero: (matriz de refuerzos, matriz de areas y Area de refuerzo):
 reb_matx, area_matx, Aref = col.rebar_data(steel)

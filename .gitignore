@@ -1,4 +1,5 @@
 *.pdf
+<<<<<<< HEAD
 *\__pychache__
 *\.ipynb_checkpoints
 *.pylint.d
@@ -8,3 +9,13 @@
 *.log
 *.synctex.gz
 *.aux
+=======
+*\__pycache__
+*\.ipynb_checkpoints
+*\.pylint.d
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*synctex.gz
+>>>>>>> main

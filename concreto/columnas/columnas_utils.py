@@ -1,245 +1,291 @@
 import numpy as np
 import math
+import pandas as pd
 #import matplotlib.pyplot as plt
 
 
-def def_units():
-    global N , m, cm, Pa, MPa, pulg
-    N = 1
-    m = 1
-    cm = m/100
-    Pa = 1
-    MPa = 10**6*Pa
-    pulg = 2.54 *m / 100
+# Definicion de las unidades
+N = 1
+m = 1
+cm = m/100
+Pa = 1
+MPa = 10**6*Pa
+pulg = 2.54 *m / 100
 
 
-def def_rebar():
-    global d_3,d_4,d_5,d_6,d_8,A_3,A_4,A_5,A_6,A_8
-    d_3 = 3/8 * pulg
-    d_4 = 1/4 * pulg
-    d_5 = 5/8 * pulg
-    d_6 = 3/4 * pulg
-    d_8 = 1 * pulg
+# Definicion de varillas de acero:
+d_3 = 3/8 * pulg
+d_4 = 1/4 * pulg
+d_5 = 5/8 * pulg
+d_6 = 3/4 * pulg
+d_8 = 1 * pulg
+
+A_3 = d_3 ** 2 /4 * math.pi
+A_4 = d_4 ** 2 /4 * math.pi
+A_5 = d_5 ** 2 /4 * math.pi
+A_6 = d_6 ** 2 /4 * math.pi
+A_8 = d_8 ** 2 /4 * math.pi
+
+
+
+class Concrete():
+    def __init__(self,b,h,r):
+        self.b = b
+        self.h = h
+        self.Ag = b*h
+        self.r = r
+        self.fy = 420*MPa
+        self.Es = 200000*MPa
+        self.eps_y = self.fy/self.Es
+        self.fc = 210*MPa
+        self.eps_u = 0.003
+        self.betha = 0.85
     
-    A_3 = d_3 ** 2 /4 * math.pi
-    A_4 = d_4 ** 2 /4 * math.pi
-    A_5 = d_5 ** 2 /4 * math.pi
-    A_6 = d_6 ** 2 /4 * math.pi
-    A_8 = d_8 ** 2 /4 * math.pi
-
-def_units()
-def_rebar()
+    def set_concrete(self,fc,eps_u):
+        self.fc = fc
+        self.eps_u = eps_u
+        if fc <= 28*MPa:
+            self.betha = 0.85
+        elif 28*MPa < fc & fc < 55 * MPa:
+            self.betha = 0.85 - 0.05*(fc-28*MPa)/(7*MPa)
+        else:
+            self.betha = 0.65
     
-def vector_function(function,C,*args):
-    vect_f = [function(*args,c) for c in C]
-    return np.array(vect_f)
-
-
-def create_rebar_matrix(d_p,d_s,n_f,n_c):
-    reb_mat = [d_p] + [d_s]*(n_c-2) + [d_p]
-    for i in range(n_f -2 ):
-        fila = [d_s] + [0]*(n_c-2) + [d_s]
+    def set_steel_reb(self,fy,Es):
+        self.fy = fy
+        self.Es = Es
+        self.eps_y = fy/Es
+    
+    def stress_f(self,c,x):
+        'Esfuerzo en barras de acero segun su posición'
+        eps_u = self.eps_u
+        Es = self.Es
+        fy = self.fy
+        if c==0:
+            return -fy
+        fs = eps_u*(c-x)/c*Es
+        if abs(fs) > fy:
+            return math.copysign(fy, fs)
+        else:
+            return fs    
+    
+    
+   
+ 
+class Column(Concrete):
+    def __init__(self,b,h,r):
+        Concrete.__init__(self,b,h,r)
+ 
+    def set_rebar(self, d_p, d_s, d_st, n_f, n_c):
+        self.d_p = d_p
+        self.d_S = d_s
+        self.d_st = d_st
+        self.n_f = n_f
+        self.n_c = n_c
+        #Matrices de refuerzos, areas y area de refuerzo
+        self.reb_matx = self.create_rebar_matrix(d_p, d_s, n_f, n_c)
+        self.area_matx = self.reb_matx**2*math.pi/4
+        self.area_vect = self.area_matx.flatten()
+        self.Aref = self.area_matx.sum()
+        #Vectores de distancias a la varillas
+        b = self.b
+        h = self.h
+        self.dist_vect_x = self.dist_vector(b, n_c)
+        self.dist_vect_y = self.dist_vector(h, n_f)
+        
+    def create_rebar_matrix(self,d_p,d_s,n_f,n_c):
+        reb_mat = [d_p] + [d_s]*(n_c-2) + [d_p]
+        for i in range(n_f -2 ):
+            fila = [d_s] + [0]*(n_c-2) + [d_s]
+            reb_mat = np.vstack([reb_mat,fila])
+        fila = [d_p] + [d_s]*(n_c-2) + [d_p]
         reb_mat = np.vstack([reb_mat,fila])
-    fila = [d_p] + [d_s]*(n_c-2) + [d_p]
-    reb_mat = np.vstack([reb_mat,fila])
-    return reb_mat
+        return reb_mat
+    
+    def dist_vector(self,l,n):
+        'Vector de distancias a las varillas de refuerzos'
+        r = self.r
+        d_p = self.d_p
+        d_st = self.d_st
+        sep = (l-2*(r+d_st)-d_p)/(n-1)
+        reb_vect = [r+d_p/2+d_st+i*sep for i in range(n)]
+        return np.array(reb_vect)
 
-#Data de acero de refuerzo
-def rebar_data(steel):
-    d_p = steel['d_p']
-    d_s = steel['d_s']
-    n_f = steel['n_f']
-    n_c = steel['n_c']
-    
-    reb_matx = create_rebar_matrix(d_p,d_s,n_f,n_c)
-    area_matx = reb_matx**2*math.pi/4
-    Aref = area_matx.sum()
-    return reb_matx, area_matx, Aref
+    def compress_resist(self,phi=0.65):
+        'Reistencia a la compresión pura'
+        fc = self.fc
+        fy = self.fy
+        Ag = self.Ag
+        A_ref = self.Aref
+        self.P_n = 0.85*fc*(Ag-A_ref)+A_ref*fy #Resistemcia Nominal
+        self.phiP_n = phi*0.8*self.P_n #Resistencia reducida
 
-#Resistencia a la compresión pura
-def compress_resist(d_conc,d_steel,A_ref,phi):
-    fc = d_conc['fc']
-    fy = d_steel['fy']
-    Ag = d_conc['b']*d_conc['h']
-    P_n = 0.85*fc*(Ag-A_ref)+A_ref*fy #Resistemcia Nominal
-    phiP_n = phi*0.8*P_n #Resistencia reducida
-    return P_n,phiP_n
+    def give_phi(self,d_t,c):
+        eps_u = self.eps_u
+        eps_y = self.eps_y
+        if c==0:
+            return 0.9
+        eps_t = (c-d_t)/c*eps_u
+        phi = 0.65+0.25*(abs(eps_t)-eps_y)/0.003
+        if phi < 0.65:
+            return 0.65
+        elif phi > 0.9:
+            return 0.9
+        else:
+            return phi
+        
+    def comp_area(self,theta,a):
+        'Area de compresion del elemento'
+        b = self.b
+        h = self.h
+        if theta == 0:
+            return a*h,a/2,h/2
+        elif theta == math.pi/2:
+            return a*b,b/2,a/2
+        cost = math.cos(theta)
+        sint = math.sin(theta)
+        tant = math.tan(theta)
+        if (a<=b*cost) & (a<=h*sint):
+            A_c = a**2/(2*sint*cost)
+            x_c = a/(3*cost)
+            y_c = a/(3*sint)
+        elif (a<=h*sint) & ~(a<=b*cost):
+            A_c = a*b/sint - b**2/(2*tant)
+            x_c = (a*b**2/(2*sint)-b**3/(3*tant))/A_c
+            y_c = (a**2*b/(2*sint**2)-b**2/(2*tant)*(a/sint-b/(3*tant)))/A_c
+        elif ~(a<=h*sint) & (a<=b*cost):
+            A_c = a*h/cost - h**2*tant/2
+            y_c = (a*h**2/(2*cost)-h**3*tant/3)/A_c
+            x_c = (a**2*h/(2*cost**2)-h**2*tant/2*(a/cost-h*tant/3))/A_c
+        else:
+            aux = h*sint+b*cost-a
+            A_c = b*h - aux**2/(2*sint*cost)
+            x_c = (b**2*h/2-aux**2/(2*sint*cost)*(b-aux/(3*cost)))/A_c
+            y_c = (b*h**2/2-aux**2/(2*sint*cost)*(h-aux/(3*sint)))/A_c
+        
+        return A_c, x_c, y_c
 
-#Vector de distancias a las varillas de refuerzos
-def dist_vector(b,r,d_p,d_st,n):
-    sep = (b-2*(r+d_st)-d_p)/(n-1)
-    reb_vect = [r+d_p/2+d_st+i*sep for i in range(n)]
-    return np.array(reb_vect)
+    def dist_rot_vect(self, theta):
+        dist_vect_x_rot = self.dist_vect_x*math.cos(theta)
+        dist_vect_y_rot = self.dist_vect_y*math.sin(theta)
+        dist_matx = np.array([i+dist_vect_x_rot for i in dist_vect_y_rot])
+        return dist_matx.flatten()
+    
+    def nominal_PM(self,theta):
+        'return: vect_Pn,vect_phi_Pn,vect_Mn_x,vect_phi_Mn_x,vect_Mn_y,vect_phi_Mn_y,a,vect_phi,A_c,x_c,y_c'
+        theta = math.radians(theta)
+        b = self.b
+        h = self.h
+        betha = self.betha
+        l = b*math.cos(theta)+h*math.sin(theta)
+        a = np.array([i/100*l for i in range(101)])
+        c = a/betha
+        #Determinación del Area a compresion y su centroide:
+        A_X_Y = np.array([self.comp_area(theta,a_i) for a_i in a])
+        A_c = A_X_Y[:,0]
+        x_c = A_X_Y[:,1]
+        y_c = A_X_Y[:,2]
+        #Vector de distancias de cada barra (paralelo a las distancias a)
+        dist_vect = self.dist_rot_vect(theta)
+        #Esfuerzos en cada barra de refuerzo:
+        matx_fs = np.array([[self.stress_f(c_i,x) for x in dist_vect] for c_i in c])
+        #distancia a las varillas extremas a tensión:
+        d_t = dist_vect.max()
+        #Valores de phi para cada valor de c
+        vect_phi = np.array([self.give_phi(d_t, c_i) for c_i in c])
+        #Aporte a la resistencia axial del acero:
+        rsp = np.dot(matx_fs,self.area_vect)
+        #Aporte a la resistencia de momento del acero:
+        dist_list_x = np.array([self.dist_vect_x for _ in self.dist_vect_y]).flatten()
+        dist_list_y = np.array([i for i in self.dist_vect_y for _ in self.dist_vect_x])
+        dist_CM_x = b/2-dist_list_x
+        dist_CM_y = h/2-dist_list_y
+        rsm_x = np.dot(matx_fs*self.area_vect,dist_CM_x)
+        rsm_y = np.dot(matx_fs*self.area_vect,dist_CM_y)
+        #Carga Axial Nominal
+        fc = self.fc
+        vect_Pn = np.array([0.85*fc*A_c[i]+rsp_i for i,rsp_i in enumerate(rsp) ])
+        #Carga Axial Reducida
+        vect_phi_Pn = vect_phi*vect_Pn
+        vect_phi_Pn = np.array([i if i < self.phiP_n else self.phiP_n for i in vect_phi_Pn])
+        #Momento nominal:
+        vect_Mn_x = np.array([0.85*fc*A_c[i]*(b/2-x_c[i])+rsm_i for i,rsm_i in enumerate(rsm_x)])
+        vect_Mn_y = np.array([0.85*fc*A_c[i]*(h/2-y_c[i])+rsm_i for i,rsm_i in enumerate(rsm_y)])
+        #Momento reducido:
+        vect_phi_Mn_x = vect_phi*vect_Mn_x
+        vect_phi_Mn_y = vect_phi*vect_Mn_y
+            
+        return vect_Pn,vect_phi_Pn,vect_Mn_x,vect_phi_Mn_x,vect_Mn_y,vect_phi_Mn_y,a,vect_phi,A_c,x_c,y_c
+        
 
-def def_betha(fc):
-    if fc <= 28*MPa:
-        return 0.85
-    elif 28*MPa < fc & fc < 55 * MPa:
-        return 0.85 - 0.05*(fc-28*MPa)/(7*MPa)
-    else:
-        return 0.65
-    
-def def_phi(d_t,eps_u,eps_y,c):
-    if c==0:
-        return 0.9
-    eps_t = (c-d_t)/c*eps_u
-    phi = 0.65+0.25*(abs(eps_t)-eps_y)/0.003
-    if phi < 0.65:
-        return 0.65
-    elif phi > 0.9:
-        return 0.9
-    else:
-        return phi
-    
-#Esfuerzo en barras de acero segun su posición:
-def stress_f(eps_u,Es,fy,c,x):
-    if c==0:
-        return -fy
-    fs = eps_u*(c-x)/c*Es
-    if abs(fs) > fy:
-        return math.copysign(fy, fs)
-    else:
-        return fs
-    
-def comp_area(b,h,theta,a):
-    if theta == 0:
-        return a*h,a/2,h/2
-    elif theta == math.pi/2:
-        return a*b,b/2,a/2
-    cost = math.cos(theta)
-    sint = math.sin(theta)
-    tant = math.tan(theta)
-    if (a<=b*cost) & (a<=h*sint):
-        A_c = a**2/(2*sint*cost)
-        x_c = a/(3*cost)
-        y_c = a/(3*sint)
-    elif (a<=h*sint) & ~(a<=b*cost):
-        A_c = a*b/sint - b**2/(2*tant)
-        x_c = (a*b**2/(2*sint)-b**3/(3*tant))/A_c
-        y_c = (a**2*b/(2*sint**2)-b**2/(2*tant)*(a/sint-b/(3*tant)))/A_c
-    elif ~(a<=h*sint) & (a<=b*cost):
-        A_c = a*h/cost - h**2*tant/2
-        y_c = (a*h**2/(2*cost)-h**3*tant/3)/A_c
-        x_c = (a**2*h/(2*cost**2)-h**2*tant/2*(a/cost-h*tant/3))/A_c
-    else:
-        aux = h*sint+b*cost-a
-        A_c = b*h - aux**2/(2*sint*cost)
-        x_c = (b**2*h/2-aux**2/(2*sint*cost)*(b-aux/(3*cost)))/A_c
-        y_c = (b*h**2/2-aux**2/(2*sint*cost)*(h-aux/(3*sint)))/A_c
-    
-    return A_c, x_c, y_c
-    
-
-
-def ax_force_n(A_comp,rsp,fc):
-    return 0.85*fc*A_comp+rsp
-
-def vect_ax_force_n(vect_A_comp,rsp,fc):
-    vect_Pn = []
-    for i,A_comp in enumerate(vect_A_comp):
-        vect_Pn.append(ax_force_n(A_comp,rsp[i],fc))
-    return np.array(vect_Pn)
-
-def momemtum_n(A_comp,x_c,rsm,fc,b,theta):
-    return 0.85*fc*A_comp*(b/2-x_c)+rsm
-
-def vect_momentum_n(A_comp,x_c,rsm,fc,b,theta):
-    vect_Mn = []
-    for i,A_comp_i in enumerate(A_comp):
-        vect_Mn.append(momemtum_n(A_comp_i,x_c[i],rsm[i],fc,b,theta))
-    return np.array(vect_Mn)
-
-def flex_comp_data(d_conc,d_steel,geom,steel,phi,theta):
-    fc = d_conc['fc']
-    eps_u = d_conc['eps_u']
-    
-    fy = d_steel['fy']
-    Es = d_steel['Es']
-    eps_y = d_steel['eps_y']
-    
-    b = geom['b']
-    h = geom['h']
-    r = geom['r']
-    Ag = b*h
-    
-    d_p = steel['d_p']
-    d_s = steel['d_s']
-    d_st = steel['d_st']
-    n_f = steel['n_f']
-    n_c = steel['n_c']
-    
-    reb_matx = create_rebar_matrix(d_p,d_s,n_f,n_c)
-    area_matx = reb_matx**2*math.pi/4
-    area_vect = area_matx.flatten()
-    
-    Aref = area_matx.sum()
-    
-    dist_vect_x = dist_vector(b, r, d_p, d_st,n_c)
-    dist_vect_y = dist_vector(h, r, d_p, d_st,n_f)
-    
-    P_n = 0.85*fc*(Ag-Aref)+Aref*fy
-    phiP_n = phi*0.8*P_n
-    betha = def_betha(fc)
-    
-    theta = math.radians(theta)
-    l = b*math.cos(theta)+h*math.sin(theta)
-    a = np.array([i/100*l for i in range(100)])
-    c = a/betha
-    
-    dist_vect_x_rot = dist_vect_x*math.cos(theta)
-    dist_vect_y_rot = dist_vect_y*math.sin(theta)
-    dist_matx = np.array([i+dist_vect_x_rot for i in dist_vect_y_rot])
-    dist_vect = dist_matx.flatten()
-    
-    matx_fs = vector_function(vector_function,c,stress_f,dist_vect,eps_u,Es,fy)
-    
-    d_t = dist_vect.max()
-    
-    vect_phi = vector_function(def_phi,c,d_t,eps_u,eps_y)
-    
-    rsp = np.dot(matx_fs,area_vect)
-    
-    dist_list_x = np.array([dist_vect_x for _ in dist_vect_y]).flatten()
-    dist_list_y = np.array([i for i in dist_vect_y for _ in dist_vect_x])
-    dist_CM_x = b/2-dist_list_x
-    dist_CM_y = h/2-dist_list_y
-    rsm_x = np.dot(matx_fs*area_vect,dist_CM_x)
-    rsm_y = np.dot(matx_fs*area_vect,dist_CM_y)
-    
-    A_X_Y = vector_function(comp_area,a,b,h,theta)
-    A_c = A_X_Y[:,0]
-    x_c = A_X_Y[:,1]
-    y_c = A_X_Y[:,2]
-    
-    vect_Pn = vect_ax_force_n(A_c,rsp,fc)
-    vect_phi_Pn = vect_phi*vect_Pn
-    vect_phi_Pn = np.array([i if i < phiP_n else phiP_n for i in vect_phi_Pn])
-    
-    vect_Mn_x = vect_momentum_n(A_c,x_c,rsm_x,fc,b,theta)
-    vect_Mn_y = vect_momentum_n(A_c,y_c,rsm_y,fc,h,theta)
-    vect_phi_Mn_x = vect_phi*vect_Mn_x
-    vect_phi_Mn_y = vect_phi*vect_Mn_y
-    
-    return vect_Pn, vect_phi_Pn, vect_Mn_x, vect_Mn_y, vect_phi_Mn_x, vect_phi_Mn_y
-  
-def plot_flex_comp(vect_Pn,vect_Mn_x,vect_Mn_y,ax):
-    ax.plot(vect_Mn_x/10**6,vect_Mn_y/10**6, vect_Pn/10**6
-            ,linestyle = ':',alpha=0.7,color='#23987C')
-    ax.plot(-vect_Mn_x/10**6,-vect_Mn_y/10**6, vect_Pn/10**6
-            ,linestyle = ':',alpha=0.7,color='#23987C')
-    ax.plot(-vect_Mn_x/10**6,vect_Mn_y/10**6, vect_Pn/10**6
-            ,linestyle = ':',alpha=0.7,color='#23987C')
-    ax.plot(vect_Mn_x/10**6,-vect_Mn_y/10**6, vect_Pn/10**6
-            ,linestyle = ':',alpha=0.7,color='#23987C')
+    def biaxial_flex_comp(self,n_theta=30):
+        theta = [i/n_theta*90 for i in range(n_theta+1)]
+        self.biaxial_f_c = pd.DataFrame() 
+        for theta_i in theta:
+            data = pd.DataFrame(self.nominal_PM(theta_i)).T
+            data['theta'] = [theta_i for _ in data[0]]
+            self.biaxial_f_c = pd.concat([self.biaxial_f_c,data])
+        self.biaxial_f_c = self.biaxial_f_c.reset_index(drop=True)
+        self.biaxial_f_c = self.biaxial_f_c.set_axis(['Pn','phi_Pn','Mn_x','phi_Mn_x','Mn_y','phi_Mn_y','a','phi','A_c','x_c','y_c','theta'], axis=1)
+        self.biaxial_f_c = self.biaxial_f_c[['theta','a','Pn','phi_Pn','Mn_x','phi_Mn_x','Mn_y','phi_Mn_y','phi','A_c','x_c','y_c']]
+        
+        
 
   
-def find_a(b,Pn,P_min):
-    aux = abs(Pn-abs(P_min)).min()
-    a = [i/100*b for i in range(101)]
-    for i, val in enumerate(abs(Pn-abs(P_min))):
-        if val == aux:
-            return a[i],i
-    
+    def plot_bi_f_c(self,ax,factored=True,scale=10**3):
+        if factored:
+            M_x = self.biaxial_f_c.phi_Mn_x
+            M_y = self.biaxial_f_c.phi_Mn_y
+            Pn = self.biaxial_f_c.phi_Pn
+        else:
+            M_x = self.biaxial_f_c.Mn_x
+            M_y = self.biaxial_f_c.Mn_y
+            Pn = self.biaxial_f_c.Pn
+            
+        n_theta = len(self.biaxial_f_c.theta.unique())
+        
+        for i in range(n_theta):
+            M_x_i = M_x[101*i:101*(i+1)]
+            M_y_i = M_y[101*i:101*(i+1)]
+            Pn_i = Pn[101*i:101*(i+1)]
+            ax.plot(M_x_i/scale,M_y_i/scale, Pn_i/scale
+                    ,linestyle = ':',alpha=0.7,color='#23987C')
+            ax.plot(-M_x_i/scale,-M_y_i/scale, Pn_i/scale
+                    ,linestyle = ':',alpha=0.7,color='#23987C')
+            ax.plot(-M_x_i/scale,M_y_i/scale, Pn_i/scale
+                    ,linestyle = ':',alpha=0.7,color='#23987C')
+            ax.plot(M_x_i/scale,-M_y_i/scale, Pn_i/scale
+                    ,linestyle = ':',alpha=0.7,color='#23987C')
+        
+    def plot_f_c(self,ax,axis='x',factored=True,scale=10**3):
+        if axis == 'x':
+            theta = 0
+            data = self.biaxial_f_c[self.biaxial_f_c.theta==theta]
+            if factored:
+                M = data.phi_Mn_x
+                Pn = data.phi_Pn
+            else:
+                M = data.Mn_x
+                Pn = data.Pn
+        if axis == 'y':
+            theta = 90
+            data = self.biaxial_f_c[self.biaxial_f_c.theta==theta]
+            if factored:
+                M = data.phi_Mn_y
+                Pn = data.phi_Pn
+            else:
+                M = data.Mn_y
+                Pn = data.Pn            
+        ax.plot(M/scale, Pn/scale)
+        ax.plot(-M/scale, Pn/scale)
+
+  
+    def find_i(self,Pn,P_min):
+        aux = abs(Pn-abs(P_min)).min()
+        for i, val in enumerate(abs(Pn-abs(P_min))):
+            if val == aux:
+                return i
+        
     
 if __name__ == '__main__':
     pass
