@@ -77,10 +77,16 @@ class Beam(Concrete):
         self.d = h-r
         
     def set_rebar(self,d_s,n_s,u='top'):
-        if u == 'top':
-            self.Ast = d_s**2/4*math.pi*n_s
-        else:
-            self.Asb = d_s**2/4*math.pi*n_s
+        try:
+            if u == 'top':
+                self.Ast = sum([d_i**2/4*math.pi*n_s[i] for i,d_i in enumerate(d_s)])
+            else:
+                self.Asb = sum([d_i**2/4*math.pi*n_s[i] for i,d_i in enumerate(d_s)])
+        except:
+            if u == 'top':
+                self.Ast = d_s**2/4*math.pi*n_s
+            else:
+                self.Asb = d_s**2/4*math.pi*n_s
         
     def calc_Mnv(self,phi_f=0.9):
         As = self.Ast
