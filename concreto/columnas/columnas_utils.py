@@ -29,7 +29,7 @@ A_8 = d_8 ** 2 /4 * math.pi
 
 
 class Concrete():
-    def __init__(self,b,h,r):
+    def __init__(self,b,h,r=4*cm):
         self.b = b
         self.h = h
         self.Ag = b*h
@@ -37,7 +37,7 @@ class Concrete():
         self.fy = 420*MPa
         self.Es = 200000*MPa
         self.eps_y = self.fy/self.Es
-        self.fc = 210*MPa
+        self.fc = 21*MPa
         self.eps_u = 0.003
         self.betha = 0.85
     
@@ -56,11 +56,13 @@ class Concrete():
         self.Es = Es
         self.eps_y = fy/Es
     
-    def stress_f(self,c,x):
+    def stress_f(self,c,x,mayored='False'):
         'Esfuerzo en barras de acero segun su posición'
         eps_u = self.eps_u
         Es = self.Es
         fy = self.fy
+        if mayored:
+            fy = 1.25*fy
         if c==0:
             return -fy
         fs = eps_u*(c-x)/c*Es
@@ -69,8 +71,26 @@ class Concrete():
         else:
             return fs    
     
-    
-   
+class Beam(Concrete):
+    def __init__(self,b,h,r):
+        Concrete.__init__(self,b,h,r)
+        self.d = h-r
+        
+    def set_rebar(self,d_s,n_s,u='top'):
+        if u == 'top':
+            self.Ast = d_s**2/4*math.pi*n_s
+        else:
+            self.Asb = d_s**2/4*math.pi*n_s
+        
+    def calc_Mnv(self,phi_f=0.9):
+        As = self.Ast
+        fy = self.fy
+        fc = self.fc
+        b = self.b
+        d = self.d
+        self.a = As*fy/(0.5*fc*b)
+        self.Mn = As*fy*(d-self.a/2)
+        self.phi_Mn = phi_f*self.Mn
  
 class Column(Concrete):
     def __init__(self,b,h,r):
@@ -171,7 +191,7 @@ class Column(Concrete):
         dist_matx = np.array([i+dist_vect_x_rot for i in dist_vect_y_rot])
         return dist_matx.flatten()
     
-    def nominal_PM(self,theta):
+    def nominal_PM(self,theta,mayored=False):
         'return: vect_Pn,vect_phi_Pn,vect_Mn_x,vect_phi_Mn_x,vect_Mn_y,vect_phi_Mn_y,a,vect_phi,A_c,x_c,y_c'
         theta = math.radians(theta)
         b = self.b
@@ -188,7 +208,7 @@ class Column(Concrete):
         #Vector de distancias de cada barra (paralelo a las distancias a)
         dist_vect = self.dist_rot_vect(theta)
         #Esfuerzos en cada barra de refuerzo:
-        matx_fs = np.array([[self.stress_f(c_i,x) for x in dist_vect] for c_i in c])
+        matx_fs = np.array([[self.stress_f(c_i,x,mayored) for x in dist_vect] for c_i in c])
         #distancia a las varillas extremas a tensión:
         d_t = dist_vect.max()
         #Valores de phi para cada valor de c
@@ -232,7 +252,7 @@ class Column(Concrete):
         
 
   
-    def plot_bi_f_c(self,ax,factored=True,scale=10**3):
+    def plot_bi_f_c(self,ax,loads=None,factored=True,scale=10**3):
         if factored:
             M_x = self.biaxial_f_c.phi_Mn_x
             M_y = self.biaxial_f_c.phi_Mn_y
@@ -241,6 +261,11 @@ class Column(Concrete):
             M_x = self.biaxial_f_c.Mn_x
             M_y = self.biaxial_f_c.Mn_y
             Pn = self.biaxial_f_c.Pn
+            
+        if type(loads) != type(None):
+            for load in loads.Combinacion:
+                data = loads[loads.Combinacion==load]
+                ax.scatter(data['M2']/scale,data['M3']/scale,data['P']/scale*-1,alpha=0.5)
             
         n_theta = len(self.biaxial_f_c.theta.unique())
         
@@ -257,7 +282,7 @@ class Column(Concrete):
             ax.plot(M_x_i/scale,-M_y_i/scale, Pn_i/scale
                     ,linestyle = ':',alpha=0.7,color='#23987C')
         
-    def plot_f_c(self,ax,axis='x',factored=True,scale=10**3):
+    def plot_f_c(self,ax,loads=None,axis='x',factored=True,scale=10**3):
         if axis == 'x':
             theta = 0
             data = self.biaxial_f_c[self.biaxial_f_c.theta==theta]
@@ -267,6 +292,12 @@ class Column(Concrete):
             else:
                 M = data.Mn_x
                 Pn = data.Pn
+                
+            if type(loads)!= type(None):
+               for load in loads.Combinacion:
+                   data = loads[loads.Combinacion==load]
+                   ax.scatter(data['M2']/scale,data['P']/scale*-1,alpha=0.5) 
+            
         if axis == 'y':
             theta = 90
             data = self.biaxial_f_c[self.biaxial_f_c.theta==theta]
@@ -275,15 +306,19 @@ class Column(Concrete):
                 Pn = data.phi_Pn
             else:
                 M = data.Mn_y
-                Pn = data.Pn            
+                Pn = data.Pn
+            
+            if type(loads)!= type(None):
+               for load in loads.Combinacion:
+                   data = loads[loads.Combinacion==load]
+                   ax.scatter(data['M3']/scale,data['P']/scale*-1,alpha=0.5) 
+                   
         ax.plot(M/scale, Pn/scale)
         ax.plot(-M/scale, Pn/scale)
 
-  
-    def find_i(self,Pn,P_min):
-        aux = abs(Pn-abs(P_min)).min()
-        for i, val in enumerate(abs(Pn-abs(P_min))):
-            if val == aux:
+    def find_i(self,data,value):
+        for i,val in enumerate(abs(data-value)):
+            if val == min(abs(data-value)):
                 return i
         
     

@@ -47,6 +47,7 @@ Es = 200000*MPa #Módulo de elasticidad del acero
 eps_y = fy/Es #Deformación de fluencia del acero
 column.set_steel_reb(fy, Es)
 
+#Acero de refuerzo colocado
 d_p = d_5 #diámetro principal
 d_s = d_5 #diámetro secundario
 d_st = d_3 #diámetro del estribo
@@ -58,41 +59,8 @@ column.set_rebar(d_p, d_s, d_st, n_f, n_c)
 phi = 0.65
 column.compress_resist(phi)
 
-import columnas_utils as col
-column = col.Column(b, h, r)
-column.set_concrete(fc, eps_u)
-column.set_steel_reb(fy, Es)
-column.set_rebar(d_p, d_s, d_st, n_f, n_c)
-column.compress_resist()
-
-n_theta = len(column.biaxial_f_c.theta.unique())
-
-#Importación de cargas
-cargas = pd.read_csv('cargas.csv',sep=';')
-
-#Conversion de unidades
-cargas.P = cargas.P*9.81*10**3
-cargas.M2 = cargas.M2*9.81*10**3
-cargas.M3 = cargas.M3*9.81*10**3
-
-#Datos a flexocompresión
-theta = np.array(range(21))*4.5
-
-
+#Datos diagrama a flexocompresion
 column.biaxial_flex_comp()
-m = column.biaxial_f_c
-
-n = column.biaxial_f_c[column.biaxial_f_c.theta==0].phi_Mn_x
-
-#Procesando data de acero: (matriz de refuerzos, matriz de areas y Area de refuerzo):
-reb_matx, area_matx, Aref = col.rebar_data(steel)
-
-phi = 0.65 #factor de minoración
-Ag = geom['b']*geom['h']
-fc = d_conc['fc']
-fy = d_steel['fy']
-P_n = 0.85*fc*(Ag-Aref)+Aref*fy #Resistemcia Nominal
-phiP_n = phi*0.8*P_n #Resistencia reducida
 
 #Importación de cargas
 cargas = pd.read_csv('cargas.csv',sep=';')
@@ -101,80 +69,49 @@ cargas = pd.read_csv('cargas.csv',sep=';')
 cargas.P = cargas.P*9.81*10**3
 cargas.M2 = cargas.M2*9.81*10**3
 cargas.M3 = cargas.M3*9.81*10**3
-
-#Datos a flexocompresión
-theta = np.array(range(21))*4.5
-
-flex_comp_data = col.vector_function(col.flex_comp_data,theta,
-                                     d_conc,d_steel,geom,steel,phi)
-
-Pn = flex_comp_data[:,0]
-phi_Pn = flex_comp_data[:,1]
-Mn_x = flex_comp_data[:,2]
-Mn_y = flex_comp_data[:,3]
-phi_Mn_x = flex_comp_data[:,4]
-phi_Mn_y = flex_comp_data[:,5]
 
 #Diagrama a flexocompresión
 fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
-for i,theta_ in enumerate(theta):
-    col.plot_flex_comp(phi_Pn[i],phi_Mn_x[i],phi_Mn_y[i],ax)
-
-#Diagrama 3D    
-ax.scatter(cargas['M2']/10**6,cargas['M3']/10**6,cargas['P']*-1/10**6)
+column.plot_bi_f_c(ax,loads=cargas)
 plt.title('Diagrama de Flexocompresión')
-ax.set_xlabel("$\phi Mn_x$ (MN-m)")
-ax.set_ylabel("$\phi Mn_x$ (MN-m)")
-ax.set_zlabel("$\phi Pn$ (MN)")
+ax.set_xlabel("$\phi Mn_x$ (kN-m)")
+ax.set_ylabel("$\phi Mn_x$ (kN-m)")
+ax.set_zlabel("$\phi Pn$ (kN)")
 plt.show()
 
-#Diagrama en el eje x    
+#Eje x
 fig, ax = plt.subplots()
-ax.plot(phi_Mn_x[1]/10**6, phi_Pn[1]/10**6)
-ax.plot(-phi_Mn_x[1]/10**6, phi_Pn[1]/10**6)
-ax.plot(phi_Mn_x[1]/10**6, phi_Pn[1]/10**6)
-ax.plot(-phi_Mn_x[1]/10**6, phi_Pn[1]/10**6)
-ax.scatter(cargas['M2']/10**6,cargas['P']*-1/10**6)
-ax.set_xlabel("$\phi Mn_x$ (MN-m)")
-ax.set_ylabel("$\phi Pn$ (MN)")
+column.plot_f_c(ax,loads=cargas,axis='x')
 plt.show()
 
-#Diagrama en el eje y  
+#Eje y
 fig, ax = plt.subplots()
-ax.plot(phi_Mn_y[-1]/10**6, phi_Pn[-1]/10**6)
-ax.plot(-phi_Mn_y[-1]/10**6, phi_Pn[-1]/10**6)
-ax.plot(phi_Mn_y[-1]/10**6, phi_Pn[-1]/10**6)
-ax.plot(-phi_Mn_y[-1]/10**6, phi_Pn[-1]/10**6)
-ax.scatter(cargas['M3']/10**6,cargas['P']*-1/10**6)
-ax.set_xlabel("$\phi Mn_x$ (MN-m)")
-ax.set_ylabel("$\phi Pn$ (MN)")
+column.plot_f_c(ax,loads=cargas,axis='y')
 plt.show()
 
 #Comprobacion Viga Debil Columna Fuerte
 #Datos de la viga
-bv = 25*cm
-hv = 40*cm
-dv = hv-9*cm #peralte efectivo
-As = 4*A_5 #4 aceros #5
+viga_1 = col.Beam(b=25*cm,h=40*cm,r=9*cm)
+viga_1.set_rebar(d_s=d_5, n_s=4)
 
 #Momento Resistente máximo con acero en tracción solamente
 phi_f = 0.9
-av = As*fy/(0.5*fc*bv) #Altura del bloque en compresión
-Mnv = As*fy*(dv-av/2)
-phi_Mnv = phi_f*Mnv
+viga_1.calc_Mnv(phi_f)
 
-P_min = cargas[cargas.Piso!=6]['P'].max()
+#Menor carga que no se encuentra en el ultimo nivel
+P_min = cargas[cargas.Piso!=6]['P'].max()*-1
 
-#Valor de a para la carga mínima
-b = geom['b']
-a_des,i = col.find_a(b,Pn[0],P_min)
+#Filtro de datos para la menor carga
+data = column.biaxial_f_c
+data = data[data.theta==0]
+data = data[abs(data.Pn-P_min)== min(abs(data.Pn-P_min))]
 
 #Momento de diseño
-Mnx_des = Mn_x[0][i]
+Mnx_des = float(data.Mn_x)
 
 #Verificación:
-if 2*Mnx_des > 1.2*(2*Mnv):
+if 2*Mnx_des > 1.2*(2*viga_1.Mn):
     print('OK')
 else:
     print('Viga más fuerte que la columna')
