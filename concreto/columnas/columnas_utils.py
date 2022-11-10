@@ -429,7 +429,18 @@ class Column(Concrete):
             Ash3 = 0.2*kf*kn*P_max/(fy*Ach)
         self.Ashy = max(Ash1,Ash2,Ash3)
       
-    def add_stirrup(self,db,n,theta=90,axis='x',check=False):
+    def add_stirrup(self,db,n,theta=0,axis='x',check=False):
+        try:
+            self.Astx
+        except:
+            self.Astx = 0
+            
+        try:
+            self.Asty
+        except:
+            self.Asty = 0
+        
+        theta = math.radians(theta)
         if axis=='x':
             self.Astx += db**2/4*math.pi*n*math.cos(theta)
             if check:
@@ -483,8 +494,8 @@ class Column(Concrete):
     def ultimate_shear(self,beamx,beamy):
         hnx = self.h - beamx.h
         hny = self.h - beamy.h
-        Vux = 2*self.Mnx_des/hnx
-        Vuy = 2*self.Mny_des/hny
+        Vux = 2*self.Mnx_may/hnx
+        Vuy = 2*self.Mny_may/hny
         self.Vux = Vux
         self.Vuy = Vuy
     
@@ -528,12 +539,10 @@ class Column(Concrete):
         self.Vumy = Vumy
 
         if Vumx < self.Vux:
-            return 'Aumentar seccion'
-        else:
-            return 'OK'
-            
+            return 'Aumentar seccion (x)'
+          
         if Vumy < self.Vuy:
-            return 'Aumentar seccion'
+            return 'Aumentar seccion (y)'
         else:
             return 'OK'
     
@@ -556,14 +565,10 @@ class Column(Concrete):
         
         return self.s
     
-    def strib_des(self,loads,beamx,beamy,st_nx,st_ny,phi_c=0.85,lamb=1, graph = False):
+    def strib_des(self,loads,beamx,beamy,phi_c=0.85,lamb=1, graph = False):
         #Carga máxima]
         P_max = abs(loads['P'].min())
         self.P_max = P_max
-        #Momentos mayorados en X
-        Pn_x_may, Mn_x_may = self.mayored_moment(axis='x',graph = graph,loads=loads)
-        #Momentos mayorados en Y
-        Pn_y_may, Mn_y_may = self.mayored_moment(axis='y',graph = graph,loads=loads)
 
         #Momentos Probables
         self.mayored_moment(P_max,axis='x',graph=graph,loads=loads)
@@ -576,11 +581,79 @@ class Column(Concrete):
         self.concrete_shear(phi_c=phi_c,lamb=lamb)
         
         #Comprobacion de la sección transversal
-        self.check_secction(phi_c=phi_c)
+        print(self.check_secction(phi_c=phi_c))
         
         #Espaciamiento de estribos
-        self.stib_sep()
+        self.strib_sep()
+    
+    def strib_beamrot(self,beamx,beamy):
+        fy = self.fy
+        fc = self.fc
+        #Sentido X
+        try:
+            beamy1, beamy2 = beamx
+            #Momentos Probables en la viga
+            hnx = self.h - max(beamy1.h,beamy1.h)
+            a = beamy1.Ast*1.25*fy/(0.85*fc*beamy1.b)
+            Mpx1 = beamy1.Ast*1.25*fy*(beamy1.d-a/2)
+            self.Mpx1 = Mpx1
+            
+            a = beamy2.Ast*1.25*fy/(0.85*fc*beamy2.b)
+            Mpx2 = beamy2.Ast*1.25*fy*(beamy2.d-a/2)
+            self.Mpx2 = Mpx2
+
+            Mpx = max(Mpx1,Mpx2)
+            self.Mpx = Mpx
+            self.Vux = 2*Mpx/(2*hnx)
+            
+            V2 = 2*Mpx/beamy1.l
+            V1 = 2*Mpx/beamy1.l
+
+            lc1 = 0.5*hn2+viga_1.h
+            Vcolx = 2*Mpx/lc1 + (V1+V2)*b/2/lc1
+            
+        except:
+            hnx = self.l - beamx.h
+            a = beamx.Ast*1.25*fy/(0.85*fc*beamx.b)
+            Mpx = beamx.Ast*1.25*fy*(beamx.d-a/2)
+            self.Mpx = Mpx    
+        self.Vux = 4*Mpx/(2*hnx)
         
+        
+        #Sentido Y
+        try:
+            beamx1, beamx2 = beamx
+            #Momentos Probables en la viga
+            hny = self.h - max(beamx1.h,beamx2.h)
+            a = beamx1.Ast*1.25*fy/(0.85*fc*beamx1.b)
+            Mpy1 = beamx1.Ast*1.25*fy*(beamx1.d-a/2)
+            
+            a = beamx2.Ast*1.25*fy/(0.85*fc*beamx2.b)
+            Mpy2 = beamx2.Ast*1.25*fy*(beamx2.d-a/2)
+
+            Mpy = max(Mpy1,Mpy2)
+            self.Mpy = Mpy
+            self.Vuy = 2*Mpy/(2*hny)
+            
+            
+        except:
+            hny = self.l - beamy.h
+            a = beamy.Ast*1.25*fy/(0.85*fc*beamy.b)
+            Mpx = beamy.Ast*1.25*fy*(beamy.d-a/2)
+            self.Mpy = Mpy  
+        self.Vuy = 2*Mpy/(2*hny)
+        
+        #Cortantes en la columna
+        
+        
+
+
+        hv2 = 55*cm
+        lc2 = 0.5*hn1+hv2
+
+        l3 = 4.825*m
+        V3 = (Mpy1+Mpy2)/l3
+        Vcoly = Mpy/lc2+V3*h/2/lc2
     
 if __name__ == '__main__':
     pass
