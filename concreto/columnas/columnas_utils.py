@@ -29,7 +29,7 @@ A_8 = d_8 ** 2 /4 * math.pi
 
 
 class Concrete():
-    def __init__(self,b,h,r):
+    def __init__(self,b,h,r=4*cm):
         self.b = b
         self.h = h
         self.Ag = b*h
@@ -37,7 +37,7 @@ class Concrete():
         self.fy = 420*MPa
         self.Es = 200000*MPa
         self.eps_y = self.fy/self.Es
-        self.fc = 210*MPa
+        self.fc = 21*MPa
         self.eps_u = 0.003
         self.betha = 0.85
     
@@ -56,11 +56,13 @@ class Concrete():
         self.Es = Es
         self.eps_y = fy/Es
     
-    def stress_f(self,c,x):
+    def stress_f(self,c,x,mayored='False'):
         'Esfuerzo en barras de acero segun su posición'
         eps_u = self.eps_u
         Es = self.Es
         fy = self.fy
+        if mayored:
+            fy = 1.25*fy
         if c==0:
             return -fy
         fs = eps_u*(c-x)/c*Es
@@ -68,13 +70,71 @@ class Concrete():
             return math.copysign(fy, fs)
         else:
             return fs    
+        
+    def des_long(self,db,lamb=1,psi_g=1,psi_e=1,psi_s=0.8,psi_t=1):
+        psi_t_e = psi_t*psi_e
+        if psi_t_e > 1.7:
+            psi_t_e = 1.7
+            
+        sqrt_fc = (self.fc/10**6)**0.5*MPa
+        if sqrt_fc > 8.3*MPa:
+           sqrt_fc = 8.3*MPa
+            
+        ld = self.fy/(1.1*lamb*sqrt_fc)*psi_g*psi_e*psi_s*psi_g*db
+        
+        #efecto de los estribos
+        r = self.r
+        d_st = self.d_st
+        nb = self.n_c
+        b = self.b
+
+        cb1 = r+d_st+db*0.5
+        cb2 = (b-2*r-2*d_st-db)/(nb-1)/2
+        cb = min(cb1,cb2)
+
+        k_tr = 0
+
+        #restricciones de la norma
+        alpha = (cb+k_tr)/db
+        if alpha > 2.5:
+            alpha = 2.5
+
+        return ld/alpha 
+
+
     
-    
-   
- 
-class Column(Concrete):
+class Beam(Concrete):
     def __init__(self,b,h,r):
         Concrete.__init__(self,b,h,r)
+        self.d = h-r
+        
+    def set_rebar(self,d_s,n_s,u='top'):
+        try:
+            if u == 'top':
+                self.Ast = sum([d_i**2/4*math.pi*n_s[i] for i,d_i in enumerate(d_s)])
+            else:
+                self.Asb = sum([d_i**2/4*math.pi*n_s[i] for i,d_i in enumerate(d_s)])
+        except:
+            if u == 'top':
+                self.Ast = d_s**2/4*math.pi*n_s
+            else:
+                self.Asb = d_s**2/4*math.pi*n_s
+        
+    def calc_Mnv(self,phi_f=0.9):
+        As = self.Ast
+        fy = self.fy
+        fc = self.fc
+        b = self.b
+        d = self.d
+        self.a = As*fy/(0.5*fc*b)
+        self.Mn = As*fy*(d-self.a/2)
+        self.phi_Mn = phi_f*self.Mn
+ 
+    
+class Column(Concrete):
+    def __init__(self,b,h,r,l):
+        Concrete.__init__(self,b,h,r)
+        self.l = l
  
     def set_rebar(self, d_p, d_s, d_st, n_f, n_c):
         self.d_p = d_p
@@ -171,7 +231,7 @@ class Column(Concrete):
         dist_matx = np.array([i+dist_vect_x_rot for i in dist_vect_y_rot])
         return dist_matx.flatten()
     
-    def nominal_PM(self,theta):
+    def nominal_PM(self,theta,mayored=False):
         'return: vect_Pn,vect_phi_Pn,vect_Mn_x,vect_phi_Mn_x,vect_Mn_y,vect_phi_Mn_y,a,vect_phi,A_c,x_c,y_c'
         theta = math.radians(theta)
         b = self.b
@@ -188,7 +248,7 @@ class Column(Concrete):
         #Vector de distancias de cada barra (paralelo a las distancias a)
         dist_vect = self.dist_rot_vect(theta)
         #Esfuerzos en cada barra de refuerzo:
-        matx_fs = np.array([[self.stress_f(c_i,x) for x in dist_vect] for c_i in c])
+        matx_fs = np.array([[self.stress_f(c_i,x,mayored) for x in dist_vect] for c_i in c])
         #distancia a las varillas extremas a tensión:
         d_t = dist_vect.max()
         #Valores de phi para cada valor de c
@@ -229,10 +289,8 @@ class Column(Concrete):
         self.biaxial_f_c = self.biaxial_f_c.set_axis(['Pn','phi_Pn','Mn_x','phi_Mn_x','Mn_y','phi_Mn_y','a','phi','A_c','x_c','y_c','theta'], axis=1)
         self.biaxial_f_c = self.biaxial_f_c[['theta','a','Pn','phi_Pn','Mn_x','phi_Mn_x','Mn_y','phi_Mn_y','phi','A_c','x_c','y_c']]
         
-        
-
   
-    def plot_bi_f_c(self,ax,factored=True,scale=10**3):
+    def plot_bi_f_c(self,ax,loads=None,factored=True,scale=10**3):
         if factored:
             M_x = self.biaxial_f_c.phi_Mn_x
             M_y = self.biaxial_f_c.phi_Mn_y
@@ -241,6 +299,11 @@ class Column(Concrete):
             M_x = self.biaxial_f_c.Mn_x
             M_y = self.biaxial_f_c.Mn_y
             Pn = self.biaxial_f_c.Pn
+            
+        if type(loads) != type(None):
+            for load in loads.Combinacion:
+                data = loads[loads.Combinacion==load]
+                ax.scatter(data['M2']/scale,data['M3']/scale,data['P']/scale*-1,alpha=0.5)
             
         n_theta = len(self.biaxial_f_c.theta.unique())
         
@@ -257,7 +320,7 @@ class Column(Concrete):
             ax.plot(M_x_i/scale,-M_y_i/scale, Pn_i/scale
                     ,linestyle = ':',alpha=0.7,color='#23987C')
         
-    def plot_f_c(self,ax,axis='x',factored=True,scale=10**3):
+    def plot_f_c(self,ax,loads=None,axis='x',factored=True,scale=10**3):
         if axis == 'x':
             theta = 0
             data = self.biaxial_f_c[self.biaxial_f_c.theta==theta]
@@ -267,6 +330,12 @@ class Column(Concrete):
             else:
                 M = data.Mn_x
                 Pn = data.Pn
+                
+            if type(loads)!= type(None):
+               for load in loads.Combinacion:
+                   data = loads[loads.Combinacion==load]
+                   ax.scatter(data['M2']/scale,data['P']/scale*-1,alpha=0.5) 
+            
         if axis == 'y':
             theta = 90
             data = self.biaxial_f_c[self.biaxial_f_c.theta==theta]
@@ -275,17 +344,92 @@ class Column(Concrete):
                 Pn = data.phi_Pn
             else:
                 M = data.Mn_y
-                Pn = data.Pn            
+                Pn = data.Pn
+            
+            if type(loads)!= type(None):
+               for load in loads.Combinacion:
+                   data = loads[loads.Combinacion==load]
+                   ax.scatter(data['M3']/scale,data['P']/scale*-1,alpha=0.5) 
+                   
         ax.plot(M/scale, Pn/scale)
         ax.plot(-M/scale, Pn/scale)
 
-  
-    def find_i(self,Pn,P_min):
-        aux = abs(Pn-abs(P_min)).min()
-        for i, val in enumerate(abs(Pn-abs(P_min))):
-            if val == aux:
+    def find_i(self,data,value):
+        for i,val in enumerate(abs(data-value)):
+            if val == min(abs(data-value)):
                 return i
         
+    def colstrong_beamw(self,beam,loads):
+        #Momento Resistente de la viga máximo con acero en tracción solamente
+        beam.calc_Mnv(phi_f=0.9)
+        #Menor carga que no se encuentra en el ultimo nivel
+        P_min = loads[loads.Piso!=6]['P'].max()*-1
+        self.P_min = P_min
+
+        #Filtro de datos para la menor carga
+        data = self.biaxial_f_c
+        data = data[data.theta==0]
+        data = data[abs(data.Pn-P_min)== min(abs(data.Pn-P_min))]
+
+        #Momento de diseño
+        Mnx_des = float(data.Mn_x)
+        self.Mnx_des = Mnx_des
+
+        #Verificación:
+        if 2*Mnx_des < 1.2*(2*beam.Mn):
+            return 'Viga más fuerte que la columna'
+        else:
+            return 'ok'
+    
+    def long_dev(self,beam,db):
+        #Verificación por longitud de desarrollo en la columna
+        lu = self.l - beam.h
+        ld = self.des_long(d_6)
+        self.ld = ld
+        #Verificación
+        if 1.25*ld <= lu/2:
+            return 'Ok'
+        else:
+            return 'El acero no puede desarrolarse en la columna'
+      
+    def strib_area(self,s,loads):
+        P_max = abs(loads.P.min())
+        bc = self.b-2*self.r
+        hc = self.h-2*self.r
+        Ach = bc*hc
+        self.Ach = Ach
+        fc = self.fc
+        fy = self.fy
+        #Revisión X
+        Ag = self.Ag
+        Ash1 = 0.09*s*bc*fc/fy
+        Ash2 = 0.3*s*bc*(Ag/Ach-1)*fc/fy
+        Ash3 = 0
+        nl = 10
+        
+        if 0.3*fc*Ag < P_max:
+            print('Es necesario confinar todas las barras longitudinales')
+            kf = fc/175+0.6
+            if kf < 1.0:
+                kf = 1.0 
+            kn = nl/(nl-2)
+            Ash3 = 0.2*kf*kn*P_max/(fy*Ach)
+        self.Ashx = max(Ash1,Ash2,Ash3)
+
+        #Revisión Y
+        Ash1 = 0.09*s*hc*fc/fy
+        Ash2 = 0.3*s*hc*(Ag/Ach-1)*fc/fy
+        Ash3 = 0
+        nl = 10
+        if 0.3*fc*Ag < P_max:
+            print('Es necesario confinar todas las barras longitudinales')
+            kf = fc/175+0.6
+            if kf < 1.0:
+                kf = 1.0 
+            kn = nl/(nl-2)
+            Ash3 = 0.2*kf*kn*P_max/(fy*Ach)
+        self.Ashy = max(Ash1,Ash2,Ash3)
+      
     
 if __name__ == '__main__':
     pass

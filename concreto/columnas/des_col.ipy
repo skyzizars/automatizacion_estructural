@@ -34,7 +34,8 @@ A_8 = d_8 ** 2 /4 * math.pi
 b = 35*cm
 h = 75*cm
 r = 4*cm
-column = col.Column(b, h, r)
+l = 2.5*m
+column = col.Column(b, h, r,l)
 
 # Concreto
 fc = 21*MPa #Resistencia a la compresion
@@ -47,6 +48,7 @@ Es = 200000*MPa #Módulo de elasticidad del acero
 eps_y = fy/Es #Deformación de fluencia del acero
 column.set_steel_reb(fy, Es)
 
+#Acero de refuerzo colocado
 d_p = d_5 #diámetro principal
 d_s = d_5 #diámetro secundario
 d_st = d_3 #diámetro del estribo
@@ -58,41 +60,8 @@ column.set_rebar(d_p, d_s, d_st, n_f, n_c)
 phi = 0.65
 column.compress_resist(phi)
 
-import columnas_utils as col
-column = col.Column(b, h, r)
-column.set_concrete(fc, eps_u)
-column.set_steel_reb(fy, Es)
-column.set_rebar(d_p, d_s, d_st, n_f, n_c)
-column.compress_resist()
-
-n_theta = len(column.biaxial_f_c.theta.unique())
-
-#Importación de cargas
-cargas = pd.read_csv('cargas.csv',sep=';')
-
-#Conversion de unidades
-cargas.P = cargas.P*9.81*10**3
-cargas.M2 = cargas.M2*9.81*10**3
-cargas.M3 = cargas.M3*9.81*10**3
-
-#Datos a flexocompresión
-theta = np.array(range(21))*4.5
-
-
+#Datos diagrama a flexocompresion
 column.biaxial_flex_comp()
-m = column.biaxial_f_c
-
-n = column.biaxial_f_c[column.biaxial_f_c.theta==0].phi_Mn_x
-
-#Procesando data de acero: (matriz de refuerzos, matriz de areas y Area de refuerzo):
-reb_matx, area_matx, Aref = col.rebar_data(steel)
-
-phi = 0.65 #factor de minoración
-Ag = geom['b']*geom['h']
-fc = d_conc['fc']
-fy = d_steel['fy']
-P_n = 0.85*fc*(Ag-Aref)+Aref*fy #Resistemcia Nominal
-phiP_n = phi*0.8*P_n #Resistencia reducida
 
 #Importación de cargas
 cargas = pd.read_csv('cargas.csv',sep=';')
@@ -101,228 +70,92 @@ cargas = pd.read_csv('cargas.csv',sep=';')
 cargas.P = cargas.P*9.81*10**3
 cargas.M2 = cargas.M2*9.81*10**3
 cargas.M3 = cargas.M3*9.81*10**3
-
-#Datos a flexocompresión
-theta = np.array(range(21))*4.5
-
-flex_comp_data = col.vector_function(col.flex_comp_data,theta,
-                                     d_conc,d_steel,geom,steel,phi)
-
-Pn = flex_comp_data[:,0]
-phi_Pn = flex_comp_data[:,1]
-Mn_x = flex_comp_data[:,2]
-Mn_y = flex_comp_data[:,3]
-phi_Mn_x = flex_comp_data[:,4]
-phi_Mn_y = flex_comp_data[:,5]
 
 #Diagrama a flexocompresión
 fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
-for i,theta_ in enumerate(theta):
-    col.plot_flex_comp(phi_Pn[i],phi_Mn_x[i],phi_Mn_y[i],ax)
-
-#Diagrama 3D    
-ax.scatter(cargas['M2']/10**6,cargas['M3']/10**6,cargas['P']*-1/10**6)
+column.plot_bi_f_c(ax,loads=cargas)
 plt.title('Diagrama de Flexocompresión')
-ax.set_xlabel("$\phi Mn_x$ (MN-m)")
-ax.set_ylabel("$\phi Mn_x$ (MN-m)")
-ax.set_zlabel("$\phi Pn$ (MN)")
+ax.set_xlabel("$\phi Mn_x$ (kN-m)")
+ax.set_ylabel("$\phi Mn_x$ (kN-m)")
+ax.set_zlabel("$\phi Pn$ (kN)")
 plt.show()
 
-#Diagrama en el eje x    
+#Eje x
 fig, ax = plt.subplots()
-ax.plot(phi_Mn_x[1]/10**6, phi_Pn[1]/10**6)
-ax.plot(-phi_Mn_x[1]/10**6, phi_Pn[1]/10**6)
-ax.plot(phi_Mn_x[1]/10**6, phi_Pn[1]/10**6)
-ax.plot(-phi_Mn_x[1]/10**6, phi_Pn[1]/10**6)
-ax.scatter(cargas['M2']/10**6,cargas['P']*-1/10**6)
-ax.set_xlabel("$\phi Mn_x$ (MN-m)")
-ax.set_ylabel("$\phi Pn$ (MN)")
+column.plot_f_c(ax,loads=cargas,axis='x')
 plt.show()
 
-#Diagrama en el eje y  
+#Eje y
 fig, ax = plt.subplots()
-ax.plot(phi_Mn_y[-1]/10**6, phi_Pn[-1]/10**6)
-ax.plot(-phi_Mn_y[-1]/10**6, phi_Pn[-1]/10**6)
-ax.plot(phi_Mn_y[-1]/10**6, phi_Pn[-1]/10**6)
-ax.plot(-phi_Mn_y[-1]/10**6, phi_Pn[-1]/10**6)
-ax.scatter(cargas['M3']/10**6,cargas['P']*-1/10**6)
-ax.set_xlabel("$\phi Mn_x$ (MN-m)")
-ax.set_ylabel("$\phi Pn$ (MN)")
+column.plot_f_c(ax,loads=cargas,axis='y')
 plt.show()
 
-#Comprobacion Viga Debil Columna Fuerte
-#Datos de la viga
-bv = 25*cm
-hv = 40*cm
-dv = hv-9*cm #peralte efectivo
-As = 4*A_5 #4 aceros #5
 
-#Momento Resistente máximo con acero en tracción solamente
-phi_f = 0.9
-av = As*fy/(0.5*fc*bv) #Altura del bloque en compresión
-Mnv = As*fy*(dv-av/2)
-phi_Mnv = phi_f*Mnv
+#Datos de las vigas
+#Viga en el sentido Y:
+viga_1 = col.Beam(b=25*cm,h=40*cm,r=9*cm)
+viga_1.set_rebar(d_s=d_5, n_s=4)
+viga_1.ln = 5.65*m-0.2*m
 
-P_min = cargas[cargas.Piso!=6]['P'].max()
+#Vigas en el sentido X
+viga_2 = col.Beam(b=35*cm,h=55*cm,r=9*cm)
+viga_2.set_rebar(d_s=[d_5,d_6], n_s=[2,2])
+viga_2.ln = 4.56*m-0.35*m
+viga_3 = col.Beam(b=35*cm,h=55*cm,r=9*cm)
+viga_3.set_rebar(d_s=d_5, n_s=3)
+viga_3.ln = 4*m-0.35*m
 
-#Valor de a para la carga mínima
-b = geom['b']
-a_des,i = col.find_a(b,Pn[0],P_min)
 
-#Momento de diseño
-Mnx_des = Mn_x[0][i]
+#verificación columna fuerte viga debil
+column.colstrong_beamw(viga_1,cargas)
 
-#Verificación:
-if 2*Mnx_des > 1.2*(2*Mnv):
-    print('OK')
-else:
-    print('Viga más fuerte que la columna')
-    
 #Verificación por longitud de desarrollo en la columna
-lu = 1.95
-lamb = 1
-psi_g = 1
-psi_e = 1
-psi_s1 = 1
-psi_s2 = 0.8
-psi_ts = 1.3
-psi_ti = 1
-db = 0.75 * pulg
-
-#restricciones de la norma:
-psi_ts_e = psi_ts*psi_e 
-if psi_ts_e > 1.7:
-    psi_ts_e = 1.7
-    
-sqrt_fc = (fc/10**6)**0.5*MPa
-if sqrt_fc > 8.3*MPa:
-   sqrt_fc = 8.3*MPa
-    
-ld3 = fy/(1.1*lamb*sqrt_fc)*psi_g*psi_e*psi_s2*psi_g*db
-
-#Verificación
-if 1.25*ld3 <= lu/2:
-    print('Ok')
-else:
-    print('El acero no puede desarrolarse en la columna')
-
-#Considerando el efecto de los estribos:
-r = geom['r']
-d_st = steel['d_st']
-nb = steel['n_c']
-
-cb1 = r+d_st+db*0.5
-cb2 = (b-2*r-2*d_st-db)/(nb-1)/2
-cb = min(cb1,cb2)
-
-k_tr = 0
-
-#restricciones de la norma
-alpha = (cb+k_tr)/db
-if alpha > 2.5:
-    alpha = 2.5
-
-#Por tanto:
-ld3 = ld3/alpha 
-
-#Verificación
-if 1.25*ld3 <= lu/2:
-    print('Ok')
-else:
-    print('El acero no puede desarrolarse en la columna')
+column.long_dev(viga_2,d_6)
 
 
 #Longitud de confinamiento
 hn = 2.1*m
-h = geom['h']
+h = column.h
 Lo = max(b,h,hn/6,45*cm)
 
 #Confinamiento de barras:
-P_max = cargas.P.min()
-
-
-#Área de refuerzo transaversal
-s = 10*cm
-bc = b-2*r
-hc = h-2*r
-Ach = bc*hc
-
-#Revisión X
-Ash1 = 0.09*s*bc*fc/fy
-Ash2 = 0.3*s*bc*(Ag/Ach-1)*fc/fy
-Ash3 = 0
-nl = 10
-if 0.3*fc*Ag < P_max:
-    print('Es necesario confinar todas las barras longitudinales')
-    kf = fc/175+0.6
-    if kf < 1.0:
-        kf = 1.0 
-    kn = nl/(nl-2)
-    Ash3 = 0.2*kf*kn*P_max/(fy*Ach)
-Ashx = max(Ash1,Ash2,Ash3)
-
-#Revisión Y
-Ash1 = 0.09*s*hc*fc/fy
-Ash2 = 0.3*s*hc*(Ag/Ach-1)*fc/fy
-Ash3 = 0
-nl = 10
-if 0.3*fc*Ag < P_max:
-    print('Es necesario confinar todas las barras longitudinales')
-    kf = fc/175+0.6
-    if kf < 1.0:
-        kf = 1.0 
-    kn = nl/(nl-2)
-    Ash3 = 0.2*kf*kn*P_max/(fy*Ach)
-Ashy = max(Ash1,Ash2,Ash3)
+column.strib_area(s=10*cm, loads=cargas)
 
 #Resistencia a cortante
 
-#Diagramas de flexocompresion mayorados
-d_steel_may = {'fy' : 1.25*420*MPa, #Esfuerzo a la fluencia del acero
-               'Es' : 200000*MPa, #Módulo de elasticidad del acero
-               'eps_y' : 1.25*420*MPa/(200000*MPa)} #Deformación de fluencia del acero
-theta = 0
-flex_comp_data = col.flex_comp_data(d_conc, d_steel_may, 
-                                    geom, steel, phi, theta)
-Mn_x_may = flex_comp_data[2]
+#Diagramas a flexocompresión mayorados
+#Momentos en X
+flex_comp_data = column.nominal_PM(theta=0,mayored=True)
 Pn_x_may = flex_comp_data[0]
+Mn_x_may = flex_comp_data[2]
 
-theta = 90
-flex_comp_data = col.flex_comp_data(d_conc, d_steel_may, 
-                                    geom, steel, phi, theta)
-Mn_y_may = flex_comp_data[3]
+#Momentos en Y
+flex_comp_data = column.nominal_PM(theta=90,mayored=True)
 Pn_y_may = flex_comp_data[0]
+Mn_y_may = flex_comp_data[4]
 
 #Diagrama en el eje x    
 fig, ax = plt.subplots()
-ax.plot(Mn_x_may/10**6, Pn_x_may/10**6)
-ax.plot(-Mn_x_may/10**6, Pn_x_may/10**6)
-ax.plot(Mn_x_may/10**6, Pn_x_may/10**6)
-ax.plot(-Mn_x_may/10**6, Pn_x_may/10**6)
-ax.scatter(cargas['M2']/10**6,cargas['P']*-1/10**6)
-ax.set_xlabel("$M_x$ (MN-m)")
-ax.set_ylabel("$Pn$ (MN)")
+column.plot_f_c(ax,loads=cargas,axis='x',factored=False)
+ax.set_xlabel("$M_x$ (kN-m)")
+ax.set_ylabel("$Pn$ (kN)")
 plt.show()
 
 #Diagrama en el eje y  
 fig, ax = plt.subplots()
-ax.plot(Mn_y_may/10**6, Pn_y_may/10**6)
-ax.plot(-Mn_y_may/10**6, Pn_y_may/10**6)
-ax.plot(Mn_y_may/10**6, Pn_y_may/10**6)
-ax.plot(-Mn_y_may/10**6, Pn_y_may/10**6)
-ax.scatter(cargas['M3']/10**6,cargas['P']*-1/10**6)
-ax.set_xlabel("$Mn_y$ (MN-m)")
-ax.set_ylabel("$Pn$ (MN)")
+column.plot_f_c(ax,loads=cargas,axis='y',factored=False)
+ax.set_xlabel("$Mn_y$ (kN-m)")
+ax.set_ylabel("$Pn$ (kN)")
 plt.show()
 
 #Momentos Probables
 P_max = cargas['P'].min()
-a1,i = col.find_a(b,Pn_x_may,P_max)
+i = column.find_i(Pn_x_may,P_max)
 Mnx_des = Mn_x_may[i]
 Pnx_des = Pn_x_may[i]
 
-a2,i = col.find_a(h,Pn_y_may,P_max)
+i = column.find_i(Pn_y_may,P_max)
 Mny_des = Mn_y_may[i]
 Pny_des = Pn_y_may[i]
 
@@ -333,8 +166,9 @@ Vux = 2*Mnx_des/hn2
 Vuy = 2*Mny_des/hn1
 
 #Cortante que toma el concreto:
+lamb = 1
 phi_c =0.75 #factor de reduccion
-Y = abs(P_max)/(6*Ag)
+Y = abs(column.P_max)/(6*column.Ag)
 Y = min(Y,0.05*fc)
 Vcx1 = (0.17*lamb*(fc/MPa)**0.5*MPa+Y)*h*(b-r-d_st)
 Vcx2 = (0.42*lamb*(fc/MPa)**0.5*MPa)*h*(b-r-d_st)
@@ -374,23 +208,21 @@ theta = math.radians(45)
 Ast = A_4*n1+A_3*n2+A_3*n3*math.cos(theta)
 sy = Ast*fy*(b-r-d_st)/Vsx
 
-d_p = steel['d_p']
+d_p = column.d_p
 s = min(sx,sy,6*d_p,15*cm)
 
-#Diseño considerando rotulas en vigas
-As = 4*A_5
-a = As*1.25*fy/(0.85*fc*bv)
-Mpx = As*1.25*fy*(dv-a/2)
-Vux = 4*Mpx/(2*hn2)
 
-bv2 = 35*cm
-dv2=49*cm
-As2 = 2*A_5+2*A_6
-a = As*1.25*fy/(0.85*fc*bv2)
-Mpy1 = As*1.25*fy*(dv2-a/2)
-As3 = 3*A_5
-a = As*1.25*fy/(0.85*fc*bv2)
-Mpy2 = As*1.25*fy*(dv2-a/2)
+#Diseño considerando rotulas en vigas
+#Momentos Probables en las vigas
+#Sentido X
+viga_1.a = viga_1.Ast*1.25*fy/(0.85*fc*viga_1.b)
+Mpx = viga_1.Ast*1.25*fy*(viga_1.d-viga_1.a/2)
+Vux = 4*Mpx/(2*hn2)
+#Sentido Y
+viga_2.a = viga_2.Ast*1.25*fy/(0.85*fc*viga_2.b)
+Mpy1 = viga_2.Ast*1.25*fy*(viga_2.d-viga_2.a/2)
+viga_3.a = viga_3.Ast*1.25*fy/(0.85*fc*viga_3.b)
+Mpy2 = viga_3.Ast*1.25*fy*(viga_3.d-viga_3.a/2)
 Mpy = max(Mpy1,Mpy2)
 Vuy = 2*Mpy/(2*hn2)
 
@@ -401,7 +233,7 @@ l2 = 3.65*m
 V2 = 2*Mpx/l1
 V1 = 2*Mpx/l2
 
-lc1 = 0.5*hn2+hv
+lc1 = 0.5*hn2+viga_1.h
 Vcolx = 2*Mpx/lc1 + (V1+V2)*b/2/lc1
 
 hv2 = 55*cm
@@ -412,23 +244,65 @@ V3 = (Mpy1+Mpy2)/l3
 Vcoly = Mpy/lc2+V3*h/2/lc2
 
 #Fuerza cortante en el nudo
-T1 = As*1.25*fy
+
+#Sentido X (dos vigas llegando al nudo)
+T1 = viga_1.Ast*fy
 T2 = T1
 Vux = T1+T2-Vcolx
+Vux
 
-T3 = As2*1.25*fy
+#Sentido Y (una viga en el nudo)
+T3 = viga_2.Ast*fy
 Vuy = T3-Vcoly
+Vuy
 
-#revisando confinamiento de las vigas
-if bv2 < 0.75*b:
-    print('No confinado en x')
-if bv < 0.75*h:
-    print('No confinado en y')
-
+#En nudos viga columna de porticos a momento especiales usamos un factor de:
 phi_c = 0.85
-befx = min(bv+b,bv)
-Ajx = b*befx
-phiVnx = phi_c*1.3*(fc/MPa)**0.5*MPa*Ajx
-befy = min(bv2+h,bv2)
-Ajy = h*befy
-phiVny = phi_c*1*(fc/MPa)**0.5*MPa*Ajy
+fact = {'IA':1.7,
+       'IB':1.3,
+       'IC':1.3,
+       'ID':1.0,
+       'IIA':1.3,
+       'IIB':1.0,
+       'IIC':1.0,
+       'IID':0.7}
+
+#Análisis en X:
+tipox = 'I' #columna continua
+v_c = 'y' #continuidad de la viga después del nudo
+if v_c == 'y':
+    if viga_2.b >= 0.75*h:
+        tipox += 'A'
+    else:
+        tipox += 'B'
+else:
+    if viga_2.b >= 0.75*h:
+        tipox += 'C'
+    else:
+        tipox += 'D'
+
+#Análisis en Y:
+tipoy = 'I' #columna continua
+v_c = 'n' #continuidad de la viga después del nudo
+if v_c == 'y':
+    if viga_2.b >= 0.75*h:
+        tipoy += 'A'
+    else:
+        tipoy += 'B'
+else:
+    if viga_2.b >= 0.75*h:
+        tipoy += 'C'
+    else:
+        tipoy += 'D'
+
+#Cortante que resiste el nudo direccion X
+befx = min(viga_1.b+b,viga_1.b) #Ancho efectivo del nudo en X
+Ajx = befx*b
+phiVnx = phi_c*fact[tipox]*(fc/MPa)**0.5*MPa*Ajx
+phiVnx
+
+#Cortante que resiste el nudo direccion X
+befy = min(viga_2.b+h,viga_2.b) #Ancho efectivo del nudo en X
+Ajy = befy*h
+phiVny = phi_c*fact[tipoy]*(fc/MPa)**0.5*MPa*Ajy
+phiVny
