@@ -70,6 +70,38 @@ class Concrete():
             return math.copysign(fy, fs)
         else:
             return fs    
+        
+    def des_long(self,db,lamb=1,psi_g=1,psi_e=1,psi_s=0.8,psi_t=1):
+        psi_t_e = psi_t*psi_e
+        if psi_t_e > 1.7:
+            psi_t_e = 1.7
+            
+        sqrt_fc = (self.fc/10**6)**0.5*MPa
+        if sqrt_fc > 8.3*MPa:
+           sqrt_fc = 8.3*MPa
+            
+        ld = self.fy/(1.1*lamb*sqrt_fc)*psi_g*psi_e*psi_s*psi_g*db
+        
+        #efecto de los estribos
+        r = self.r
+        d_st = self.d_st
+        nb = self.n_c
+        b = self.b
+
+        cb1 = r+d_st+db*0.5
+        cb2 = (b-2*r-2*d_st-db)/(nb-1)/2
+        cb = min(cb1,cb2)
+
+        k_tr = 0
+
+        #restricciones de la norma
+        alpha = (cb+k_tr)/db
+        if alpha > 2.5:
+            alpha = 2.5
+
+        return ld/alpha 
+
+
     
 class Beam(Concrete):
     def __init__(self,b,h,r):
@@ -98,9 +130,11 @@ class Beam(Concrete):
         self.Mn = As*fy*(d-self.a/2)
         self.phi_Mn = phi_f*self.Mn
  
+    
 class Column(Concrete):
-    def __init__(self,b,h,r):
+    def __init__(self,b,h,r,l):
         Concrete.__init__(self,b,h,r)
+        self.l = l
  
     def set_rebar(self, d_p, d_s, d_st, n_f, n_c):
         self.d_p = d_p
@@ -255,8 +289,6 @@ class Column(Concrete):
         self.biaxial_f_c = self.biaxial_f_c.set_axis(['Pn','phi_Pn','Mn_x','phi_Mn_x','Mn_y','phi_Mn_y','a','phi','A_c','x_c','y_c','theta'], axis=1)
         self.biaxial_f_c = self.biaxial_f_c[['theta','a','Pn','phi_Pn','Mn_x','phi_Mn_x','Mn_y','phi_Mn_y','phi','A_c','x_c','y_c']]
         
-        
-
   
     def plot_bi_f_c(self,ax,loads=None,factored=True,scale=10**3):
         if factored:
@@ -327,6 +359,77 @@ class Column(Concrete):
             if val == min(abs(data-value)):
                 return i
         
+    def colstrong_beamw(self,beam,loads):
+        #Momento Resistente de la viga máximo con acero en tracción solamente
+        beam.calc_Mnv(phi_f=0.9)
+        #Menor carga que no se encuentra en el ultimo nivel
+        P_min = loads[loads.Piso!=6]['P'].max()*-1
+        self.P_min = P_min
+
+        #Filtro de datos para la menor carga
+        data = self.biaxial_f_c
+        data = data[data.theta==0]
+        data = data[abs(data.Pn-P_min)== min(abs(data.Pn-P_min))]
+
+        #Momento de diseño
+        Mnx_des = float(data.Mn_x)
+        self.Mnx_des = Mnx_des
+
+        #Verificación:
+        if 2*Mnx_des < 1.2*(2*beam.Mn):
+            return 'Viga más fuerte que la columna'
+        else:
+            return 'ok'
+    
+    def long_dev(self,beam,db):
+        #Verificación por longitud de desarrollo en la columna
+        lu = self.l - beam.h
+        ld = self.des_long(d_6)
+        self.ld = ld
+        #Verificación
+        if 1.25*ld <= lu/2:
+            return 'Ok'
+        else:
+            return 'El acero no puede desarrolarse en la columna'
+      
+    def strib_area(self,s,loads):
+        P_max = abs(loads.P.min())
+        bc = self.b-2*self.r
+        hc = self.h-2*self.r
+        Ach = bc*hc
+        self.Ach = Ach
+        fc = self.fc
+        fy = self.fy
+        #Revisión X
+        Ag = self.Ag
+        Ash1 = 0.09*s*bc*fc/fy
+        Ash2 = 0.3*s*bc*(Ag/Ach-1)*fc/fy
+        Ash3 = 0
+        nl = 10
+        
+        if 0.3*fc*Ag < P_max:
+            print('Es necesario confinar todas las barras longitudinales')
+            kf = fc/175+0.6
+            if kf < 1.0:
+                kf = 1.0 
+            kn = nl/(nl-2)
+            Ash3 = 0.2*kf*kn*P_max/(fy*Ach)
+        self.Ashx = max(Ash1,Ash2,Ash3)
+
+        #Revisión Y
+        Ash1 = 0.09*s*hc*fc/fy
+        Ash2 = 0.3*s*hc*(Ag/Ach-1)*fc/fy
+        Ash3 = 0
+        nl = 10
+        if 0.3*fc*Ag < P_max:
+            print('Es necesario confinar todas las barras longitudinales')
+            kf = fc/175+0.6
+            if kf < 1.0:
+                kf = 1.0 
+            kn = nl/(nl-2)
+            Ash3 = 0.2*kf*kn*P_max/(fy*Ach)
+        self.Ashy = max(Ash1,Ash2,Ash3)
+      
     
 if __name__ == '__main__':
     pass

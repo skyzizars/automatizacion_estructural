@@ -34,7 +34,8 @@ A_8 = d_8 ** 2 /4 * math.pi
 b = 35*cm
 h = 75*cm
 r = 4*cm
-column = col.Column(b, h, r)
+l = 2.5*m
+column = col.Column(b, h, r,l)
 
 # Concreto
 fc = 21*MPa #Resistencia a la compresion
@@ -90,84 +91,27 @@ fig, ax = plt.subplots()
 column.plot_f_c(ax,loads=cargas,axis='y')
 plt.show()
 
-#Comprobacion Viga Debil Columna Fuerte
-#Datos de la viga
+
+#Datos de las vigas
+#Viga en el sentido Y:
 viga_1 = col.Beam(b=25*cm,h=40*cm,r=9*cm)
 viga_1.set_rebar(d_s=d_5, n_s=4)
+viga_1.ln = 5.65*m-0.2*m
 
-#Momento Resistente máximo con acero en tracción solamente
-phi_f = 0.9
-viga_1.calc_Mnv(phi_f)
+#Vigas en el sentido X
+viga_2 = col.Beam(b=35*cm,h=55*cm,r=9*cm)
+viga_2.set_rebar(d_s=[d_5,d_6], n_s=[2,2])
+viga_2.ln = 4.56*m-0.35*m
+viga_3 = col.Beam(b=35*cm,h=55*cm,r=9*cm)
+viga_3.set_rebar(d_s=d_5, n_s=3)
+viga_3.ln = 4*m-0.35*m
 
-#Menor carga que no se encuentra en el ultimo nivel
-P_min = cargas[cargas.Piso!=6]['P'].max()*-1
 
-#Filtro de datos para la menor carga
-data = column.biaxial_f_c
-data = data[data.theta==0]
-data = data[abs(data.Pn-P_min)== min(abs(data.Pn-P_min))]
+#verificación columna fuerte viga debil
+column.colstrong_beamw(viga_1,cargas)
 
-#Momento de diseño
-Mnx_des = float(data.Mn_x)
-
-#Verificación:
-if 2*Mnx_des > 1.2*(2*viga_1.Mn):
-    print('OK')
-else:
-    print('Viga más fuerte que la columna')
-    
 #Verificación por longitud de desarrollo en la columna
-lu = 1.95
-lamb = 1
-psi_g = 1
-psi_e = 1
-psi_s1 = 1
-psi_s2 = 0.8
-psi_ts = 1.3
-psi_ti = 1
-db = 0.75 * pulg
-
-#restricciones de la norma:
-psi_ts_e = psi_ts*psi_e 
-if psi_ts_e > 1.7:
-    psi_ts_e = 1.7
-    
-sqrt_fc = (fc/10**6)**0.5*MPa
-if sqrt_fc > 8.3*MPa:
-   sqrt_fc = 8.3*MPa
-    
-ld3 = fy/(1.1*lamb*sqrt_fc)*psi_g*psi_e*psi_s2*psi_g*db
-
-#Verificación
-if 1.25*ld3 <= lu/2:
-    print('Ok')
-else:
-    print('El acero no puede desarrolarse en la columna')
-
-#Considerando el efecto de los estribos:
-r = column.r
-d_st = column.d_st
-nb = column.n_c
-
-cb1 = r+d_st+db*0.5
-cb2 = (b-2*r-2*d_st-db)/(nb-1)/2
-cb = min(cb1,cb2)
-
-k_tr = 0
-
-#restricciones de la norma
-alpha = (cb+k_tr)/db
-if alpha > 2.5:
-    alpha = 2.5
-
-#Por tanto:
-ld3 = ld3/alpha 
-
-#Verificación
-if 1.25*ld3 <= lu/2:
-    print('Ok')
-else:
-    print('El acero no puede desarrolarse en la columna')
+column.long_dev(viga_2,d_6)
 
 
 #Longitud de confinamiento
@@ -176,43 +120,7 @@ h = column.h
 Lo = max(b,h,hn/6,45*cm)
 
 #Confinamiento de barras:
-P_max = cargas.P.min()
-
-
-#Área de refuerzo transaversal
-s = 10*cm
-bc = b-2*r
-hc = h-2*r
-Ach = bc*hc
-
-#Revisión X
-Ag = column.Ag
-Ash1 = 0.09*s*bc*fc/fy
-Ash2 = 0.3*s*bc*(Ag/Ach-1)*fc/fy
-Ash3 = 0
-nl = 10
-if 0.3*fc*Ag < P_max:
-    print('Es necesario confinar todas las barras longitudinales')
-    kf = fc/175+0.6
-    if kf < 1.0:
-        kf = 1.0 
-    kn = nl/(nl-2)
-    Ash3 = 0.2*kf*kn*P_max/(fy*Ach)
-Ashx = max(Ash1,Ash2,Ash3)
-
-#Revisión Y
-Ash1 = 0.09*s*hc*fc/fy
-Ash2 = 0.3*s*hc*(Ag/Ach-1)*fc/fy
-Ash3 = 0
-nl = 10
-if 0.3*fc*Ag < P_max:
-    print('Es necesario confinar todas las barras longitudinales')
-    kf = fc/175+0.6
-    if kf < 1.0:
-        kf = 1.0 
-    kn = nl/(nl-2)
-    Ash3 = 0.2*kf*kn*P_max/(fy*Ach)
-Ashy = max(Ash1,Ash2,Ash3)
+column.strib_area(s=10*cm, loads=cargas)
 
 #Resistencia a cortante
 
@@ -258,8 +166,9 @@ Vux = 2*Mnx_des/hn2
 Vuy = 2*Mny_des/hn1
 
 #Cortante que toma el concreto:
+lamb = 1
 phi_c =0.75 #factor de reduccion
-Y = abs(P_max)/(6*Ag)
+Y = abs(column.P_max)/(6*column.Ag)
 Y = min(Y,0.05*fc)
 Vcx1 = (0.17*lamb*(fc/MPa)**0.5*MPa+Y)*h*(b-r-d_st)
 Vcx2 = (0.42*lamb*(fc/MPa)**0.5*MPa)*h*(b-r-d_st)
@@ -302,18 +211,8 @@ sy = Ast*fy*(b-r-d_st)/Vsx
 d_p = column.d_p
 s = min(sx,sy,6*d_p,15*cm)
 
+
 #Diseño considerando rotulas en vigas
-#Viga en el sentido Y:
-viga_1.ln = 5.65*m-0.2*m
-#Vigas en el sentido X
-viga_2 = col.Beam(b=35*cm,h=55*cm,r=9*cm)
-viga_2.set_rebar(d_s=[d_5,d_6], n_s=[2,2])
-viga_3 = col.Beam(b=35*cm,h=55*cm,r=9*cm)
-viga_3.set_rebar(d_s=d_5, n_s=3)
-
-viga_2.ln = 4.56*m-0.35*m
-viga_3.ln = 4*m-0.35*m
-
 #Momentos Probables en las vigas
 #Sentido X
 viga_1.a = viga_1.Ast*1.25*fy/(0.85*fc*viga_1.b)
