@@ -1,12 +1,12 @@
-import numpy as np
+# import numpy as np
 import matplotlib.pyplot as plt
 import math
 import columnas_utils as col
 import pandas as pd
-%cd ..\..\etabs_oapi
-import sismo_utils as sis
-import etabs_utils as etb
-%cd ..\concreto\columnas
+# %cd ..\..\etabs_oapi
+# import sismo_utils as sis
+# import etabs_utils as etb
+# %cd ..\concreto\columnas
 
 
 # Definicion de las unidades
@@ -113,7 +113,6 @@ column.colstrong_beamw(viga_1,cargas)
 #Verificación por longitud de desarrollo en la columna
 column.long_dev(viga_2,d_6)
 
-
 #Longitud de confinamiento
 hn = 2.1*m
 h = column.h
@@ -123,94 +122,11 @@ Lo = max(b,h,hn/6,45*cm)
 column.strib_area(s=10*cm, loads=cargas)
 
 #Resistencia a cortante
-
-#Diagramas a flexocompresión mayorados
-#Momentos en X
-flex_comp_data = column.nominal_PM(theta=0,mayored=True)
-Pn_x_may = flex_comp_data[0]
-Mn_x_may = flex_comp_data[2]
-
-#Momentos en Y
-flex_comp_data = column.nominal_PM(theta=90,mayored=True)
-Pn_y_may = flex_comp_data[0]
-Mn_y_may = flex_comp_data[4]
-
-#Diagrama en el eje x    
-fig, ax = plt.subplots()
-column.plot_f_c(ax,loads=cargas,axis='x',factored=False)
-ax.set_xlabel("$M_x$ (kN-m)")
-ax.set_ylabel("$Pn$ (kN)")
-plt.show()
-
-#Diagrama en el eje y  
-fig, ax = plt.subplots()
-column.plot_f_c(ax,loads=cargas,axis='y',factored=False)
-ax.set_xlabel("$Mn_y$ (kN-m)")
-ax.set_ylabel("$Pn$ (kN)")
-plt.show()
-
-#Momentos Probables
-P_max = cargas['P'].min()
-i = column.find_i(Pn_x_may,P_max)
-Mnx_des = Mn_x_may[i]
-Pnx_des = Pn_x_may[i]
-
-i = column.find_i(Pn_y_may,P_max)
-Mny_des = Mn_y_may[i]
-Pny_des = Pn_y_may[i]
-
-#Cortantes ultimas por capacidad
-hn1 = 1.95*m
-hn2 = 2.1*m
-Vux = 2*Mnx_des/hn2
-Vuy = 2*Mny_des/hn1
-
-#Cortante que toma el concreto:
-lamb = 1
-phi_c =0.75 #factor de reduccion
-Y = abs(column.P_max)/(6*column.Ag)
-Y = min(Y,0.05*fc)
-Vcx1 = (0.17*lamb*(fc/MPa)**0.5*MPa+Y)*h*(b-r-d_st)
-Vcx2 = (0.42*lamb*(fc/MPa)**0.5*MPa)*h*(b-r-d_st)
-Vcx = min(Vcx1,Vcx2)
-Vsx = (Vux-phi_c*Vcx)/phi_c
-
-Vcy1 = (0.17*lamb*(fc/MPa)**0.5*MPa+Y)*b*(h-r-d_st)
-Vcy2 = (0.42*lamb*(fc/MPa)**0.5*MPa)*b*(h-r-d_st)
-Vcy = min(Vcy1,Vcy2)
-Vsy = (Vuy-phi_c*Vcy)/phi_c
-
-#Comprobacion de la sección transversal
-Vumx = phi_c*(Vcx+0.66*(fc/MPa)**0.5*MPa*h*(b-r-d_st))
-Vumy = phi_c*(Vcy+0.66*(fc/MPa)**0.5*MPa*b*(h-r-d_st))
-
-if Vumx < Vux:
-    print('Aumentar seccion')
-else:
-    print('OK')
-    
-if Vumy < Vuy:
-    print('Aumentar seccion')
-else:
-    print('OK')
-
-#Separación de estribos:
-n = 2
-n2 = 0
-theta = math.radians(45)
-Ast = A_4*n+A_3*n2*math.cos(theta)
-sx = Ast*fy*(h-r-d_st)/Vsy
-
-n1 = 2
-n2 = 2
-n3 = 0
-theta = math.radians(45)
-Ast = A_4*n1+A_3*n2+A_3*n3*math.cos(theta)
-sy = Ast*fy*(b-r-d_st)/Vsx
-
-d_p = column.d_p
-s = min(sx,sy,6*d_p,15*cm)
-
+column.add_stirrup(db=d_4,n=2,theta=0,axis='x',check=True)
+column.add_stirrup(db=d_4,n=2,theta=0,axis='y',check=False)
+column.add_stirrup(db=d_3,n=4,theta=0,axis='y',check=True)
+column.strib_des(loads=cargas,beamx=viga_2,beamy=viga_1,phi_c=0.85,lamb=1, graph = True)
+column.s
 
 #Diseño considerando rotulas en vigas
 #Momentos Probables en las vigas
@@ -225,7 +141,6 @@ viga_3.a = viga_3.Ast*1.25*fy/(0.85*fc*viga_3.b)
 Mpy2 = viga_3.Ast*1.25*fy*(viga_3.d-viga_3.a/2)
 Mpy = max(Mpy1,Mpy2)
 Vuy = 2*Mpy/(2*hn2)
-
 
 l1 = 4.21*m
 l2 = 3.65*m
@@ -244,18 +159,15 @@ V3 = (Mpy1+Mpy2)/l3
 Vcoly = Mpy/lc2+V3*h/2/lc2
 
 #Fuerza cortante en el nudo
-
 #Sentido X (dos vigas llegando al nudo)
 T1 = viga_1.Ast*fy
 T2 = T1
 Vux = T1+T2-Vcolx
 Vux
-
 #Sentido Y (una viga en el nudo)
 T3 = viga_2.Ast*fy
 Vuy = T3-Vcoly
 Vuy
-
 #En nudos viga columna de porticos a momento especiales usamos un factor de:
 phi_c = 0.85
 fact = {'IA':1.7,
@@ -266,7 +178,6 @@ fact = {'IA':1.7,
        'IIB':1.0,
        'IIC':1.0,
        'IID':0.7}
-
 #Análisis en X:
 tipox = 'I' #columna continua
 v_c = 'y' #continuidad de la viga después del nudo
@@ -280,7 +191,6 @@ else:
         tipox += 'C'
     else:
         tipox += 'D'
-
 #Análisis en Y:
 tipoy = 'I' #columna continua
 v_c = 'n' #continuidad de la viga después del nudo
@@ -294,13 +204,11 @@ else:
         tipoy += 'C'
     else:
         tipoy += 'D'
-
 #Cortante que resiste el nudo direccion X
 befx = min(viga_1.b+b,viga_1.b) #Ancho efectivo del nudo en X
 Ajx = befx*b
 phiVnx = phi_c*fact[tipox]*(fc/MPa)**0.5*MPa*Ajx
 phiVnx
-
 #Cortante que resiste el nudo direccion X
 befy = min(viga_2.b+h,viga_2.b) #Ancho efectivo del nudo en X
 Ajy = befy*h
