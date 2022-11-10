@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import pandas as pd
+import matplotlib.pyplot as plt
 #import matplotlib.pyplot as plt
 
 
@@ -277,7 +278,6 @@ class Column(Concrete):
             
         return vect_Pn,vect_phi_Pn,vect_Mn_x,vect_phi_Mn_x,vect_Mn_y,vect_phi_Mn_y,a,vect_phi,A_c,x_c,y_c
         
-
     def biaxial_flex_comp(self,n_theta=30):
         theta = [i/n_theta*90 for i in range(n_theta+1)]
         self.biaxial_f_c = pd.DataFrame() 
@@ -289,7 +289,6 @@ class Column(Concrete):
         self.biaxial_f_c = self.biaxial_f_c.set_axis(['Pn','phi_Pn','Mn_x','phi_Mn_x','Mn_y','phi_Mn_y','a','phi','A_c','x_c','y_c','theta'], axis=1)
         self.biaxial_f_c = self.biaxial_f_c[['theta','a','Pn','phi_Pn','Mn_x','phi_Mn_x','Mn_y','phi_Mn_y','phi','A_c','x_c','y_c']]
         
-  
     def plot_bi_f_c(self,ax,loads=None,factored=True,scale=10**3):
         if factored:
             M_x = self.biaxial_f_c.phi_Mn_x
@@ -430,6 +429,158 @@ class Column(Concrete):
             Ash3 = 0.2*kf*kn*P_max/(fy*Ach)
         self.Ashy = max(Ash1,Ash2,Ash3)
       
+    def add_stirrup(self,db,n,theta=90,axis='x',check=False):
+        if axis=='x':
+            self.Astx += db**2/4*math.pi*n*math.cos(theta)
+            if check:
+                if self.Ashx > self.Astx:
+                    print('Area de refuerzo insuficiente')
+        else:
+            self.Asty += db**2/4*math.pi*n*math.cos(theta)
+            if check:
+                if self.Ashy > self.Asty:
+                    print('Area de refuerzo insuficiente')
+           
+    def mayored_moment(self,P_max,axis='x',graph=False,loads=None):
+        if axis == 'x':
+            flex_comp_data = self.nominal_PM(theta=0,mayored=True)
+            Pn_x_may = flex_comp_data[0]
+            Mn_x_may = flex_comp_data[2]
+            self.VPn_x_may = Pn_x_may
+            self.VMn_x_may = Mn_x_may
+            
+            if graph:
+                #Diagrama en el eje x    
+                fig, ax = plt.subplots()
+                self.plot_f_c(ax,loads,axis='x',factored=False)
+                ax.set_xlabel("$M_x$ (kN-m)")
+                ax.set_ylabel("$Pn$ (kN)")
+                plt.show()
+            
+            i = self.find_i(Pn_x_may,P_max)
+            Mnx_des = Mn_x_may[i]
+            self.Mnx_may = Mnx_des
+            
+        else:
+            flex_comp_data = self.nominal_PM(theta=90,mayored=True)
+            Pn_y_may = flex_comp_data[0]
+            Mn_y_may = flex_comp_data[4]
+            self.VPn_y_may = Pn_y_may
+            self.VMn_y_may = Mn_y_may
+            
+            if graph:
+                #Diagrama en el eje y  
+                fig, ax = plt.subplots()
+                self.plot_f_c(ax,loads,axis='y',factored=False)
+                ax.set_xlabel("$Mn_y$ (kN-m)")
+                ax.set_ylabel("$Pn$ (kN)")
+                plt.show()
+                
+            i = self.find_i(Pn_y_may,P_max)
+            Mny_des = Mn_y_may[i]
+            self.Mny_may = Mny_des    
+    
+    def ultimate_shear(self,beamx,beamy):
+        hnx = self.h - beamx.h
+        hny = self.h - beamy.h
+        Vux = 2*self.Mnx_des/hnx
+        Vuy = 2*self.Mny_des/hny
+        self.Vux = Vux
+        self.Vuy = Vuy
+    
+    def concrete_shear(self,phi_c=0.85,lamb=1):
+        fc =self.fc
+        h = self.h
+        b = self.b
+        r = self.r
+        d_st = self.d_st
+        Y = abs(self.P_max)/(6*self.Ag)
+        Y = min(Y,0.05*fc)
+
+        Vcx1 = (0.17*lamb*(fc/MPa)**0.5*MPa+Y)*h*(b-r-d_st)
+        Vcx2 = (0.42*lamb*(fc/MPa)**0.5*MPa)*h*(b-r-d_st)
+        Vcx = min(Vcx1,Vcx2)
+        Vsx = (self.Vux-phi_c*Vcx)/phi_c
+
+        Vcy1 = (0.17*lamb*(fc/MPa)**0.5*MPa+Y)*b*(h-r-d_st)
+        Vcy2 = (0.42*lamb*(fc/MPa)**0.5*MPa)*b*(h-r-d_st)
+        Vcy = min(Vcy1,Vcy2)
+        Vsy = (self.Vuy-phi_c*Vcy)/phi_c
+
+        self.Vcx1 = Vcx1
+        self.Vcx2 = Vcx2
+        self.Vcx = Vcx
+        self.Vcy1 = Vcy1
+        self.Vcy2 = Vcy2
+        self.Vcy = Vcy
+        self.Vsx = Vsx
+        self.Vsy = Vsy
+    
+    def check_secction(self,phi_c=0.85):
+        fc = self.fc
+        h = self.h
+        b = self.b
+        r = self.r
+        d_st = self.d_st
+        Vumx = phi_c*(self.Vcx+0.66*(fc/MPa)**0.5*MPa*h*(b-r-d_st))
+        Vumy = phi_c*(self.Vcy+0.66*(fc/MPa)**0.5*MPa*b*(h-r-d_st))
+        self.Vumx = Vumx
+        self.Vumy = Vumy
+
+        if Vumx < self.Vux:
+            return 'Aumentar seccion'
+        else:
+            return 'OK'
+            
+        if Vumy < self.Vuy:
+            return 'Aumentar seccion'
+        else:
+            return 'OK'
+    
+    def strib_sep(self):
+        fy = self.fy
+        h = self.h
+        b = self.b
+        r = self.r
+        d_st = self.d_st
+        Astx = self.Astx
+        sx = Astx*fy*(h-r-d_st)/self.Vsy
+        self.sx = sx 
+        
+        Asty = self.Asty
+        sy = Asty*fy*(b-r-d_st)/self.Vsx
+        self.sy = sy
+
+        d_p = self.d_p
+        self.s =  min(sx,sy,6*d_p,15*cm)
+        
+        return self.s
+    
+    def strib_des(self,loads,beamx,beamy,st_nx,st_ny,phi_c=0.85,lamb=1, graph = False):
+        #Carga máxima]
+        P_max = abs(loads['P'].min())
+        self.P_max = P_max
+        #Momentos mayorados en X
+        Pn_x_may, Mn_x_may = self.mayored_moment(axis='x',graph = graph,loads=loads)
+        #Momentos mayorados en Y
+        Pn_y_may, Mn_y_may = self.mayored_moment(axis='y',graph = graph,loads=loads)
+
+        #Momentos Probables
+        self.mayored_moment(P_max,axis='x',graph=graph,loads=loads)
+        self.mayored_moment(P_max,axis='y',graph=graph,loads=loads)
+
+        #Cortantes ultimas por capacidad
+        self.ultimate_shear(beamx,beamy)
+
+        #Cortante que toma el concreto:
+        self.concrete_shear(phi_c=phi_c,lamb=lamb)
+        
+        #Comprobacion de la sección transversal
+        self.check_secction(phi_c=phi_c)
+        
+        #Espaciamiento de estribos
+        self.stib_sep()
+        
     
 if __name__ == '__main__':
     pass
