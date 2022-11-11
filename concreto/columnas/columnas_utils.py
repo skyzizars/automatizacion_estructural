@@ -586,74 +586,49 @@ class Column(Concrete):
         #Espaciamiento de estribos
         self.strib_sep()
     
-    def strib_beamrot(self,beamx,beamy):
+    
+    def pbeam_shear(self,beam,n_beam=1,axis='x'):
+        'hn = self.h - max(beam1.h,beam1.h)'
         fy = self.fy
         fc = self.fc
-        #Sentido X
-        try:
-            beamy1, beamy2 = beamx
-            #Momentos Probables en la viga
-            hnx = self.h - max(beamy1.h,beamy1.h)
-            a = beamy1.Ast*1.25*fy/(0.85*fc*beamy1.b)
-            Mpx1 = beamy1.Ast*1.25*fy*(beamy1.d-a/2)
-            self.Mpx1 = Mpx1
-            
-            a = beamy2.Ast*1.25*fy/(0.85*fc*beamy2.b)
-            Mpx2 = beamy2.Ast*1.25*fy*(beamy2.d-a/2)
-            self.Mpx2 = Mpx2
+        if beam == 2:
+            beam1, beam2 = beam
+            hn = self.l - max(beam1.h,beam1.h)
+            a = beam1.Ast*1.25*fy/(0.85*fc*beam1.b)
+            Mp1 = beam1.Ast*1.25*fy*(beam1.d-a/2)
+            a = beam2.Ast*1.25*fy/(0.85*fc*beam2.b)
+            Mp2 = beam2.Ast*1.25*fy*(beam2.d-a/2)
+            Mp = max(Mp1,Mp2)
+            Vu = 2*Mp/(2*hn)
+            lc = 0.5*hn+max(beam1.h,beam2.h)
+            V2 = 2*Mp/beam1.l
+            V1 = 2*Mp/beam2.l
+            Vcol = 2*Mp/lc + (V1+V2)*self.b/2/lc
+            exec('self.hn'+axis+'=hn')
+            exec('self.Mp1'+axis+'=Mp1')
+            exec('self.Mp2'+axis+'=Mp2')
+            exec('self.Mp'+axis+'=Mp')
+            exec('self.Vu'+axis+'=Vu')
+            exec('self.V1'+axis+'=V1')
+            exec('self.V2'+axis+'=V2')
+            exec('self.Vcol'+axis+'=Vcol')   
+        else:
+            hn = self.l - beam.h
+            a = beam.Ast*1.25*fy/(0.85*fc*beam.b)
+            Mp = beam.Ast*1.25*fy*(beam.d-a/2)
+            lc = 0.5*hn+max(beam1.h,beam2.h)
+            Vu = 4*Mp/(2*hn)
+            V1 = 2*Mp/beam1.l
+            V2 = 2*Mp/beam2.l
+            Vcol = 2*Mp/lc + (V1+V2)*self.b/2/lc
+            exec('self.hn'+axis+'=hn')
+            exec('self.Mp'+axis+'=Mp')
+            exec('self.Vu'+axis+'=Vu')
+            exec('self.V1'+axis+'=V1')
+            exec('self.V2'+axis+'=V2')
+            exec('self.Vcol'+axis+'=Vcol')
+    
 
-            Mpx = max(Mpx1,Mpx2)
-            self.Mpx = Mpx
-            self.Vux = 2*Mpx/(2*hnx)
-            
-            V2 = 2*Mpx/beamy1.l
-            V1 = 2*Mpx/beamy1.l
-
-            lc1 = 0.5*hn2+viga_1.h
-            Vcolx = 2*Mpx/lc1 + (V1+V2)*b/2/lc1
-            
-        except:
-            hnx = self.l - beamx.h
-            a = beamx.Ast*1.25*fy/(0.85*fc*beamx.b)
-            Mpx = beamx.Ast*1.25*fy*(beamx.d-a/2)
-            self.Mpx = Mpx    
-        self.Vux = 4*Mpx/(2*hnx)
-        
-        
-        #Sentido Y
-        try:
-            beamx1, beamx2 = beamx
-            #Momentos Probables en la viga
-            hny = self.h - max(beamx1.h,beamx2.h)
-            a = beamx1.Ast*1.25*fy/(0.85*fc*beamx1.b)
-            Mpy1 = beamx1.Ast*1.25*fy*(beamx1.d-a/2)
-            
-            a = beamx2.Ast*1.25*fy/(0.85*fc*beamx2.b)
-            Mpy2 = beamx2.Ast*1.25*fy*(beamx2.d-a/2)
-
-            Mpy = max(Mpy1,Mpy2)
-            self.Mpy = Mpy
-            self.Vuy = 2*Mpy/(2*hny)
-            
-            
-        except:
-            hny = self.l - beamy.h
-            a = beamy.Ast*1.25*fy/(0.85*fc*beamy.b)
-            Mpx = beamy.Ast*1.25*fy*(beamy.d-a/2)
-            self.Mpy = Mpy  
-        self.Vuy = 2*Mpy/(2*hny)
-        
-        #Cortantes en la columna
-        
-        
-
-
-        hv2 = 55*cm
-        lc2 = 0.5*hn1+hv2
-
-        l3 = 4.825*m
-        V3 = (Mpy1+Mpy2)/l3
-        Vcoly = Mpy/lc2+V3*h/2/lc2
     
 if __name__ == '__main__':
     pass

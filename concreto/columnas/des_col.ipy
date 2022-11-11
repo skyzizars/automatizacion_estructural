@@ -115,6 +115,7 @@ column.long_dev(viga_2,d_6)
 
 #Longitud de confinamiento
 hn = 2.1*m
+hn2 = 1.95*m
 h = column.h
 Lo = max(b,h,hn/6,45*cm)
 
@@ -152,7 +153,7 @@ lc1 = 0.5*hn2+viga_1.h
 Vcolx = 2*Mpx/lc1 + (V1+V2)*b/2/lc1
 
 hv2 = 55*cm
-lc2 = 0.5*hn1+hv2
+lc2 = 0.5*viga_1.hn+viga_2.hv
 
 l3 = 4.825*m
 V3 = (Mpy1+Mpy2)/l3
