@@ -12,7 +12,7 @@ etb.set_units(_SapModel,'Ton_m_C')
 
 # Datos:
 Datos = {
-'N': 8,
+'N': 6,
 'Z': 0.25,
 'U': 1,
 'S': 1.2,
@@ -53,3 +53,4 @@ torsion_sdx = torsion[torsion.OutputCase == 'SDx']
 torsion_sdy = torsion[torsion.OutputCase == 'SDy']
 
 CM_CR = data['CM_CR']
+
