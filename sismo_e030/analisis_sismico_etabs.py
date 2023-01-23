@@ -2,8 +2,9 @@
 
 import numpy as np
 import pandas as pd
-import etabs_utils as etb
-import sismo_utils as sis
+from lib import etabs_utils as etb
+from lib import sismo_utils as sis
+
 
 _SapModel, _EtabsObject = etb.connect_to_etabs()
 
@@ -37,7 +38,7 @@ Datos = {
 8 → Análisis Completo
 '''
 
-data = sis.rev_sismo(_SapModel,Datos,T_analisis = 8)
+data = sis.rev_sismo(_SapModel,Datos,T_analisis = 4)
 
 
 derivas = data['drifts']
@@ -53,4 +54,3 @@ torsion_sdx = torsion[torsion.OutputCase == 'SDx']
 torsion_sdy = torsion[torsion.OutputCase == 'SDy']
 
 CM_CR = data['CM_CR']
-

@@ -1,5 +1,5 @@
 import pandas as pd
-import etabs_utils as etb
+from lib import etabs_utils as etb
 import sys
 
 #Programado para etabs 2019
@@ -32,7 +32,7 @@ def get_ZUCS_R(C,Z,U,S,R):
 #Sismo Estático
 def ana_modal(SapModel):
     modal, MP_x,MP_y,T_x,T_y,Ux,Uy = etb.get_modal_data(SapModel)
-    
+
     #Reporte
     print("\nAnálisis Modal:")
     print('Masa Paiticipativa X: {0:.2f}'.format(MP_x))
@@ -77,7 +77,7 @@ def sismo_estatico(SapModel,N,Z,U,S,Tp,Tl,Ip,Ia,R_o):
 def get_max_over_avg_drifts(SapModel,loads):
     SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(loads)
     _ , table = etb.get_table(SapModel,'Story Max Over Avg Drifts')
-    table = table[(table.StepType == 'Max') | (table.StepType.isnull())]
+    table['OutputCase'] = table.OutputCase+' '+table.StepType
     table = table[['Story','OutputCase','Direction','Max Drift','Avg Drift','Ratio']]
     return table
 
@@ -134,16 +134,18 @@ def down_1(data):
     return data
       
 def rev_piso_blando(SapModel,loads):
+    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(loads)
     _,data = etb.get_table(SapModel,'Diaphragm Center Of Mass Displacements')
-    data = data[(data.StepType == 'Max') | (data.StepType.isnull())]
+    data['OutputCase'] = data.OutputCase+ ' ' +data.StepType
     data = data[['Story','OutputCase','UX','UY']]
     table = pd.DataFrame()
 
     _,data_forces = etb.get_table(SapModel,'Story Forces')
-    data_forces = data_forces[((data_forces.StepType == 'Max') | (data_forces.StepType.isnull())) & (data_forces.Location=='Top')]
+    data_forces['OutputCase'] = data_forces.OutputCase+ ' ' +data_forces.StepType
+    data_forces = data_forces[ data_forces.Location=='Top']
     data_forces = data_forces[['Story','OutputCase','VX','VY']]
 
-    for load in loads:
+    for load in set(data_forces.OutputCase):
         load_data = data[data.OutputCase == load]
         load_data = load_data.reset_index(drop=True)
         URX = obtener_despl_rel(load_data.UX)
@@ -261,7 +263,7 @@ def rev_masa(SapModel,n_sotanos,n_techos):
 # Derivas
 def get_rev_drift(rev_torsion, max_drift):
     rev_drift = rev_torsion[['Story','OutputCase','Direction','Drifts']]
-    rev_drift['Drift<max_drift'] = rev_drift['Drifts'].apply(lambda x: 'Cumple' if x < max_drift else 'No Cumple')
+    rev_drift = rev_drift.assign(Drift_Check = (rev_drift['Drifts'] < max_drift).apply(lambda x: 'Cumple' if x else 'No Cumple'))
     return rev_drift
 
 # Centros de Masas y Rigideces

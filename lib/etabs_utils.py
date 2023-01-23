@@ -8,16 +8,22 @@ import pandas as pd
 import numpy as np
 
 
-def connect_to_etabs():
-    #create API helper object
-    helper = comtypes.client.CreateObject('ETABSv1.Helper')
-    helper = helper.QueryInterface(comtypes.gen.ETABSv1.cHelper)
-    #attach to a running instance of ETABS
-    EtabsObject = helper.GetObject("CSI.ETABS.API.ETABSObject")
-    #create SapModel object
-    SapModel = EtabsObject.SapModel
 
-    return SapModel, EtabsObject
+def connect_to_etabs():
+    try:
+        #create API helper object
+        helper = comtypes.client.CreateObject('ETABSv1.Helper')
+        helper = helper.QueryInterface(comtypes.gen.ETABSv1.cHelper)
+        #attach to a running instance of ETABS
+        EtabsObject = helper.GetObject("CSI.ETABS.API.ETABSObject")
+        #create SapModel object
+        SapModel = EtabsObject.SapModel
+        return SapModel, EtabsObject
+    except:
+        print('No es posible conectarse a ETABS')
+
+    
+
 
 def set_units(SapModel,unit):
     units = {'Ton_m_C' : 12, 'kgf_cm_C':14}
