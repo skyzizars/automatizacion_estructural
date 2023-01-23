@@ -182,7 +182,8 @@ class sismo_e30():
 
     def irregularidad_torsion(self,SapModel,loads=['Sx','Sy','SDx','SDy']):
         self.R = self.R_0*self.Ia*self.Ip
-        self.torsion_table = sis.create_rev_torsion_table(SapModel,loads,self.max_drift,self.R)
+        self.is_regular = self.Ip == 1 and self.Ia==1
+        self.torsion_table = sis.create_rev_torsion_table(SapModel,loads,self.max_drift,self.R,is_regular=self.is_regular)
 
     def derivas(self):
         self.drift_table = sis.get_rev_drift(self.torsion_table, self.max_drift)
