@@ -38,4 +38,9 @@ pf=[800,1600]
 stories = ['Story1','Story3']
 etb.draw_wall(SapModel,pi,pf,20,stories)
 
+
+pi = [0,0,0]
+pf = [100,100,0]
+etb.draw_beam(SapModel,pi,pf,b=30,h=50)
+
 SapModel.AreaObj.GetAllAreas()

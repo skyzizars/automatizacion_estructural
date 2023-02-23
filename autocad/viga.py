@@ -177,13 +177,13 @@ def set_dim_style(dim,l_name):
 
 if __name__ == '__main__':
     index = '1'
-    desc = (0,1)*5+(0,)
-    length = (1,1.72,0.65,1.50,0.65,1.05,0.65,2.08,0.65,2.67,0.65)
-    h = (0.40,)*11
+    desc = (0,1)*3+(0,)
+    length = (0.50,3.30,3.73,2.16,0.5,5.23,4.21)
+    h = (0.50,)*3+(0.50,)
     r = 0.04
     viga_1 = Viga(index,desc,length,h,r)
     p1,p2 = viga_1.draw_beam(APoint(1,1))
-    stirrup = ((1,0.05),(10,0.10),('r',0.18))
+    stirrup = ((1,0.05),(10,0.10),('r',0.2))
     viga_1.draw_stirrup(p1,p2)
     ref = ('a',(3,('1/2')))
     viga_1.draw_ref(p1,p2)

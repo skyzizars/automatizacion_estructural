@@ -1,197 +1,464 @@
-from ipywidgets import widgets
+from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure, Tabularx
+from pylatex.utils import NoEscape, bold
+from pylatex.package import Package
+from pylatex.base_classes import Environment
+from ordered_set import OrderedSet
 import pandas as pd
-from lib import sismo_utils as sis
-from mem import latex_utils as ltx
+import warnings
+warnings.simplefilter('ignore', category=Warning)
 
 
-def dropdown(op,desc,val=''):
-    return widgets.Dropdown(options=op,description=desc,
-            style={'description_width':'initial'},value=val)
 
-def input_box(desc, val=''):
-    return widgets.Text(description=desc,value = val,style={'description_width':'initial'})
+def mybox3(title):
+    mbox = Environment()
+    mbox._latex_name = 'tcolorbox'
+    mbox.options = NoEscape(r'colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=%s'%title)
+    return mbox
 
-def check_box(desc,val=False):
-    return widgets.Checkbox(value=val, description=desc,style={'description_width':'initial'})
+def mybox2(title):
+    mbox = Environment()
+    mbox._latex_name = 'tcolorbox'
+    mbox.options = NoEscape(r'colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=%s'%title)
+    return mbox
 
 
-class sismo_e30():
-    def __init__(self):
-        self.data = {'Factor de Importancia': 'C',
-            'Sistema Estructural': 'Dual de Concreto Armado',
+def factor_zona(obj,zona,insert='',o_type=Subsubsection):
+    obj.packages.append(Package('array'))
+    obj.packages.append(Package('colortbl'))
+    obj.packages.append(Package('graphicx'))
+    obj.packages.append(Package('caption'))
+    
+    
+    df = [['4','0.45'],['3','0.35'],['2','0.25'],['1','0.10']]
+    df[4-zona][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+df[4-zona][1]+r'}}'
+    df[4-zona] = [i+r'\cellcolor[rgb]{ .949,  .949,  .949} ' for i in df[4-zona]]
+    
+    
+    with obj.create(o_type('Factor de Zona')):
+        obj.append(insert)
+        with obj.create(Table(position='ht!')) as tab:
+            with obj.create(MiniPage(width='0.55\\textwidth')) as mp:
+                    mp.append(NoEscape(r'\caption{Factor de zona}'))
+                    with obj.create(Tabular(r'|>{\centering\arraybackslash}m{3.75cm}|>{\centering\arraybackslash}m{3.75cm}|')) as table:
+                        table.add_hline()
+                        table.add_row((MultiColumn(2, align='|c|', data=bold('FACTOR DE ZONA SEGÚN E-030')),))
+                        table.add_hline()
+                        table.add_row((NoEscape('\\textbf{ZONA}'), NoEscape('\\textbf{Z}')))
+                        table.add_hline()
+                        for row in df:
+                                table.add_row((NoEscape(row[0]), NoEscape(row[1])))
+                                table.add_hline()                  
+            with obj.create(MiniPage(width='0.35\\textwidth')):
+                with obj.create(Center()):
+                    obj.append(NoEscape('\\includegraphics[width=4cm]{mapa_zona}'))
+            tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+        
+
+def factor_suelo(obj,zona,suelo,insert='',o_type=Subsubsection):
+    obj.packages.append(Package('array'))
+    obj.packages.append(Package('colortbl'))
+    obj.packages.append(Package('graphicx'))
+    obj.packages.append(Package('caption'))
+    obj.packages.append(Package('slashbox'))
+    
+    suelo_ind = {'S0':1,'S1':2,'S2':3,'S3':4}
+    data = [['4','0.80','1.00','1.05','1.10'],
+            ['3','0.80','1.00','1.15','1.20'],
+            ['2','0.80','1.00','1.20','1.40'],
+            ['1','0.80','1.00','1.60','2.00']]
+    data[4-zona][suelo_ind[suelo]] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+data[4-zona][suelo_ind[suelo]] +r'}}'
+    data[4-zona] = [i+r'\cellcolor[rgb]{ .949,  .949,  .949} ' for i in data[4-zona]]
+    data = [[j+r'\cellcolor[rgb]{ .949,  .949,  .949} ' if i ==suelo_ind[suelo] else j for i,j in enumerate(row)]  for row in data]
+    
+    
+    
+    with obj.create(o_type('Factor de suelo')):
+        obj.append(insert)
+        with obj.create(Table(position='ht!')) as tab:
+            tab.append(NoEscape(r'\centering'))
+            tab.append(NoEscape(r'\caption{Factor de zona}'))
+            with obj.create(Tabular(r'|>{\centering\arraybackslash}m{3.75cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|')) as table:
+                table.add_hline()
+                table.add_row((MultiColumn(5, align='|c|', data=bold('FACTOR DE SUELO SEGÚN E-030')),))
+                table.add_hline()
+                table.add_row(NoEscape(r'\backslashbox{\textit{\textbf{ZONA}}}{\textit{\textbf{SUELO}}}'),bold('S0'),bold('S1'),bold('S2'),bold('S3'))
+                table.add_hline()
+                for row in data:
+                    table.add_row([NoEscape(i) for i in row])
+                    table.add_hline()
+            tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+    
+
+def periodos_suelo(obj,suelo,insert='',o_type=Subsubsection):
+    suelo_ind = {'S0':1,'S1':2,'S2':3,'S3':4}
+    
+    data = [['Tp','0.30','0.40','0.60','1.00'],
+            ['Tl','3.00','2.50','2.00','1.60']]
+    data[0][suelo_ind[suelo]] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+data[0][suelo_ind[suelo]]+r'}}'+r'\cellcolor[rgb]{ .949,  .949,  .949} '
+    data[1][suelo_ind[suelo]] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+data[1][suelo_ind[suelo]]+r'}}'+r'\cellcolor[rgb]{ .949,  .949,  .949} '
+    
+    obj.packages.append(Package('array'))
+    obj.packages.append(Package('colortbl'))
+    obj.packages.append(Package('graphicx'))
+    obj.packages.append(Package('caption'))
+    
+    with obj.create(o_type('Periodos de suelo')):
+        obj.append(insert)
+        
+        with obj.create(Table(position='ht!')) as tab:
+            tab.append(NoEscape(r'\centering'))
+            tab.append(NoEscape(r'\caption{Periodos de suelo}'))
+            with obj.create(Tabular(r'|>{\centering\arraybackslash} m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|')) as table:
+                table.append(NoEscape(r'\cline{2-5}'))
+                table.add_row((MultiColumn(1,align='r|',data=''),MultiColumn(4,align='c|',data=NoEscape('\\textbf{PERIODO "Tp" y "Tl" SEGÚN E-030}'))))
+                table.append(NoEscape(r'\cline{2-5}'))
+                table.add_row((MultiColumn(1,align='r|',data=''),MultiColumn(4,align='c|',data=NoEscape(r'\textit{\textbf{Perfil de suelo}}'))))
+                table.append(NoEscape(r'\cline{2-5}'))  
+                table.add_row((MultiColumn(1,align='r|',data=''),bold('S0'),bold('S1'),bold('S2'),bold('S3')))
+                table.add_hline()
+                for row in data:
+                    table.add_row([NoEscape(i) for i in row])
+                    table.add_hline()
+            tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+
+
+def sist_estructural(obj,insert='',o_type=Subsubsection):
+    data = [['Acero:',''],
+            ['Porticos Especiales Resistentes a Momento (SMF)',8],
+            ['Porticos Intermedios Resistentes a Momento (IMF)',5],
+            ['Porticos Ordinarios Resistentes a Momento (OMF)',4],
+            ['Porticos Ordinarios Resistentes a Momento (OMF)',7],
+            ['Porticos Ordinarios Concentricamente Arrriostrados (OCBF)',4],
+            ['Porticos Excentricamente Arriostrados (EBF)',8],
+            ['Concreto Armado:',''],
+            ['Porticos',8],
+            ['Dual',7],
+            ['De muros estructurales',6],
+            ['Muros de ductilidad limitada',4],
+            [r'\textbf{Albañilería Armada o Confinada}',3],
+            [r'\textbf{Madera}',7]]
+    
+    obj.packages.append(Package('array'))
+    obj.packages.append(Package('colortbl'))
+    obj.packages.append(Package('graphicx'))
+    obj.packages.append(Package('caption'))
+    
+    with obj.create(o_type('Sistema Estructural')):
+        obj.append('Después de realizar el análisis sísmico se determino que los sistemas estructurales en X, Y son:')
+        obj.append(insert)
+        
+        with obj.create(Table(position='ht!')) as tab:
+            tab.append(NoEscape(r'\caption{coeficiente básico de reducción}'))
+            with obj.create(Tabular(r'|>{\arraybackslash}m{10cm}| >{\centering\arraybackslash}m{4cm}|')) as table:
+                table.add_hline()
+                table.add_row((MultiColumn(2,align='|c|',data=bold('SISTEMAS ESTRUCTURALES')),))
+                table.add_hline()
+                table.add_row((bold('Sistema Estructural'),MultiColumn(1,align=NoEscape('m{4cm}|'),data=bold('Coeficiente Básico de Reducción Ro'))))
+                table.add_hline()
+                for row in data:
+                    if row[1]:
+                        table.add_row([NoEscape(i) for i in row])
+                        table.add_hline()
+                    else:
+                        table.add_row((MultiColumn(2,align='|l|',data=bold(row[0])),))
+                        table.add_hline()
+            tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+
+def factor_amplificacion(obj,insert='',o_type=Subsubsection):
+    obj.packages.append(Package('graphicx'))
+    obj.packages.append(Package('amsmath'))
+    doc.packages.append(Package('caption'))
+    
+    eq = r'''
+    \begin{align*}
+        &T< T_{P}         &   C&=2,5\cdot\left ( \frac{T_{P}}{T} \right )\\
+        &T_{P}< T< T_{L}  &   C&=2,5\cdot\left ( \frac{T_{P}}{T} \right )\\
+        &T> T_{L}         &   C&=2,5\cdot\left ( \frac{T_{P}\;T_{L}}{T^{2}} \right )
+    \end{align*}'''
+            
+    with obj.create(o_type('Factor de Amplificación sísmica')):
+        obj.append(insert)
+        obj.append('Se determina según el artículo 11 de la E-30')
+        obj.append(NoEscape(r'\setlength{\jot}{0.5cm}'))
+        with obj.create(Figure(position='h!')):
+            obj.append(NoEscape(r'\caption{Factor de amplificación}'))
+            with obj.create(MiniPage(width=r'0.5\textwidth')):
+                obj.append(NoEscape(eq))
+            with obj.create(MiniPage(width=r'0.4\textwidth')):
+                obj.append(NoEscape(r'\centering'))
+                obj.append(NoEscape('\\includegraphics[width=6.5cm]{Amplificacion}'))
+            obj.append(NoEscape(r'\caption*{Fuente: Muñoz (2020)}'))
+
+
+def factor_importancia(obj,categoria,insert='',o_type=Subsubsection):
+    obj.packages.append(Package('colortbl'))
+    obj.packages.append(Package('caption'))
+    obj.packages.append(Package('xcolor'))
+    obj.packages.append(Package('array'))
+    obj.packages.append(Package('multirow'))
+
+    
+    cat_ind = {'A1':0,'A2':1,'B':2,'C':3,'D':4}
+    data = [['A Edificaciones Escenciales','A1: Establecimiento del sector salud (públicos y privados) del segundo y tercer nivel, según lo normado por el ministerio de salud.','Con aislamiento 1.0 y sin aislamiento 1.5.'],
+            ['','A2: Edificaciones escenciales para el manejo de las emergencias, el funcionamiento del gobierno y en general aquellas que puedan servir de refugio después de un desastre.','1.50'],
+            ['B Edificaciones Importantes ','Edificaciones donde se reúnen gran cantidad de personas tales como cines, teatros, estadios, coliseos, centros comerciales, terminales de buses de pasajeros, establecimientos penitenciarios, o que guardan patrimonios valiosos como museos y bibliotecas.',r'1.30'],
+            ['C Edificaciones Comunes','Edificaciones comunes tales como: viviendas, oficinas, hoteles, restaurantes, depósitos e instalaciones industriales cuya falla no acarree peligros adicionales de incendios o fugas de contaminantes.',r'1.00'],
+            ['D Edificaciones temporales','Construcciones provisionales para depósitos, casetas y otras similares.','A criterio del proyectista']]
+    
+    data[0][0] = r'\multirow{2}[4]{3cm}{'+data[0][0] + '}'
+    data[cat_ind[categoria]][2] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{' + data[cat_ind[categoria]][2] + r'}}'
+    if cat_ind[categoria] < 2:
+        data[cat_ind[categoria]] = [data[cat_ind[categoria]][0]] + [i + r'\cellcolor[rgb]{1,  .949,  .8}' for i in data[cat_ind[categoria]][1:]]
+    else:
+        data[cat_ind[categoria]] = [i + r'\cellcolor[rgb]{ .949,  .949,  .949}' for i in data[cat_ind[categoria]]]
+    data = [row[:2]+[r'\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{'+row[2]+'}'] for row in data]
+        
+    with obj.create(o_type('Factor de Importancia')):
+        obj.append(insert)
+        with obj.create(Table(position='h!')):
+            obj.append(NoEscape('\centering'))
+            obj.append(NoEscape('\caption{Factor de Uso o Importancia}'))
+            with obj.create(Tabular(NoEscape(r'|>{\arraybackslash}m{3cm}|m{8cm}|>{\arraybackslash}m{2.8cm}|'))) as table:
+                table.add_hline()
+                table.add_row((MultiColumn(3,align='|c|',data=bold('CATEGORIA DE LA EDIFICACION')),))
+                table.add_hline()
+                table.add_row((MultiColumn(1,align='|c|',data=bold('CATEGORIA')),MultiColumn(1,align='|c|',data=bold('DESCRIPCION')),MultiColumn(1,align='|c|',data=bold('FACTOR U'))))
+                table.add_hline()
+                table.add_row([NoEscape(i) for i in data[0]])
+                table.append(NoEscape(r'\cline{2-3}'))
+                for row in data[1:]:
+                    table.add_row([NoEscape(i) for i in row])
+                    table.add_hline()
+            obj.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+
+
+
+def ana_modal(obj,table,insert='',o_type=Subsection):
+    obj.packages.append(Package('tcolorbox'))
+    obj.packages.append(Package('booktabs'))
+    obj.packages.append(Package('array'))
+        
+    with obj.create(o_type(r'Análisis modal Art. 26.1 E-030')):
+        mbox = mybox3(r'Art. 26.1.1')
+        mbox.append(NoEscape(r'\textit{En cada dirección se consideran aquellos modos de vibración cuya suma de masas efectivas sea por lo menos el 90\% de la masa total, pero se toma en cuenta por lo menos los tres primeros modos predominantes en la dirección de análisis.}'))
+        obj.append(mbox)
+        mbox2 = mybox3(r'Art. 26.1.2')
+        mbox2.append(NoEscape(r'\textit{En cada dirección se consideran aquellos modos de vibración cuya suma de masas efectivas sea por lo menos el 90\% de la masa total, pero se toma en cuenta por lo menos los tres primeros modos predominantes en la dirección de análisis.}'))
+        obj.append(mbox2)
+        
+        obj.append(insert)
+        
+        table = table.astype(float).style.hide(axis='index')
+        table.format('{:.3f}')
+        table.format('{:.0f}',subset= pd.IndexSlice[:,'Mode'])
+        table = table.to_latex(hrules=True,column_format = 'c'*8,)
+        
+        with obj.create(Table(position='h!')):
+            obj.append(NoEscape(r'\extrarowheight = -0.3ex'))
+            obj.append(NoEscape(r'\renewcommand{\arraystretch}{1.3}'))
+            obj.append(NoEscape('\centering'))
+            obj.append(NoEscape('\caption{Periodos y porcentajes de masa participativa}'))
+            obj.append(NoEscape(table))
+
+
+
+def irreg_rigidez(obj,sis_x,sis_y,insert='',o_type=Subsubsection):
+    obj.packages.append(Package('tcolorbox'))
+    obj.packages.append(Package('booktabs'))
+    
+    def latex_table(table):
+        table = table[['Story','OutputCase','VX','VY','lat_rig(k)','0.7_prev_k','0.8k_prom','is_reg']]
+        table.columns = ['Story','OutputCase','VX','VY','Rigidez Lateral(k)',r'70\%k previo',r'80\%Prom(k)','is\_reg']
+        for i in ['VX','VY','Rigidez Lateral(k)',r'70\%k previo',r'80\%Prom(k)']:
+            table.loc[:,i] = table.loc[:,i].astype(float)
+        table = table.style.hide(axis='index')
+        table = table.format('{:.3f}',subset=pd.IndexSlice[:,['VX','VY','Rigidez Lateral(k)',r'70\%k previo',r'80\%Prom(k)']])
+        table = table.to_latex(hrules=True, column_format = 'c'*8).replace('0.000','')
+        return table
+    
+    
+    with obj.create(o_type('Irregularidad de Rigidez-Piso Blando')):
+        
+        mbox = mybox2('Tabla N°9 E-030')
+        mbox.append(NoEscape('Existe irregularidad de rigidez cuando, en cualquiera de las direcciondes de análisis, en un entrepiso la rigidez lateral es menor que 70\% de la rigidez lateral del entrepiso inmediato superior, o es menor que 80\\% de la rigidez lateral promedio de los tres niveles superiores adyacentes. \n Las rigideces laterales pueden calcularse como la razón entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relatibo en el centro de masas, ambos evaluados para la misma condición de carga '))
+        obj.append(mbox)
+        mbox2 = mybox2('Tabla N°9 E-030')
+        mbox2.append(NoEscape('''
+Existe irregularidad extrema de rigidez cuando, en cualquiera de las direcciones de análisis, en un entrepiso la rigidez lateral es menor que 60\\% de la rigidez lateral del entrepiso inmediato superior, o es menor que 70\\% de la rigidez lateral promedio de los tres niveles superiores adyacentes.
+Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga.'''))
+        obj.append(mbox2)
+        
+        obj.append(insert)
+        
+        sis_x = latex_table(sis_x)
+        sis_y = latex_table(sis_y)
+        
+        
+        with obj.create(Table(position='h!')):
+            obj.append(NoEscape('\centering'))
+            obj.append(NoEscape('\caption{Irregularidad de rigidez}'))
+            obj.append(NoEscape(sis_x))
+            
+        with obj.create(Table(position='h!')):
+            obj.append(NoEscape('\centering'))
+            obj.append(NoEscape('\caption{Irregularidad de rigidez}'))
+            obj.append(NoEscape(sis_y))
+        
+
+def irreg_masa(obj,masa,insert='',o_type=Subsubsection):
+    def latex_table(table):
+        table.columns = ['Story','Masa','1.5 Masa Piso Inferior','1.5 Masa Piso Superior','Tipo de Piso','is\_reg']
+        table = table.replace('',0.0)
+        for i in  ['Masa','1.5 Masa Piso Inferior','1.5 Masa Piso Superior']:
+            table.loc[:,i] = table.loc[:,i].astype(float)
+        table = table.style.hide(axis='index')
+        table = table.format('{:.3f}',subset=pd.IndexSlice[:,['Masa','1.5 Masa Piso Inferior','1.5 Masa Piso Superior']])
+        table = table.to_latex(hrules=True, column_format = 'c'*6).replace('0.000','')
+        return table
+    
+    
+    obj.packages.append(Package('tcolorbox'))
+    obj.packages.append(Package('booktabs'))
+    
+    with obj.create(o_type('Irregularidad de Masa o Peso')):
+        mbox = mybox2('Tabla N°9 E-030')
+        mbox.append(NoEscape('Se tiene irregularidad de masa (o peso) cuando el peso de un piso determinado según el artículo 26, es nayor que 1,5 veces el peso de un piso adyascente. Este criterio no se aplica en azoteas ni en sótanos'))
+        obj.append(mbox)
+        obj.append(insert)
+        
+        with obj.create(Table(position='h!')):
+            obj.append(NoEscape('\centering'))
+            obj.append(NoEscape('\caption{Irregularidad de Masa o Peso}'))
+            obj.append(NoEscape(latex_table(masa)))
+    
+
+def irreg_torsion(obj,sis_x,sis_y,insert='',o_type=Subsubsection):
+    def latex_table(table):
+        table.columns = ['Story', 'OutputCase', 'Direction', 'Max Drift', 'Avg Drift', 'Ratio', 'Height', 'Drifts', '< Driftmax/2', 'Es Regular']
+        table = table.style.hide(axis='index')
+        # table = table.format('{:.3f}',subset=pd.IndexSlice[:,['Masa','1.5 Masa Piso Inferior','1.5 Masa Piso Superior']])
+        table = table.to_latex(hrules=True, column_format = 'c'*10)
+        return table
+    
+    obj.packages.append(Package('tcolorbox'))
+    obj.packages.append(Package('booktabs'))
+    obj.packages.append(Package('graphicx'))
+    
+    with obj.create(o_type('Irregularidad Torsional')):
+        mbox = mybox2('Tabla N°9 E-030')
+        mbox.append(NoEscape('Existe irregularidad torsional cuando, en cualquiera de las direcciones de análisis el desplazamiento relativo de entrepiso en un edificion ($\\Delta_{max}$) en esa dirección, calculado incluyendo excentricidad accidental, es mayor que 1,3 veces el desplazamineto relativo promedio de los extremos del mismo entrepiso para la condicion de carga ($\Delta_{prom}$). \n Este crriterio sólo se aplica en edificios con diafragmas rígidos y sólo si el máximo desplazamiento relativo de entrepiso es mayor que 50\\% del desplazamiento permisible indicado en la Tabla N° 11'))
+        obj.append(mbox)
+        mbox2 = mybox2('Tabla N°9 E-030')
+        mbox2.append(NoEscape('Existe irregularidad torsional cuando, en cualquiera de las direcciones de análisis el desplazamiento relativo de entrepiso en un edificion ($\\Delta_{max}$) en esa dirección, calculado incluyendo excentricidad accidental, es mayor que 1,5 veces el desplazamineto relativo promedio de los extremos del mismo entrepiso para la condicion de carga ($\Delta_{prom}$). \n Este crriterio sólo se aplica en edificios con diafragmas rígidos y sólo si el máximo desplazamiento relativo de entrepiso es mayor que 50\\% del desplazamiento permisible indicado en la Tabla N° 11'))
+        obj.append(mbox)
+        obj.append(insert)
+        
+        
+
+        
+        table = Table(position='ht!')
+        table.append(NoEscape('\centering'))
+        table.append(NoEscape('\caption{Irregularidad Torsional}'))
+        table.append(NoEscape('\\resizebox{\\textwidth}{!}{'))
+        table.append(NoEscape(latex_table(sis_x)+'}'))
+        obj.append(table)
+        
+        table2 = Table(position='ht!')
+        table2.append(NoEscape('\centering'))
+        table2.append(NoEscape('\caption{Irregularidad Torsional}'))
+        table2.append(NoEscape('\\resizebox{\\textwidth}{!}{'))
+        table2.append(NoEscape(latex_table(sis_y)+'}'))
+        obj.append(table2)
+            
+
+           
+if __name__ == '__main__':
+    import os
+    import sys
+    sys.path.append(os.getcwd()+'\\..')
+    from lib import etabs_utils as etb
+    from lib import sismo_utils as sis
+
+
+
+    _SapModel, _EtabsObject = etb.connect_to_etabs()
+
+    #Definir variables de salida 'Ton_m_C' o 'kgf_cm_C'
+    etb.set_units(_SapModel,'Ton_m_C')
+
+    sistemas = ['Pórticos de Concreto Armado',
+                'Dual de Concreto Armado',
+                'De Muros Estructurales de Concreto Armado',
+                'Pórticos Especiales de Acero Resistentes a Momentos',
+                'Pórticos Intermedios de Acero Resistentes a Momentos',
+                'Pórticos Ordinarios de Acero Resistentes a Momentos',
+                'Pórticos Especiales de Acero Concénticamente Arriostrados',
+                'Pórticos Ordinarios de Acero Concénticamente Arriostrados',
+                'Pórticos Acero Excéntricamente Arriostrados',
+                'Muros de Ductilidad Limita de Concreto Armado',
+                'Albañilería Armada o Confinada',
+                'Madera']
+
+    datos = {'Factor de Importancia': 'C',
+            'Sistema Estructural': sistemas[0],
             'Número de Pisos': '4',
             'Número de Sotanos': '0',
-            'Número de Azoteas': '1',
+            'Número de Azoteas': '0',
             'Factor Zona': '2',
             'Factor Suelo': 'S2',
-            'Piso Blando':'False',
-            'Piso Blando Extremo':'False',
-            'Irregularidad de Masa':'False',
-            'Irregularidad Vertical':'False',
-            'Dicontinuidad Vertical':'False',
-            'Dicontinuidad Vertical Extrema':'False',
-            'Irregularidad Torsional':'False',
-            'Irregulariad Torsional Extrema':'False',
-            'Esquinas Entrantes':'False',
-            'Discontinuidad del diafragma':'False',
-            'Sistemas no Paralelos':'False'}
-        self.data.update(ltx.read_dict('..\datos\data.txt'))
+            'Piso Blando': 'False',
+            'Piso Blando Extremo': 'False',
+            'Irregularidad de Masa': 'False',
+            'Irregularidad Vertical': 'False',
+            'Dicontinuidad Vertical': 'False',
+            'Dicontinuidad Vertical Extrema': 'False',
+            'Irregularidad Torsional': 'False',
+            'Irregulariad Torsional Extrema': 'False',
+            'Esquinas Entrantes': 'False',
+            'Discontinuidad del diafragma': 'False',
+            'Sistemas no Paralelos': 'False'}
+    
+    sismo = sis.sismo_e30(data=datos)
+    sismo.show_params()
+    sismo.analisis_sismo(_SapModel)
+    
+    zona = 2
+    suelo = 'S1'
+    categoria = 'A2'
 
-        self.factor_zona = pd.DataFrame([[4, 0.45], [3, 0.35], [2, 0.25], [1, 0.1]], columns=['Zona', 'Z'])
-        self.factor_suelo=pd.DataFrame(
-            [[4,0.8,1,1.05,1.1],
-            [3,0.8,1,1.15,1.20],
-            [2,0.80,1,1.2,1.4],
-            [1,0.8,1,1.6,2]],
-            columns=['Z','S0','S1','S2','S3'])
-        self.periodos_suelo=pd.DataFrame(
-            [[0.3,0.4,0.6,1],
-            [3,2.5,2,1.6]],
-            columns=['S0','S1','S2','S3'],
-            index=['Tp','Tl'])
-        self.sist_estructural = pd.DataFrame(
-            [['Pórticos Especiales de Acero Resistentes a Momentos',8,0.01],
-            ['Pórticos Intermedios de Acero Resistentes a Momentos',5,0.01],
-            ['Pórticos Ordinarios de Acero Resistentes a Momentos',4,0.01],
-            ['Pórticos Especiales de Acero Concénticamente Arriostrados',7,0.01],
-            ['Pórticos Ordinarios de Acero Concénticamente Arriostrados',4,0.1],
-            ['Pórticos Acero Excéntricamente Arriostrados',8,0.01],
-            ['Pórticos de Concreto Armado',8,0.007],
-            ['Dual de Concreto Armado',7,0.007],
-            ['De Muros Estructurales de Concreto Armado',6,0.007],
-            ['Muros de Ductilidad Limita de Concreto Armado',4,0.005],
-            ['Albañilería Armada o Confinada',3,0.005],
-            ['Madera',7,0.01]],
-            columns=['sistema','R_0','max_drift'])
-        
-        self.cat_edificacion = pd.DataFrame(
-            [['A1 aislado',1],
-            ['A1 no aislado', 1.5],
-            ['A2',1.5],
-            ['B',1.3],
-            ['C',1]],
-            columns=['categoria','U']
-        )
+    geometry_options = { "left": "2.5cm", "top": "1.5cm" }
+    doc = Document(geometry_options=geometry_options)
+    doc.packages.append(Package('xcolor', options=['dvipsnames']))
+    
+    s1 = Section('Análisis Sísmico')
 
+    coments = 'Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \n'
 
-        self.irreg_altura  = {
-            'Piso Blando':0.75,
-            'Piso Blando Extremo':0.50,
-            'Irregularidad de Masa':0.90,
-            'Irregularidad Vertical':0.90,
-            'Dicontinuidad Vertical':0.80,
-            'Dicontinuidad Vertical Extrema':0.60,
-        }
+    
 
-        self.irreg_planta = {
-            'Irregularidad Torsional':0.75,
-            'Irregulariad Torsional Extrema':0.60,
-            'Esquinas Entrantes':0.90,
-            'Discontinuidad del diafragma':0.85,
-            'Sistemas no Paralelos':0.90
-        }
-
-        self.set_data()
-
-    def on_change(self,change,url='..\datos\data.txt'):
-        if change['type'] == 'change' and change['name'] == 'value':
-            ltx.save_var(change['owner'].description,change['new'],url)
-            self.data.update(ltx.read_dict(url))
-            self.set_data()
-
-
-    def parametros_e30(self):
-        zona = dropdown(['1','2','3','4'],'Factor Zona',val=self.data['Factor Zona'])
-        uso = dropdown(self.cat_edificacion.categoria,'Factor de Importancia',val=self.data['Factor de Importancia'])
-        suelo = dropdown(['S0','S1','S2','S3'],'Factor Suelo',val=self.data['Factor Suelo'])
-        sistema = dropdown(self.sist_estructural.sistema,'Sistema Estructural',val=self.data['Sistema Estructural'])
-        pisos = input_box('Número de Pisos', val=self.data['Número de Pisos'])
-        sotanos = input_box('Número de Sotanos', val=self.data['Número de Sotanos'])
-        azoteas = input_box('Número de Azoteas', val=self.data['Número de Azoteas'])
-        zona.observe(self.on_change)
-        uso.observe(self.on_change)
-        suelo.observe(self.on_change) 
-        sistema.observe(self.on_change)
-        pisos.observe(self.on_change)
-        sotanos.observe(self.on_change)
-        azoteas.observe(self.on_change)
-        return widgets.VBox([zona,uso,suelo,sistema,pisos,sotanos,azoteas])
-
-    def irregularidades_e30(self):
-        i_piso_b = check_box('Piso Blando', eval(self.data['Piso Blando']))
-        i_piso_be = check_box('Piso Blando Extremo', eval(self.data['Piso Blando Extremo']))
-        i_masa = check_box('Irregularidad de Masa', eval(self.data['Irregularidad de Masa']))
-        i_vert = check_box('Irregularidad Vertical', eval(self.data['Irregularidad Vertical']))
-        i_disc = check_box('Dicontinuidad Vertical', eval(self.data['Dicontinuidad Vertical']))
-        i_disc_e = check_box('Dicontinuidad Vertical Extrema', eval(self.data['Dicontinuidad Vertical Extrema']))
-        description_a = widgets.HTML(value='<b>Irregularidad en Altura</b>')
-        i_altura = widgets.VBox([description_a,i_piso_b,i_piso_be,i_masa,i_vert,i_disc,i_disc_e])
-        for i in [description_a,i_piso_b,i_piso_be,i_masa,i_vert,i_disc,i_disc_e]:
-            i.observe(self.on_change)
-
-        i_torsion = check_box('Irregularidad Torsional', eval(self.data['Irregularidad Torsional']))
-        i_tosion_e = check_box('Irregulariad Torsional Extrema', eval(self.data['Irregulariad Torsional Extrema']))
-        i_esquinas = check_box('Esquinas Entrantes', eval(self.data['Esquinas Entrantes']))
-        i_disc_diaf = check_box('Discontinuidad del diafragma', eval(self.data['Discontinuidad del diafragma']))
-        i_no_paral = check_box('Sistemas no Paralelos', eval(self.data['Sistemas no Paralelos']))
-        description_p = widgets.HTML(value='<b>Irregularidad en Planta</b>')
-        i_planta = widgets.VBox([description_p,i_torsion,i_tosion_e,i_esquinas,i_disc_diaf,i_no_paral])
-        for i in [description_p,i_torsion,i_tosion_e,i_esquinas,i_disc_diaf,i_no_paral]:
-            i.observe(self.on_change)
-        return widgets.HBox([i_altura,i_planta])
-
-
-    def set_data(self):
-        zona = int(self.data['Factor Zona'])
-        self.Z = float(self.factor_zona[self.factor_zona.Zona == zona].Z)
-        categoria = self.data['Factor de Importancia']
-        self.U = float(self.cat_edificacion[self.cat_edificacion.categoria==categoria].U)
-        suelo = self.data['Factor Suelo']
-        self.S = float(self.factor_suelo[self.factor_suelo.Z==zona][suelo])
-        self.Tp = self.periodos_suelo[suelo].loc['Tp']
-        self.Tl = self.periodos_suelo[suelo].loc['Tl']
-        sistema = self.data['Sistema Estructural']
-        self.R_0 = float(self.sist_estructural[self.sist_estructural.sistema==sistema]['R_0'])
-        self.max_drift = float(self.sist_estructural[self.sist_estructural.sistema==sistema]['max_drift'])
-        self.N = int(self.data['Número de Pisos'])
-        self.n_sotanos = int(self.data['Número de Sotanos'])
-        self.n_azoteas = int(self.data['Número de Azoteas'])
-        self.Ip = min([j for i,j in self.irreg_planta.items() if eval(self.data[i])]+[1,])
-        self.Ia = min([j for i,j in self.irreg_altura.items() if eval(self.data[i])]+[1,])
-
-    def sismo_estatico(self,SapModel):
-        N = self.N
-        Z = self.Z
-        U = self.U
-        S = self.S
-        Tp = self.Tp
-        Tl = self.Tl
-        Ip = self.Ip
-        Ia = self.Ia
-        R_o = self.R_0
-        self.data_estatica = sis.sismo_estatico(SapModel,N,Z,U,S,Tp,Tl,Ip,Ia,R_o)
-
-    def piso_blando(self,SapModel,loads=['Sx','Sy','SDx','SDy']):
-        self.piso_blando_table =  sis.rev_piso_blando(SapModel,loads)
-
-    def irregularidad_masa(self,SapModel):
-        self.rev_masa_table = sis.rev_masa(SapModel,self.n_sotanos,self.n_azoteas)
-
-    def centro_masa_inercia(self,SapModel):
-        self.CM_CR_table = sis.get_CM_CR(SapModel)
-
-    def irregularidad_torsion(self,SapModel,loads=['Sx','Sy','SDx','SDy']):
-        self.R = self.R_0*self.Ia*self.Ip
-        self.is_regular = self.Ip == 1 and self.Ia==1
-        self.torsion_table = sis.create_rev_torsion_table(SapModel,loads,self.max_drift,self.R,is_regular=self.is_regular)
-
-    def derivas(self):
-        self.drift_table = sis.get_rev_drift(self.torsion_table, self.max_drift)
-        
-    def analisis_sismo(self,SapModel):
-        self.sismo_estatico(SapModel)
-        self.piso_blando(SapModel)
-        self.irregularidad_masa(SapModel)
-        self.centro_masa_inercia(SapModel)
-        self.irregularidad_torsion(SapModel)
-        self.derivas()
+    # factor_zona(s1, zona, insert=coments, o_type=Subsection)
+    # s1.append(coments)
+    # factor_suelo(s1, suelo, insert=coments, o_type=Subsection)
+    #periodos_suelo(s1, suelo)   
+    #s1.append(coments)
+    #sist_estructural(s1, insert=coments, o_type=Subsection)
+    #factor_amplificacion(s1, insert=coments, o_type=Subsection)
+    #factor_importancia(s1,categoria)
+    #table = sismo.modal
+    #ana_modal(s1, table, insert=coments, o_type=Subsubsection)
+    # tabla = sismo.piso_blando_table
+    # sis_x = tabla[tabla['OutputCase']=='SDX Max']
+    # sis_y = tabla[tabla['OutputCase']=='SDY Max']
+    # irreg_rigidez(s1,sis_x,sis_y, insert=coments, o_type=Subsubsection)
+    masa = sismo.rev_masa_table
+    irreg_masa(s1,masa, insert=coments, o_type=Subsection)
+    tabla = sismo.torsion_table
+    sis_x = tabla[tabla['OutputCase']=='SDX Max']
+    sis_y = tabla[tabla['OutputCase']=='SDY Max']
+    s1.append(NoEscape(r'\newpage'))
+    irreg_torsion(s1, sis_x, sis_y)
+    
+    doc.append(s1)
+    doc.generate_pdf('Memoria Sismo2')
+    doc.generate_tex('Memoria Sismo2')
+            

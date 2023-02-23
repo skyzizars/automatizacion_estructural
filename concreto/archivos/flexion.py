@@ -12,7 +12,7 @@ class elemento_viga():
         self.h = h
         self.mat = material
         self.reb = rebar
-
+    
         self.memoria = memoria
 
         if self.memoria:

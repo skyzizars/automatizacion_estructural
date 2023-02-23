@@ -2,6 +2,9 @@ import os
 import subprocess
 import csv
 
+def df_latex(table,colums=None,title=None):
+    pass
+
 def save_var(key,value,url):
     dict_var = {}
     file_path = os.path.join(os.getcwd(), url)

@@ -76,7 +76,7 @@ def get_table(SapModel,table_name):
                                                         EndBucklingMode,MultistepStatic,NonlinearStatic,
                                                         ModalHistory,DirectHistory,Combo)
 
-    data = SapModel.DatabaseTables.GetTableForDisplayArray(table_name,GroupName='')
+    data = SapModel.DatabaseTables.GetTableForDisplayArray(table_name,FieldKeyList='',GroupName='')
     columns = data[2]
     data = data[4]
     #reshape data
@@ -224,6 +224,14 @@ def draw_wall(SapModel,pi,pf,e,stories='all'):
     area_obj = SapModel.AreaObj.AddByCoord(len(X),X,Y,Z)
     area_name = area_obj[3]
     SapModel.AreaObj.SetProperty(area_name,prop_name)
+
+
+def draw_beam(SapModel,pi,pf,b,h):
+    set_units(SapModel, 'kgf_cm_C')
+    Xi,Yi,Zi = pi
+    Xj,Yj,Zj = pf
+    propName = f'Viga {b} x {h} cm'
+    SapModel.FrameObj.AddByCoord(Xi,Yi,Zi,Xj,Yj,Zj,PropName=propName)
 
 
 if __name__ == '__main__':
