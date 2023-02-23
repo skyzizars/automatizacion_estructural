@@ -1,6 +1,6 @@
 # Apuntes de Concreto Armado
 
-Creado con el fin de almacenar y compartir mis apuntes y programas de diseño estructural
+Proyecto Colaborativo que busca automatizar el calculo estructura
 
 ## Contenido
 - Diseño Estructural de Concreto Armado
