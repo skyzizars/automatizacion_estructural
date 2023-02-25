@@ -1,8 +1,8 @@
 Factor de Importancia,A1 no aislado
 Sistema Estructural,Dual de Concreto Armado
-N�mero de Pisos,8
-N�mero de Sotanos,0
-N�mero de Azoteas,0
+Número de Pisos,8
+Número de Sotanos,0
+Número de Azoteas,0
 Factor Zona,2
 Factor Suelo,S1
 Piso Blando,False
@@ -12,8 +12,8 @@ Irregularidad Torsional,False
 Irregulariad Torsional Extrema,False
 Irregularidad de Masa,False
 Esquinas Entrantes,False
-N�mero de Pisos,6
+Número de Pisos,6
 Dicontinuidad Vertical,False
 Discontinuidad del diafragma,False
-N�mero de Sotanos,0
-N�mero de Azoteas,0
+Número de Sotanos,0
+Número de Azoteas,0

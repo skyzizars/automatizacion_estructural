@@ -1,9 +1,21 @@
-# Apuntes de Concreto Armado
+# Integracion Python-Latex-ETABS
 
-Proyecto Colaborativo que busca automatizar el calculo estructura
+Funciones que interactuan con el software ETABS, Python y Latex para generar procesos de analisis sismico mas eficientes y veloces.
 
 ## Contenido
-- Diseño Estructural de Concreto Armado
-- Diseño Estructural de Acero Estructural
-- Programas de interacción con la OAPI
-- Programas de dibujo Autocad
+El repositorio se divide:
+
+    - concreto (Revisar bien)
+    
+    - datos (necesario para simmo_e030)
+    
+    - latex (ejemplos practicos de Latex y Python)
+    
+    - lib (librerias/funciones/ modulos)
+    
+    - mem (lib/mod/ funciones para la memoria de calculo)
+    
+    - sismo_e030 (notebook para correr el analisis sismico y la memoria de calculo)
+    
+
+## Notas
