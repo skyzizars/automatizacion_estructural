@@ -4,6 +4,9 @@ Funciones que interactuan con el software ETABS, Python y Latex para generar pro
 
 ## Contenido
 El repositorio se divide:
+    - concreto ()
+    - datos ()
     - latex (ejemplos practicos de Latex y Python)
-    - concreto
-
+    - lib ()
+    - mem ()
+    - sismo_e030 ()
