@@ -1,9 +1,13 @@
 import os
 import subprocess
 import csv
+from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure, Tabularx
+from pylatex.utils import NoEscape, bold
 
 def df_latex(table,colums=None,title=None):
     pass
+
+
 
 def save_var(key,value,url):
     dict_var = {}
@@ -47,3 +51,7 @@ def compile(name='main_mem'):
             os.remove(name+i)
         except:
             pass
+        
+    
+if __name__ == '__main__':
+    pass

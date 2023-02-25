@@ -1,3 +1,4 @@
+import latex_utils as ltx
 from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure, Tabularx
 from pylatex.utils import NoEscape, bold
 from pylatex.package import Package
@@ -32,6 +33,7 @@ def factor_zona(obj,zona,insert='',o_type=Subsubsection):
     df = [['4','0.45'],['3','0.35'],['2','0.25'],['1','0.10']]
     df[4-zona][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+df[4-zona][1]+r'}}'
     df[4-zona] = [i+r'\cellcolor[rgb]{ .949,  .949,  .949} ' for i in df[4-zona]]
+    df = [['Zona','Z'],]
     
     
     with obj.create(o_type('Factor de Zona')):
@@ -47,7 +49,8 @@ def factor_zona(obj,zona,insert='',o_type=Subsubsection):
                         table.add_hline()
                         for row in df:
                                 table.add_row((NoEscape(row[0]), NoEscape(row[1])))
-                                table.add_hline()                  
+                                table.add_hline()
+                    
             with obj.create(MiniPage(width='0.35\\textwidth')):
                 with obj.create(Center()):
                     obj.append(NoEscape('\\includegraphics[width=4cm]{mapa_zona}'))
@@ -123,6 +126,7 @@ def periodos_suelo(obj,suelo,insert='',o_type=Subsubsection):
 
 
 def sist_estructural(obj,insert='',o_type=Subsubsection):
+    
     data = [['Acero:',''],
             ['Porticos Especiales Resistentes a Momento (SMF)',8],
             ['Porticos Intermedios Resistentes a Momento (IMF)',5],
@@ -163,6 +167,8 @@ def sist_estructural(obj,insert='',o_type=Subsubsection):
                         table.add_row((MultiColumn(2,align='|l|',data=bold(row[0])),))
                         table.add_hline()
             tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+            
+            
 
 def factor_amplificacion(obj,insert='',o_type=Subsubsection):
     obj.packages.append(Package('graphicx'))
@@ -353,9 +359,6 @@ def irreg_torsion(obj,sis_x,sis_y,insert='',o_type=Subsubsection):
         obj.append(mbox)
         obj.append(insert)
         
-        
-
-        
         table = Table(position='ht!')
         table.append(NoEscape('\centering'))
         table.append(NoEscape('\caption{Irregularidad Torsional}'))
@@ -369,22 +372,124 @@ def irreg_torsion(obj,sis_x,sis_y,insert='',o_type=Subsubsection):
         table2.append(NoEscape('\\resizebox{\\textwidth}{!}{'))
         table2.append(NoEscape(latex_table(sis_y)+'}'))
         obj.append(table2)
-            
+    
 
-           
+def irreg_esquinas(obj,sec_change=None,openings=None,insert='',o_type=Subsubsection):
+    '''
+    recibe el objeto y produce un informe de irregularidad de esquinas entrante
+    sintaxis de sec_change (diccionario):
+        {aligerdo: (longitud,espesor),
+         macisa: (longitud,esperor)}
+        tipo de seccion 1: [longitud,espesor]
+    sintaxis de openings:
+        aberturas : [(largo, ancho),]
+        area_planta: area 
+    '''
+    
+    obj.packages.append(Package('tcolorbox'))
+    obj.packages.append(Package('caption'))
+    obj.packages.append(Package('array'))
+    
+    with obj.create(o_type('Irregularidad por Esquinas Entrantes')):
+        mbox = mybox2('Tabla N°9 E-030')
+        mbox.append(NoEscape(r'\textit{La estructura se califica como irregular cuando los diafragmas tienen discontinuidades abruptas o variaciones importantes en rigidez, incluyendo aberturas mayores que 50\% del área bruta del diafragma.} \\ \textit{También  existe  irregularidad  cuando,  en  cualquiera de  los pisos y para cualquiera de las direcciones de análisis, se tiene alguna sección transversal del diafragma con un área neta resistente menor que 25\% del área de la sección transversal total de la misma dirección calculada con las dimensiones totales de la planta.}'))
+        obj.append(mbox)
+        
+        fig = Figure(position='ht!')
+        fig.append(NoEscape(r'\centering'))
+        fig.append(NoEscape(r'\caption{Irregularidad por discontinuidad del diafragma}'))
+        fig.append(NoEscape(r'\includegraphics[scale=0.7]{i_diafragma.PNG}'))
+        fig.append(NoEscape(r'\caption*{\small Fuente: Muñoz (2020)}'))
+        obj.append(fig)
+        
+        if sec_change:
+            data = [['Longitud del aligerado (L1)',sec_change['aligerado'][0],'m'],
+                    ['Espesor del aligerado (e1)',sec_change['aligerado'][1],'m'],
+                    ['Area del aligerado A1=L1$\\cdot$ e1','area1','$m^2$'],
+                    ['Longitud de la losa macisa (L2)',sec_change['macisa'][0],'m'],
+                    ['Espesor de la losa macisa (e2)',sec_change['macisa'][1],'m'],
+                    ['Area de la losa macisa A1=L1$\\cdot$ e1','area2','$m^2$'],
+                    ['Ratio','ratio','\%'],
+                    ['Ratio límite','25.00','\%'],
+                    ['Verificación','','']]
+            
+            data[2][1] = '%.2f'%(sec_change['aligerado'][0]*sec_change['aligerado'][1])
+            data[5][1] = '%.2f'%(sec_change['macisa'][0]*sec_change['macisa'][1])
+            data[6][1] = '%.2f'%(float(data[5][1])/float(data[2][1])*100)
+            data[8][1] = r'\textcolor[rgb]{ .267,  .447,  .769}{\textbf{Regular}}' if float(data[6][1]) > float(data[7][1]) else r'\textcolor[rgb]{ 1,  0,  0}{\textbf{Irregular}}'
+            
+            table = Table(position='ht!')
+            table.append(NoEscape(r'\centering'))
+            table.append(NoEscape(r'\caption{Irregularidad por discontinuidad del diafragma (a)}'))
+            tab = Tabular('|ll|c|r')
+            tab.append(NoEscape(r'\cline{1-3}'))
+            for row in data:
+                tab.append(NoEscape(r'\multicolumn{2}{|l|}{%s} & %s & \multicolumn{1}{l}{%s} \\'%(row[0],row[1],row[2])))
+                tab.append(NoEscape(r'\cline{1-3}'))
+            table.append(tab)
+            obj.append(table)
+    
+        if openings:
+            
+            
+            table = Table(position='ht!')
+            table.append(NoEscape(r'\centering'))
+            table.append(NoEscape(r'\caption{Irregularidad por discontinuidad del diafragma (b)}'))
+ 
+'''
+\begin{table}[h!]
+  \centering
+  \caption{Irregularidad por discontinuidad del diafragma (b)}
+    \begin{tabular}{rr|l|c|r}
+\cline{1-4}    \multicolumn{1}{|c|}{\textbf{Abertura}} & \multicolumn{1}{c|}{\textbf{Ancho (m)}} & \multicolumn{1}{c|}{\textbf{Largo (m)}} & \textbf{Area (m2)} &  \\
+\cline{1-4}    \multicolumn{1}{|c|}{1} & \multicolumn{1}{c|}{4.028} & \multicolumn{1}{c|}{2.3} & 9.26  &  \\
+\cline{1-4}    \multicolumn{1}{|c|}{2} & \multicolumn{1}{c|}{1.1} & \multicolumn{1}{c|}{2.3} & 2.53  &  \\
+\cline{1-4}    \multicolumn{1}{|c|}{3} & \multicolumn{1}{c|}{1.2} & \multicolumn{1}{c|}{1.9} & 2.28  &  \\
+\cline{1-4}          &       & Area total de aberturas & 14.07 &  \\
+\cline{3-4}          & \multicolumn{1}{r}{} & \multicolumn{1}{r}{} & \multicolumn{1}{r}{} &  \\
+\cline{3-4}          &       & Area total en planta  & 120.41 & \multicolumn{1}{l}{(m2)} \\
+\cline{3-4}          &       & Ratio   & \textbf{11.689} & \multicolumn{1}{l}{\%} \\
+\cline{3-4}          &       & Limite & \textbf{50.000} &  \\
+\cline{3-4}          &       & Verificación & \textcolor[rgb]{ .267,  .447,  .769}{\textbf{Regular}} &  \\
+\cline{3-4}    \end{tabular}%
+  \label{tab:addlabel}%
+\end{table}%
+'''      
+
+
+    
 if __name__ == '__main__':
     import os
     import sys
     sys.path.append(os.getcwd()+'\\..')
     from lib import etabs_utils as etb
-    from lib import sismo_utils as sis
+    # from lib import sismo_utils as sis
+    
+    sec_change = {'aligerado':[7.51,0.05],
+                  'macisa':[2.25,0.20]}
+    
+    geometry_options = { "left": "2.5cm", "top": "1.5cm" }
+    doc = Document(geometry_options=geometry_options)
+    doc.packages.append(Package('xcolor', options=['dvipsnames']))
+    
+    s1 = Section('Análisis Sísmico')
+    
+    irreg_esquinas(s1, sec_change=sec_change)
+    
+    
+    
+ 
 
 
+    try:
+        _SapModel, _EtabsObject = etb.connect_to_etabs()
+        #Definir variables de salida 'Ton_m_C' o 'kgf_cm_C'
+        etb.set_units(_SapModel,'Ton_m_C')
+    except:
+        pass
 
-    _SapModel, _EtabsObject = etb.connect_to_etabs()
-
-    #Definir variables de salida 'Ton_m_C' o 'kgf_cm_C'
-    etb.set_units(_SapModel,'Ton_m_C')
+    
+    
 
     sistemas = ['Pórticos de Concreto Armado',
                 'Dual de Concreto Armado',
@@ -418,9 +523,9 @@ if __name__ == '__main__':
             'Discontinuidad del diafragma': 'False',
             'Sistemas no Paralelos': 'False'}
     
-    sismo = sis.sismo_e30(data=datos)
-    sismo.show_params()
-    sismo.analisis_sismo(_SapModel)
+    # sismo = sis.sismo_e30(data=datos)
+    # sismo.show_params()
+    # sismo.analisis_sismo(_SapModel)
     
     zona = 2
     suelo = 'S1'
@@ -430,7 +535,7 @@ if __name__ == '__main__':
     doc = Document(geometry_options=geometry_options)
     doc.packages.append(Package('xcolor', options=['dvipsnames']))
     
-    s1 = Section('Análisis Sísmico')
+    # s1 = Section('Análisis Sísmico')
 
     coments = 'Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \n'
 
@@ -450,13 +555,15 @@ if __name__ == '__main__':
     # sis_x = tabla[tabla['OutputCase']=='SDX Max']
     # sis_y = tabla[tabla['OutputCase']=='SDY Max']
     # irreg_rigidez(s1,sis_x,sis_y, insert=coments, o_type=Subsubsection)
-    masa = sismo.rev_masa_table
-    irreg_masa(s1,masa, insert=coments, o_type=Subsection)
-    tabla = sismo.torsion_table
-    sis_x = tabla[tabla['OutputCase']=='SDX Max']
-    sis_y = tabla[tabla['OutputCase']=='SDY Max']
-    s1.append(NoEscape(r'\newpage'))
-    irreg_torsion(s1, sis_x, sis_y)
+    # masa = sismo.rev_masa_table
+    # irreg_masa(s1,masa, insert=coments, o_type=Subsection)
+    # tabla = sismo.torsion_table
+    # sis_x = tabla[tabla['OutputCase']=='SDX Max']
+    # sis_y = tabla[tabla['OutputCase']=='SDY Max']
+    # s1.append(NoEscape(r'\newpage'))
+    # irreg_torsion(s1, sis_x, sis_y)
+
+
     
     doc.append(s1)
     doc.generate_pdf('Memoria Sismo2')
