@@ -4,9 +4,11 @@ Funciones que interactuan con el software ETABS, Python y Latex para generar pro
 
 ## Contenido
 El repositorio se divide:
-    - concreto ()
-    - datos ()
+    - concreto (Revisar bien)
+    - datos (necesario para simmo_e030)
     - latex (ejemplos practicos de Latex y Python)
-    - lib ()
-    - mem ()
-    - sismo_e030 ()
+    - lib (librerias/funciones/ modulos)
+    - mem (lib/mod/ funciones para la memoria de calculo)
+    - sismo_e030 (notebook para correr el analisis sismico y la memoria de calculo)
+
+## Notas
