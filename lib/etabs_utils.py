@@ -18,9 +18,23 @@ def connect_to_etabs():
         EtabsObject = helper.GetObject("CSI.ETABS.API.ETABSObject")
         #create SapModel object
         SapModel = EtabsObject.SapModel
-        return SapModel, EtabsObject
+        
+        try:
+            get_table(SapModel,'Modal Participating Mass Ratios')
+        except:
+            EtabsObject=comtypes.client.GetActiveObject("CSI.ETABS.API.ETABSObject")
+            SapModel=EtabsObject.SapModel
+            try:
+                get_table(SapModel,'Modal Participating Mass Ratios')
+            except:
+                print('Lo sentimos no es posible concetarnos al API de ETABS')
+                return None,None
+        
+        return EtabsObject, SapModel
+        
     except:
         print('No es posible conectarse a ETABS')
+        return None,None
 
     
 

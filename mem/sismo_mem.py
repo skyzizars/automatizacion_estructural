@@ -430,12 +430,17 @@ def irreg_esquinas(obj,sec_change=None,openings=None,insert='',o_type=Subsubsect
             obj.append(table)
     
         if openings:
+            data = [['Abertura', 'Largo (m)','Ancho (m)','Área $m^2$'],]
             
+            for i,j in enumerate(openings['aberturas']):
+                data.append([i+1,'%.2f'%(j[0]),'%.2f'%(j[1]),'%.2f'%(j[0]*j[1])])
             
             table = Table(position='ht!')
             table.append(NoEscape(r'\centering'))
             table.append(NoEscape(r'\caption{Irregularidad por discontinuidad del diafragma (b)}'))
- 
+            print(data)
+
+
 '''
 \begin{table}[h!]
   \centering
@@ -467,6 +472,7 @@ if __name__ == '__main__':
     
     sec_change = {'aligerado':[7.51,0.05],
                   'macisa':[2.25,0.20]}
+    openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)]}
     
     geometry_options = { "left": "2.5cm", "top": "1.5cm" }
     doc = Document(geometry_options=geometry_options)
@@ -474,7 +480,8 @@ if __name__ == '__main__':
     
     s1 = Section('Análisis Sísmico')
     
-    irreg_esquinas(s1, sec_change=sec_change)
+
+    irreg_esquinas(s1, sec_change=sec_change, openings=openings)
     
     
     
