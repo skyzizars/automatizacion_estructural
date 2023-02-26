@@ -1,11 +1,7 @@
-from operator import index
-import os
-from re import S
+#from operator import index
+#from re import S
 import comtypes.client
-import os
-import sys
 import pandas as pd
-import numpy as np
 
 
 
@@ -36,12 +32,13 @@ def connect_to_etabs():
         print('No es posible conectarse a ETABS')
         return None,None
 
-    
 
+    
 
 def set_units(SapModel,unit):
     units = {'Ton_m_C' : 12, 'kgf_cm_C':14}
     SapModel.SetPresentUnits(units[unit])
+
 
 def get_modal_data(SapModel,clean_data='true'):
     SapModel.Results.Setup.DeselectAllCasesAndCombosForOutput()
@@ -69,6 +66,7 @@ def get_modal_data(SapModel,clean_data='true'):
 
 
 def get_table(SapModel,table_name):
+    
     IsUserBaseReactionLocation=False
     UserBaseReactionX=0
     UserBaseReactionY=0
@@ -89,8 +87,12 @@ def get_table(SapModel,table_name):
                                                         StartMode,EndMode,IsAllBucklingModes,StartBucklingMode,
                                                         EndBucklingMode,MultistepStatic,NonlinearStatic,
                                                         ModalHistory,DirectHistory,Combo)
-
     data = SapModel.DatabaseTables.GetTableForDisplayArray(table_name,FieldKeyList='',GroupName='')
+    
+    if not data[2][0]:
+        SapModel.Analyze.RunAnalysis()
+        data = SapModel.DatabaseTables.GetTableForDisplayArray(table_name,FieldKeyList='',GroupName='')
+        
     columns = data[2]
     data = data[4]
     #reshape data
