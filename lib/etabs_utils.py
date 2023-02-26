@@ -8,7 +8,6 @@ import pandas as pd
 import numpy as np
 
 
-
 def connect_to_etabs():
     try:
         #create API helper object
