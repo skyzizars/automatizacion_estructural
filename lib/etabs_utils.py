@@ -4,7 +4,6 @@ import comtypes.client
 import pandas as pd
 
 
-
 def connect_to_etabs():
     try:
         #create API helper object
