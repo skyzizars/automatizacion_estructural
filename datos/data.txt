@@ -14,4 +14,4 @@ Irregularidad de Masa,False
 Esquinas Entrantes,False
 Dicontinuidad Vertical,False
 Discontinuidad del diafragma,False
-Número de Azoteas,2
+Número de Azoteas,1
