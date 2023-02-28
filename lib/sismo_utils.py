@@ -618,6 +618,27 @@ Factor de Reducción:
         self.derivas()
         self.min_shear(SapModel)
 
+def Seleccionar_Load_Cases(SapModel):
+    #Guardamos la lista de los loadcases existentes
+    _,lista_Load_Case,_ = SapModel.LoadCases.GetNameList()
+    lista_Load_Case = [load for load in lista_Load_Case if load[0]!= '~' and load!= 'Modal']
+ 
+    if len (lista_Load_Case)>=1:
+        Sismo_EstX = dropdown(lista_Load_Case,'Sismo Estatico en X',lista_Load_Case[0])
+        Sismo_EstY = dropdown(lista_Load_Case,'Sismo Estatico en Y',lista_Load_Case[0])
+        Sismo_DinX = dropdown(lista_Load_Case,'Sismo Dinámico en X',lista_Load_Case[0])
+        Sismo_DinY = dropdown(lista_Load_Case,'Sismo Dinámico en Y',lista_Load_Case[0])
+        Title_SismoX = widgets.HTML(value='<b>Dirección X</b>')
+        Title_SismoY = widgets.HTML(value='<b>Dirección Y</b>')
+        layout_X = widgets.VBox([Title_SismoX, Sismo_EstX, Sismo_DinX])
+        layout_Y = widgets.VBox([Title_SismoY, Sismo_EstY, Sismo_DinY])
+
+
+        return widgets.HBox([layout_X, layout_Y])
+        # self.Sismos_Select = ['', '', '', '']
+    else:
+        print('NO HA INGRESADO NINGUN CASO DE CARGA EN EL MODELO')
+        return None
 
 if __name__ == '__main__':
     from mem import sismo_mem as smem
