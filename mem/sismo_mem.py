@@ -473,13 +473,9 @@ if __name__ == '__main__':
     from lib import etabs_utils as etb
     from lib import sismo_utils as sis
     import comtypes.client
-    # from lib import sismo_utils as sis
+
     
-   
-   
-    #_SapModel, _EtabsObject = etb.connect_to_etabs()
-    EtabsObject=comtypes.client.GetActiveObject("CSI.ETABS.API.ETABSObject")
-    _SapModel=EtabsObject.SapModel
+    _, _SapModel=etb.connect_to_etabs()
     #Definir variables de salida 'Ton_m_C' o 'kgf_cm_C'
     etb.set_units(_SapModel,'Ton_m_C')
 
