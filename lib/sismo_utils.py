@@ -340,10 +340,13 @@ def min_shear(SapModel,is_regular=True,loads={'X':('Sx','SDx'),'Y':('Sy','SDy')}
     base_shear = base_shear[base_shear['Location']=='Bottom']
     base_shear = base_shear[base_shear['StepType']=='Max']
     base_shear = base_shear[['OutputCase','VX','VY']]
-    Sx = float(base_shear[base_shear['OutputCase'].apply(lambda x:x.upper()) =='SX']['VX'])
-    SDx = float(base_shear[base_shear['OutputCase'].apply(lambda x:x.upper()) =='SDX']['VX'])
-    Sy = float(base_shear[base_shear['OutputCase'].apply(lambda x:x.upper()) =='SY']['VY'])
-    SDy = float(base_shear[base_shear['OutputCase'].apply(lambda x:x.upper()) =='SDY']['VY'])
+    #Obtenemos la lista de LoadCase
+    List_t1 = list(loads['X'])
+    List_t2 = list(loads['Y'])
+    Sx = float(base_shear[base_shear['OutputCase'] ==List_t1[0]]['VX'])
+    SDx = float(base_shear[base_shear['OutputCase'] ==List_t1[1]]['VX'])
+    Sy = float(base_shear[base_shear['OutputCase'] ==List_t2[0]]['VY'])
+    SDy = float(base_shear[base_shear['OutputCase'] ==List_t2[1]]['VY'])
     per_min = 80 if is_regular else 90
     per_x = abs(round(SDx/Sx*100,2))
     per_y = abs(round(SDy/Sy*100,2))
@@ -588,7 +591,7 @@ Factor de Reducción:
         self.param_sis_est = sismo_estatico(SapModel, N, Z, U, S, Tp, Tl, Ip, Ia, R_o)
         self.modal = self.param_sis_est.pop('modal')
 
-    def piso_blando(self, SapModel, loads=['Sx', 'Sy', 'SDx', 'SDy']):
+    def piso_blando(self, SapModel, loads):
         self.piso_blando_table = rev_piso_blando(SapModel, loads)
 
     def irregularidad_masa(self, SapModel):
@@ -597,7 +600,7 @@ Factor de Reducción:
     def centro_masa_inercia(self, SapModel):
         self.CM_CR_table = get_CM_CR(SapModel)
 
-    def irregularidad_torsion(self, SapModel, loads=['Sx', 'Sy', 'SDx', 'SDy']):
+    def irregularidad_torsion(self, SapModel, loads):
         self.R = self.R_0 * self.Ia * self.Ip
         self.is_regular = self.Ip == 1 and self.Ia == 1
         self.torsion_table = create_rev_torsion_table(SapModel, loads, self.max_drift, self.R,
@@ -606,18 +609,70 @@ Factor de Reducción:
     def derivas(self):
         self.drift_table = get_rev_drift(self.torsion_table, self.max_drift)
 
-    def min_shear(self, SapModel):
-        self.shear_table = min_shear(SapModel, is_regular=self.is_regular)
+    def min_shear(self, SapModel, cargas):
+        self.shear_table = min_shear(SapModel, is_regular=self.is_regular, loads={'X':(str(cargas[0]), str(cargas[2])),'Y':(str(cargas[1]), str(cargas[3]))})
 
-    def analisis_sismo(self, SapModel):
+    def analisis_sismo(self, SapModel, loads):
         self.sismo_estatico(SapModel)
-        self.piso_blando(SapModel)
+        self.piso_blando(SapModel, loads)
         self.irregularidad_masa(SapModel)
         self.centro_masa_inercia(SapModel)
-        self.irregularidad_torsion(SapModel)
+        self.irregularidad_torsion(SapModel, loads)
         self.derivas()
-        self.min_shear(SapModel)
+        self.min_shear(SapModel, loads)
 
+class Cargas_Cases():
+    def __init__(self):
+         self.List_Cargas = ['', '', '', '']
+    
+    def Select_load(self,SapModel):
+        #Guardamos la lista de los loadcases existentes
+        _,self.lista_Load_Case,_ = SapModel.LoadCases.GetNameList()
+        self.lista_Load_Case = [load for load in self.lista_Load_Case if load[0]!= '~' and load!= 'Modal']
+        if len (self.lista_Load_Case)>=1:
+            self.Sismo_EstX = dropdown(self.lista_Load_Case,'Sismo Estatico en X',self.lista_Load_Case[0])
+            self.Sismo_EstY = dropdown(self.lista_Load_Case,'Sismo Estatico en Y',self.lista_Load_Case[0])
+            self.Sismo_DinX = dropdown(self.lista_Load_Case,'Sismo Dinámico en X',self.lista_Load_Case[0])
+            self.Sismo_DinY = dropdown(self.lista_Load_Case,'Sismo Dinámico en Y',self.lista_Load_Case[0])
+            Title_SismoX = widgets.HTML(value='<b>Dirección X</b>')
+            Title_SismoY = widgets.HTML(value='<b>Dirección Y</b>')
+            layout_X = widgets.VBox([Title_SismoX, self.Sismo_EstX, self.Sismo_DinX])
+            layout_Y = widgets.VBox([Title_SismoY, self.Sismo_EstY, self.Sismo_DinY])
+            
+            VSis_EstX = self.Sismo_EstX.value
+            VSis_EstY = self.Sismo_EstY.value
+            VSis_DinX = self.Sismo_DinX.value
+            VSis_DinY = self.Sismo_DinY.value
+
+            self.Sismo_EstX.observe(self.cambiar_cbx_LoadCase0)
+            self.Sismo_EstY.observe(self.cambiar_cbx_LoadCase1)
+            self.Sismo_DinX.observe(self.cambiar_cbx_LoadCase2)
+            self.Sismo_DinY.observe(self.cambiar_cbx_LoadCase3)
+
+
+            self.List_Cargas = [VSis_EstX, VSis_EstY, VSis_DinX, VSis_DinY]
+
+            return widgets.HBox([layout_X, layout_Y])
+            
+        else:
+            print('NO HA INGRESADO NINGUN CASO DE CARGA EN EL MODELO')
+            return None
+    
+    def cambiar_cbx_LoadCase0(self,change):
+        if change['type'] == 'change' and change['name'] == 'value':
+            self.List_Cargas[0]= change['new']
+    def cambiar_cbx_LoadCase1(self,change):
+        if change['type'] == 'change' and change['name'] == 'value':
+            self.List_Cargas[1]= change['new']
+    def cambiar_cbx_LoadCase2(self,change):
+        if change['type'] == 'change' and change['name'] == 'value':
+            self.List_Cargas[2]= change['new']
+    def cambiar_cbx_LoadCase3(self,change):
+        if change['type'] == 'change' and change['name'] == 'value':
+            self.List_Cargas[3]= change['new']
+
+
+    
 
 if __name__ == '__main__':
     from mem import sismo_mem as smem
