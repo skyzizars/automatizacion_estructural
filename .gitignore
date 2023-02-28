@@ -8,5 +8,8 @@
 *.synctex.gz
 *.aux
 *.chm
+<<<<<<<<< Temporary merge branch 1
 concreto
+=========
 *.ipynb
+>>>>>>>>> Temporary merge branch 2
