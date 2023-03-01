@@ -44,6 +44,17 @@ def show_table(table, column='OutputCase'):
 
 #Cálculo del exponente de altura
 def get_k(T):
+    """Devuelve el exponente relacionado con el periodo (T). Revise
+    28.3.2 NTE 030 2020
+    Parámetros
+    ----------
+    T : Periodo fundamental de vibración de la estructura (seg)
+    Returns
+    -------
+    k=1, si T<=0.5 seg.
+    k=0.75+0.5*T, si T>=0.5
+    k=2, si 0.75+0.5*T>2
+    """
     if T < 0.5:
         return 1
     elif 0.75+0.5*T < 2:
@@ -53,6 +64,19 @@ def get_k(T):
 
 #Cálculo del Factor C
 def get_C(T,Tp,Tl):
+    """Devuelve el factor de amplificacion sismica (C).Revise
+    Articulo 14 NTE 030 2020
+    Parámetros
+    ----------
+    T : Periodo fundamental de vibración de la estructura (seg)
+    Tp: Periodo del suelo
+    Tl: Periodo del suelo
+    Returns
+    -------
+    C=2.5, si T<Tp
+    C=2.5*Tp/T, si Tp<T<Tl
+    C=2.5*(Tp*Tl/T**2), si T>Tl
+    """
     if T < Tp:
         return 2.5
     elif T < Tl:
@@ -62,6 +86,20 @@ def get_C(T,Tp,Tl):
 
 #Cálculo del coeficiente de sismo estático
 def get_ZUCS_R(C,Z,U,S,R):
+    """Devuelve el coeficiente de sismo estatica Revise
+    28.2 NTE 030 2020
+    Parámetros
+    ----------
+    C: Factor de amplificacion sísmica
+    Z: Facto de zona
+    U: Factor de categoria de edificación
+    S: Factor de amplificacion del suelo
+    R: Factor de reduccion de las fuerzas sismicas
+    Returns
+    -------
+    Z*U*C*S/R, si C/R>=0.11
+    Z*U*S*0.11, si C/R<0.11
+    """
     if C/R>0.11:
         return Z*U*C*S/R
     else:
@@ -69,6 +107,20 @@ def get_ZUCS_R(C,Z,U,S,R):
 
 #Sismo Estático
 def ana_modal(SapModel):
+    '''Devuelve el coeficiente de sismo estatica Revise
+    28.2 NTE 030 2020
+    Parámetros
+    ----------
+    C: Factor de amplificacion sísmica
+    Z: Facto de zona
+    U: Factor de categoria de edificación
+    S: Factor de amplificacion del suelo
+    R: Factor de reduccion de las fuerzas sismicas
+    Returns
+    -------
+    Z*U*C*S/R, si C/R>=0.11
+    Z*U*S*0.11, si C/R<0.11  
+    '''
     _,modal = etb.get_table(SapModel,'Modal Participating Mass Ratios')
     
     modal = modal[['Mode','Period','UX','UY','RZ','SumUX','SumUY','SumRZ']]
