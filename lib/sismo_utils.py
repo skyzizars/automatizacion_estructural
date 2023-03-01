@@ -253,9 +253,14 @@ def get_CM_CR(SapModel):
     return rev_CM_CR
 
 
-def min_shear(SapModel,is_regular=True,loads={'X':('Sx','SDx'),'Y':('Sy','SDy')},story='Story1'):
+def min_shear(SapModel,seism_loads,is_regular=True,story='Story1'):
+    seism_loads = {'Sismo_EstX': 'Sx',
+                    'Sismo_EstY': 'Sy',
+                    'Sismo_DinX': 'SDx',
+                    'Sismo_DinY': 'SDy'}
+
     etb.set_units(SapModel,'Ton_m_C')
-    set_loads = [load for tupla in loads.values() for load in tupla]
+    set_loads = [load for load in seism_loads.values()]
     SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_loads)
     _,base_shear=etb.get_table(SapModel,'Story Forces')
     base_shear = base_shear[base_shear['Story']==story]
@@ -263,15 +268,16 @@ def min_shear(SapModel,is_regular=True,loads={'X':('Sx','SDx'),'Y':('Sy','SDy')}
     base_shear['StepType'] = base_shear['StepType'].fillna('Max')
     base_shear = base_shear[base_shear['StepType']=='Max']
     base_shear = base_shear[['OutputCase','VX','VY']]
-    Sx = float(base_shear[base_shear['OutputCase'].apply(lambda x:x.upper()) =='SX']['VX'])
-    SDx = float(base_shear[base_shear['OutputCase'].apply(lambda x:x.upper()) =='SDX']['VX'])
-    Sy = float(base_shear[base_shear['OutputCase'].apply(lambda x:x.upper()) =='SY']['VY'])
-    SDy = float(base_shear[base_shear['OutputCase'].apply(lambda x:x.upper()) =='SDY']['VY'])
-    per_min = 80 if is_regular else 90
-    per_x = abs(round(SDx/Sx*100,2))
-    per_y = abs(round(SDy/Sy*100,2))
-    fex = 1 if per_x > per_min else round(per_min/per_x,2)
-    fey = 1 if per_y > per_min else round(per_min/per_y,2)
+    #Extraemos los datos necesatios
+    Sx = float(base_shear[base_shear['OutputCase'] == seism_loads['Sismo_EstX']]['VX'])
+    SDx = float(base_shear[base_shear['OutputCase'] ==seism_loads['Sismo_DinX']]['VX'])
+    Sy = float(base_shear[base_shear['OutputCase'] ==seism_loads['Sismo_EstY']]['VY'])
+    SDy = float(base_shear[base_shear['OutputCase'] ==seism_loads['Sismo_DinY']]['VY'])
+    per_min = 80 if is_regular else 90 #porcentaje mínimo 80% o 90% si es regular o no
+    per_x = abs(round(SDx/Sx*100,2)) #relacion entre sismo en x
+    per_y = abs(round(SDy/Sy*100,2)) #relacion entre sismo en y
+    fex = 1 if per_x > per_min else round(per_min/per_x,2) #relacion entre sismo en x
+    fey = 1 if per_y > per_min else round(per_min/per_y,2) #relacion entre sismo en y
     table = pd.DataFrame(
         [['','X','Y'],
         ['V din (Ton)',SDx,SDy],
@@ -282,7 +288,7 @@ def min_shear(SapModel,is_regular=True,loads={'X':('Sx','SDx'),'Y':('Sy','SDy')}
     return table
 
 # Main
-def rev_sismo(SapModel,Dt,T_analisis):
+def check_sismo(SapModel,Dt,T_analisis):
     
     loads = Dt['loads']
     model_loads = etb.get_table(SapModel, 'Load Case Definitions - Summary')[1].Name
@@ -479,6 +485,51 @@ Factor de Reducción:
 '''.format(self.Z, self.U, self.S, self.Tp, self.Tl, self.R_0, self.R_0, self.Ip, self.Ip,
            self.Ia, self.Ip, self.R, self.R))
 
+    def select_load(self,SapModel):
+        #Guardamos la lista de los loadcases existentes
+        _,load_cases,_ = SapModel.LoadCases.GetNameList()
+        load_cases = [load for load in load_cases if load[0]!= '~' and load!= 'Modal']
+        if len (load_cases)>=1:
+            self.Sismo_EstX = dropdown(load_cases,'Sismo Estatico en X',load_cases[0])
+            self.Sismo_EstY = dropdown(load_cases,'Sismo Estatico en Y',load_cases[0])
+            self.Sismo_DinX = dropdown(load_cases,'Sismo Dinámico en X',load_cases[0])
+            self.Sismo_DinY = dropdown(load_cases,'Sismo Dinámico en Y',load_cases[0])
+            Title_SismoX = widgets.HTML(value='<b>Dirección X</b>')
+            Title_SismoY = widgets.HTML(value='<b>Dirección Y</b>')
+            layout_X = widgets.VBox([Title_SismoX, self.Sismo_EstX, self.Sismo_DinX])
+            layout_Y = widgets.VBox([Title_SismoY, self.Sismo_EstY, self.Sismo_DinY])
+            
+            #inicializando valores
+            self.seism_loads = {'s_estX' : load_cases[0],
+                                's_estY' : load_cases[0],
+                                's_dinX' : load_cases[0],
+                                's_dinY' : load_cases[0] }
+
+            #Observacion en caso de cambio
+            self.Sismo_EstX.observe(self.change_cbx_Sx)
+            self.Sismo_EstY.observe(self.change_cbx_Sy)
+            self.Sismo_DinX.observe(self.change_cbx_SDx)
+            self.Sismo_DinY.observe(self.change_cbx_SDy)      
+
+            return widgets.HBox([layout_X, layout_Y])
+            
+        else:
+            print('NO HA INGRESADO NINGUN CASO DE CARGA EN EL MODELO')
+            return None
+    
+    def change_cbx_Sx(self,change):
+        if change['type'] == 'change' and change['name'] == 'value':
+            self.seism_loads['s_estX'] = change['new']
+    def change_cbx_Sy(self,change):
+        if change['type'] == 'change' and change['name'] == 'value':
+            self.seism_loads['s_estY']= change['new']
+    def change_cbx_SDx(self,change):
+        if change['type'] == 'change' and change['name'] == 'value':
+            self.seism_loads['s_dinX']= change['new']
+    def change_cbx_SDy(self,change):
+        if change['type'] == 'change' and change['name'] == 'value':
+            self.seism_loads['s_dinY']= change['new']
+
     def set_data(self):
         zona = int(self.data['Factor Zona'])
         self.Z = float(self.factor_zona[self.factor_zona.Zona == zona].Z)
@@ -511,7 +562,8 @@ Factor de Reducción:
         self.param_sis_est = sismo_estatico(SapModel, N, Z, U, S, Tp, Tl, Ip, Ia, R_o)
         self.modal = self.param_sis_est.pop('modal')
 
-    def piso_blando(self, SapModel, loads=['Sx', 'Sy', 'SDx', 'SDy']):
+    def piso_blando(self, SapModel):
+        loads = [load for load in self.seism_loads.values()]
         self.piso_blando_table = rev_piso_blando(SapModel, loads)
 
     def irregularidad_masa(self, SapModel):
@@ -520,9 +572,10 @@ Factor de Reducción:
     def centro_masa_inercia(self, SapModel):
         self.CM_CR_table = get_CM_CR(SapModel)
 
-    def irregularidad_torsion(self, SapModel, loads=['Sx', 'Sy', 'SDx', 'SDy']):
+    def irregularidad_torsion(self, SapModel):
         self.R = self.R_0 * self.Ia * self.Ip
         self.is_regular = self.Ip == 1 and self.Ia == 1
+        loads = [load for load in self.seism_loads.values()]
         self.torsion_table = create_rev_torsion_table(SapModel, loads, self.max_drift, self.R,
                                                           is_regular=self.is_regular)
 
@@ -530,7 +583,8 @@ Factor de Reducción:
         self.drift_table = get_rev_drift(self.torsion_table, self.max_drift)
 
     def min_shear(self, SapModel):
-        self.shear_table = min_shear(SapModel, is_regular=self.is_regular)
+        loads = self.seism_loads
+        self.shear_table = min_shear(SapModel, is_regular=self.is_regular, seism_loads=loads)
 
     def analisis_sismo(self, SapModel):
         self.sismo_estatico(SapModel)
@@ -541,10 +595,9 @@ Factor de Reducción:
         self.derivas()
         self.min_shear(SapModel)
 
+    
 
 if __name__ == '__main__':
-
-
 
     _,_SapModel= etb.connect_to_etabs()
 
@@ -582,10 +635,17 @@ if __name__ == '__main__':
             'Esquinas Entrantes': 'False',
             'Discontinuidad del diafragma': 'False',
             'Sistemas no Paralelos': 'False'}
+    
+    seism_loads = {'Sismo_EstX': 'Sx',
+                 'Sismo_EstY': 'Sy',
+                 'Sismo_DinX': 'SDx',
+                 'Sismo_DinY': 'SDy'
+        }
 
     sismo = sismo_e30(data=datos)
     sismo.show_params()
-    sismo.analisis_sismo(_SapModel)
+    sismo.seism_loads = seism_loads
+    #sismo.analisis_sismo(_SapModel)
     
     
 
