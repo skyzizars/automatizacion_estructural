@@ -4,11 +4,6 @@ import csv
 from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure, Tabularx
 from pylatex.utils import NoEscape, bold
 
-def df_latex(table,colums=None,title=None):
-    pass
-
-
-
 def save_var(key,value,url):
     dict_var = {}
     file_path = os.path.join(os.getcwd(), url)
@@ -32,7 +27,7 @@ def read_dict(url):
     dict_var = {}
     file_path = os.path.join(os.getcwd(), url)
     try:
-        with open(file_path, newline='') as file:
+        with open(file_path, encoding='latin-1', newline='') as file:
             reader = csv.reader(file)
             for row in reader:
                 dict_var[row[0]] = row[1]

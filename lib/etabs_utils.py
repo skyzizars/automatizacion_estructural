@@ -15,7 +15,7 @@ def connect_to_etabs():
         SapModel = EtabsObject.SapModel
         
         try:
-            get_table(SapModel,'Modal Participating Mass Ratios')
+            set_envelopes_for_dysplay(SapModel)
         except:
             EtabsObject=comtypes.client.GetActiveObject("CSI.ETABS.API.ETABSObject")
             SapModel=EtabsObject.SapModel
@@ -64,8 +64,7 @@ def get_modal_data(SapModel,clean_data='true'):
     return (modal,MP_x,MP_y,period_x,period_y,Ux,Uy)
 
 
-def get_table(SapModel,table_name):
-    
+def set_envelopes_for_dysplay(SapModel):
     IsUserBaseReactionLocation=False
     UserBaseReactionX=0
     UserBaseReactionY=0
@@ -86,6 +85,9 @@ def get_table(SapModel,table_name):
                                                         StartMode,EndMode,IsAllBucklingModes,StartBucklingMode,
                                                         EndBucklingMode,MultistepStatic,NonlinearStatic,
                                                         ModalHistory,DirectHistory,Combo)
+
+def get_table(SapModel,table_name):
+    set_envelopes_for_dysplay(SapModel)
     data = SapModel.DatabaseTables.GetTableForDisplayArray(table_name,FieldKeyList='',GroupName='')
     
     if not data[2][0]:
@@ -93,20 +95,11 @@ def get_table(SapModel,table_name):
         data = SapModel.DatabaseTables.GetTableForDisplayArray(table_name,FieldKeyList='',GroupName='')
         
     columns = data[2]
-    data = data[4]
+    data = [i if i else '' for i in data[4]] #reemplazando valores None por ''
     #reshape data
-    j = 0
-    fila = list()
-    table = list()
-    for i in data:
-        fila.append(i)
-        j += 1
-        if j == len(columns):
-            j = 0
-            table.append(fila)
-            fila = []
-    #convert to dataframe
-    table = pd.DataFrame(table, columns=columns)
+    data = pd.DataFrame(data)
+    data = data.values.reshape(int(len(data)/len(columns)),len(columns))
+    table = pd.DataFrame(data, columns=columns)
     return columns, table
 
 
@@ -250,4 +243,8 @@ def draw_beam(SapModel,pi,pf,b,h):
 
 
 if __name__ == '__main__':
-    pass
+    _,SapModel = connect_to_etabs()
+    #SapModel.SetModelIsLocked(False)
+    #print(set_envelopes_for_dysplay(SapModel))
+    _,table = get_table(SapModel,'Story Forces')
+
