@@ -107,19 +107,21 @@ def get_ZUCS_R(C,Z,U,S,R):
 
 #Sismo Estático
 def ana_modal(SapModel):
-    '''Devuelve el coeficiente de sismo estatica Revise
-    28.2 NTE 030 2020
+    '''Devuelve datos del analisis modal, y los periodos fundamentales
+    para cada dirección de análisis si la masa participativa es mayor al
+    90%. Revise 29.1.2 NTE 030 2020
     Parámetros
     ----------
-    C: Factor de amplificacion sísmica
-    Z: Facto de zona
-    U: Factor de categoria de edificación
-    S: Factor de amplificacion del suelo
-    R: Factor de reduccion de las fuerzas sismicas
+    modal: tabla de informacion del análisis modal espectral "Modal Participating
+    Mass Ratios", periodos, modos, masas participativas, suma acumulada de las
+    masas participativas.
+
     Returns
     -------
-    Z*U*C*S/R, si C/R>=0.11
-    Z*U*S*0.11, si C/R<0.11  
+    mensaje: ----Aumentar grados de libertad, si MP_y o MP_x<0.9
+    modal=tabla "Modal Participating Mass Ratios"
+    T_x=Periodo fundamental en la dirección x
+    T_y=Periodo fundamental en la dirección y
     '''
     _,modal = etb.get_table(SapModel,'Modal Participating Mass Ratios')
     
@@ -156,6 +158,29 @@ def ana_modal(SapModel):
     return data
 
 def sismo_estatico(SapModel,N,Z,U,S,Tp,Tl,Ip,Ia,R_o):
+    '''Registra el factor de Reduccion total R, los factores de amplificacion
+    sísmica en ambas direcciones de analisis, los exponentes de altura relacionados
+    con los periodos fundamentales en cada direccion de analisis y los coeficientes
+    de sismo estatico para cada direccion de analisis.
+    Parámetros
+    ----------
+    k_x: Exponente de altura relacionado al periodo fundamental en direccion X. 
+    (función get_k())
+    k_y: Exponente de altura relacionado al periodo fundamental en direccion Y. 
+    (función get_k())
+    C_x: Factor de amplificación sismica relacionado al periodo fundamental 
+    en direccion X. Funcion get_c()
+    C_y: Factor de amplificación sismica relacionado al periodo fundamental 
+    en direccion Y. Funcion get_c()
+    ZUCS_Rx: Coeficiente de sismo estatico en direccion X. Funcion get_ZUCS_R()
+    ZUCS_Ry: Coeficiente de sismo estatico en direccion y. Funcion get_ZUCS_R()
+
+    Returns
+    -------
+    Imprime los valores de 
+    data: Diccionario que contiene la tabla "Modal Participating Mass Ratios", k_x,
+    k_y, C_x, C_y, ZUCS_Rx y ZUCS_Ry
+    '''
     data = {}
     data['R'] = R_o*Ip*Ia
     data['modal'], data['T_x'], data['T_y'] = ana_modal(SapModel).values()
