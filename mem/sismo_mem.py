@@ -38,9 +38,7 @@ def factor_zona(obj,zona,insert='',o_type=Subsubsection):
     df = [['4','0.45'],['3','0.35'],['2','0.25'],['1','0.10']]
     df[4-zona][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+df[4-zona][1]+r'}}'
     df[4-zona] = [i+r'\cellcolor[rgb]{ .949,  .949,  .949} ' for i in df[4-zona]]
-    df = [['Zona','Z'],]
-    
-    
+        
     with obj.create(o_type('Factor de Zona')):
         obj.append(insert)
         with obj.create(Table(position='ht!')) as tab:
@@ -59,7 +57,7 @@ def factor_zona(obj,zona,insert='',o_type=Subsubsection):
             with obj.create(MiniPage(width='0.35\\textwidth')):
                 with obj.create(Center()):
                     obj.append(NoEscape('\\includegraphics[width=4cm]{mapa_zona}'))
-            tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+            tab.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
         
 
 def factor_suelo(obj,zona,suelo,insert='',o_type=Subsubsection):
@@ -84,7 +82,7 @@ def factor_suelo(obj,zona,suelo,insert='',o_type=Subsubsection):
         obj.append(insert)
         with obj.create(Table(position='ht!')) as tab:
             tab.append(NoEscape(r'\centering'))
-            tab.append(NoEscape(r'\caption{Factor de zona}'))
+            tab.append(NoEscape(r'\caption{Factor de suelo}'))
             with obj.create(Tabular(r'|>{\centering\arraybackslash}m{3.75cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|')) as table:
                 table.add_hline()
                 table.add_row((MultiColumn(5, align='|c|', data=bold('FACTOR DE SUELO SEGÚN E-030')),))
@@ -94,7 +92,7 @@ def factor_suelo(obj,zona,suelo,insert='',o_type=Subsubsection):
                 for row in data:
                     table.add_row([NoEscape(i) for i in row])
                     table.add_hline()
-            tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+            tab.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
     
 
 def periodos_suelo(obj,suelo,insert='',o_type=Subsubsection):
@@ -127,7 +125,7 @@ def periodos_suelo(obj,suelo,insert='',o_type=Subsubsection):
                 for row in data:
                     table.add_row([NoEscape(i) for i in row])
                     table.add_hline()
-            tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+            tab.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
 
 
 def sist_estructural(obj,insert='',o_type=Subsubsection):
@@ -171,7 +169,7 @@ def sist_estructural(obj,insert='',o_type=Subsubsection):
                     else:
                         table.add_row((MultiColumn(2,align='|l|',data=bold(row[0])),))
                         table.add_hline()
-            tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+            tab.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
             
             
 
@@ -475,9 +473,9 @@ if __name__ == '__main__':
     import comtypes.client
     
    
-    _, _SapModel = etb.connect_to_etabs()
+    #_, _SapModel = etb.connect_to_etabs()
     #Definir variables de salida 'Ton_m_C' o 'kgf_cm_C'
-    etb.set_units(_SapModel,'Ton_m_C')
+    #etb.set_units(_SapModel,'Ton_m_C')
 
 
     sistemas = ['Pórticos de Concreto Armado',
@@ -493,13 +491,13 @@ if __name__ == '__main__':
                 'Albañilería Armada o Confinada',
                 'Madera']
 
-    datos = {'Factor de Importancia': 'C',
-            'Sistema Estructural': sistemas[0],
-            'Número de Pisos': '4',
+    datos = {'Factor de Importancia': 'A',
+            'Sistema Estructural': sistemas[2],
+            'Número de Pisos': '3',
             'Número de Sotanos': '0',
             'Número de Azoteas': '0',
-            'Factor Zona': '2',
-            'Factor Suelo': 'S2',
+            'Factor Zona': '4',
+            'Factor Suelo': 'S3',
             'Piso Blando': 'False',
             'Piso Blando Extremo': 'False',
             'Irregularidad de Masa': 'False',
@@ -512,14 +510,15 @@ if __name__ == '__main__':
             'Discontinuidad del diafragma': 'False',
             'Sistemas no Paralelos': 'False'}
     
-    sismo = sis.sismo_e30(data=datos)
+    #sismo = sis.sismo_e30(data=datos)
     # sismo.show_params()
-    sismo.analisis_sismo(_SapModel)
+    #sismo.analisis_sismo(_SapModel)
     
     zona = 2
     suelo = 'S1'
     categoria = 'A2'
 
+    #Generación del documento
     geometry_options = { "left": "2.5cm", "top": "1.5cm" }
     doc = Document(geometry_options=geometry_options)
     doc.packages.append(Package('xcolor', options=['dvipsnames']))
@@ -528,28 +527,34 @@ if __name__ == '__main__':
     s1 = Section('Análisis Sísmico')
 
     coments = 'Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \n'
-
-    factor_zona(s1, zona, insert=coments, o_type=Subsection)
-    s1.append(coments)
-    factor_suelo(s1, zona, suelo, insert=coments, o_type=Subsection)
+    
+    coments_zona1 = 'La ubicación de este proyecto es en la ciudad de Cusco, en el distrito de Cusco. Siguiendo los parámetros de la norma de diseño sismorresistente E.030 de octubre de 2018, la estructura se encuentra en la Zona '+str(zona)
+    factor_zona(s1, zona, insert=coments_zona1, o_type=Subsection)
+    coments_zona2=NoEscape(r'Este factor se interpreta como la aceleración máxima horizontal en el suelo rígido con una probabilidad de 10 \% de ser excedida en 50 años')
+    s1.append(coments_zona2)
+    
+    coments_suelo='Este factor se interpreta como  un factor de modificación de la aceleración pico del suelo para un perfil determinado respecto al pefil tipo S1'
+    factor_suelo(s1, zona, suelo, insert=coments_suelo, o_type=Subsection)
     periodos_suelo(s1, suelo)   
-    s1.append(coments)
-    sist_estructural(s1, insert=coments, o_type=Subsection)
+    
+    coments_sist_est='Muros y pórticos respectivamente.'
+    sist_estructural(s1, insert=coments_sist_est, o_type=Subsection)
+
     factor_amplificacion(s1, insert=coments, o_type=Subsection)
     factor_importancia(s1,categoria)
-    table = sismo.modal
-    ana_modal(s1, table, insert=coments, o_type=Subsubsection)
-    tabla = sismo.piso_blando_table
-    sis_x = tabla[tabla['OutputCase']=='SDx Max']
-    sis_y = tabla[tabla['OutputCase']=='SDy Max']
-    irreg_rigidez(s1,sis_x,sis_y, insert=coments, o_type=Subsubsection)
-    masa = sismo.rev_masa_table
-    irreg_masa(s1,masa, insert=coments, o_type=Subsection)
-    tabla = sismo.torsion_table
-    sis_x = tabla[tabla['OutputCase']=='SDx Max']
-    sis_y = tabla[tabla['OutputCase']=='SDy Max']
+    #table = sismo.modal
+    #ana_modal(s1, table, insert=coments, o_type=Subsubsection)
+    #tabla = sismo.piso_blando_table
+    #sis_x = tabla[tabla['OutputCase']=='SDx Max']
+    #sis_y = tabla[tabla['OutputCase']=='SDy Max']
+    #irreg_rigidez(s1,sis_x,sis_y, insert=coments, o_type=Subsubsection)
+    #masa = sismo.rev_masa_table
+    #irreg_masa(s1,masa, insert=coments, o_type=Subsection)
+    #tabla = sismo.torsion_table
+    #sis_x = tabla[tabla['OutputCase']=='SDx Max']
+    #sis_y = tabla[tabla['OutputCase']=='SDy Max']
     s1.append(NoEscape(r'\newpage'))
-    irreg_torsion(s1, sis_x, sis_y)
+    #irreg_torsion(s1, sis_x, sis_y)
     sec_change = {'aligerado':[7.51,0.05],
                   'macisa':[2.25,0.20]}
     openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],

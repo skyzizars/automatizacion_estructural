@@ -1,4 +1,4 @@
-Factor de Importancia,A2
+Factor de Importancia,A1 no aislado
 Sistema Estructural,De Muros Estructurales de Concreto Armado
 Número de Pisos,6
 Número de Sotanos,0
