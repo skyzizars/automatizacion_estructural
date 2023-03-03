@@ -512,7 +512,14 @@ if __name__ == '__main__':
             'Discontinuidad del diafragma': 'False',
             'Sistemas no Paralelos': 'False'}
     
+    seism_loads = {'Sismo_EstX': 'Sx',
+                 'Sismo_EstY': 'Sy',
+                 'Sismo_DinX': 'SDx',
+                 'Sismo_DinY': 'SDy'
+        }
+
     sismo = sis.sismo_e30(data=datos)
+    sismo.seism_loads = seism_loads
     # sismo.show_params()
     sismo.analisis_sismo(_SapModel)
     
