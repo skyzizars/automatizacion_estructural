@@ -5,7 +5,7 @@ import pandas as pd
 from lib import etabs_utils as etb
 import sys
 from ipywidgets import widgets
-from mem import latex_utils as ltx
+from lib import latex_utils as ltx
 from IPython.display import clear_output, display
 
 #Programado para etabs 2019
@@ -265,7 +265,7 @@ def min_shear(SapModel,seism_loads,is_regular=True,story='Story1'):
     _,base_shear=etb.get_table(SapModel,'Story Forces')
     base_shear = base_shear[base_shear['Story']==story]
     base_shear = base_shear[base_shear['Location']=='Bottom']
-    base_shear['StepType'] = base_shear['StepType'].fillna('Max')
+    base_shear['StepType'] = base_shear['StepType'].replace('','Max')
     base_shear = base_shear[base_shear['StepType']=='Max']
     base_shear = base_shear[['OutputCase','VX','VY']]
     #Extraemos los datos necesatios
