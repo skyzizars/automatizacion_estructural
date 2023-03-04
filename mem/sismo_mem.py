@@ -151,7 +151,7 @@ def sist_estructural(obj,insert='',o_type=Subsubsection):
     obj.packages.append(Package('caption'))
     
     with obj.create(o_type('Sistema Estructural')):
-        obj.append('Después de realizar el análisis sísmico se determino que los sistemas estructurales en X, Y son:')
+        obj.append('Después de realizar el análisis sísmico se determino que los sistemas estructurales en X, Y son: ')
         obj.append(insert)
         
         with obj.create(Table(position='ht!')) as tab:
@@ -187,7 +187,7 @@ def factor_amplificacion(obj,insert='',o_type=Subsubsection):
             
     with obj.create(o_type('Factor de Amplificación sísmica')):
         obj.append(insert)
-        obj.append('Se determina según el artículo 11 de la E-30')
+        obj.append('Se determina según el artículo 11 de la E-030')
         obj.append(NoEscape(r'\setlength{\jot}{0.5cm}'))
         with obj.create(Figure(position='h!')):
             obj.append(NoEscape(r'\caption{Factor de amplificación}'))
@@ -473,9 +473,9 @@ if __name__ == '__main__':
     import comtypes.client
     
    
-    #_, _SapModel = etb.connect_to_etabs()
+    _, _SapModel = etb.connect_to_etabs()
     #Definir variables de salida 'Ton_m_C' o 'kgf_cm_C'
-    #etb.set_units(_SapModel,'Ton_m_C')
+    etb.set_units(_SapModel,'Ton_m_C')
 
 
     sistemas = ['Pórticos de Concreto Armado',
@@ -491,7 +491,7 @@ if __name__ == '__main__':
                 'Albañilería Armada o Confinada',
                 'Madera']
 
-    datos = {'Factor de Importancia': 'A',
+    datos = {'Factor de Importancia': 'A1 no aislado',
             'Sistema Estructural': sistemas[2],
             'Número de Pisos': '3',
             'Número de Sotanos': '0',
@@ -510,9 +510,17 @@ if __name__ == '__main__':
             'Discontinuidad del diafragma': 'False',
             'Sistemas no Paralelos': 'False'}
     
-    #sismo = sis.sismo_e30(data=datos)
+    seism_loads = {'Sismo_EstX': 'Sx',
+                 'Sismo_EstY': 'Sy',
+                 'Sismo_DinX': 'SDx',
+                 'Sismo_DinY': 'SDy'
+        }
+    
+
+    sismo = sis.sismo_e30(data=datos)
+    sismo.seism_loads = seism_loads
     # sismo.show_params()
-    #sismo.analisis_sismo(_SapModel)
+    sismo.analisis_sismo(_SapModel)
     
     zona = 2
     suelo = 'S1'
@@ -528,33 +536,36 @@ if __name__ == '__main__':
 
     coments = 'Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \n'
     
-    coments_zona1 = 'La ubicación de este proyecto es en la ciudad de Cusco, en el distrito de Cusco. Siguiendo los parámetros de la norma de diseño sismorresistente E.030 de octubre de 2018, la estructura se encuentra en la Zona '+str(zona)
+    coments_zona1 = 'La ubicación de este proyecto es en la ciudad de Cusco, en el distrito de Cusco. Siguiendo los parámetros de la norma de diseño sismorresistente E.030 de octubre de 2018, la estructura se encuentra en la Zona '+str(zona)+'.'
     factor_zona(s1, zona, insert=coments_zona1, o_type=Subsection)
     coments_zona2=NoEscape(r'Este factor se interpreta como la aceleración máxima horizontal en el suelo rígido con una probabilidad de 10 \% de ser excedida en 50 años')
     s1.append(coments_zona2)
     
-    coments_suelo='Este factor se interpreta como  un factor de modificación de la aceleración pico del suelo para un perfil determinado respecto al pefil tipo S1'
+    coments_suelo='Este factor se interpreta como  un factor de modificación de la aceleración pico del suelo para un perfil determinado respecto al pefil tipo S1.'
     factor_suelo(s1, zona, suelo, insert=coments_suelo, o_type=Subsection)
     periodos_suelo(s1, suelo)   
     
-    coments_sist_est='Muros y pórticos respectivamente.'
+    coments_sist_est='  Muros y pórticos respectivamente.'
     sist_estructural(s1, insert=coments_sist_est, o_type=Subsection)
 
-    factor_amplificacion(s1, insert=coments, o_type=Subsection)
+    coments_amplificacion=''
+    factor_amplificacion(s1, insert=coments_amplificacion, o_type=Subsection)
+
+
     factor_importancia(s1,categoria)
-    #table = sismo.modal
-    #ana_modal(s1, table, insert=coments, o_type=Subsubsection)
-    #tabla = sismo.piso_blando_table
-    #sis_x = tabla[tabla['OutputCase']=='SDx Max']
-    #sis_y = tabla[tabla['OutputCase']=='SDy Max']
-    #irreg_rigidez(s1,sis_x,sis_y, insert=coments, o_type=Subsubsection)
-    #masa = sismo.rev_masa_table
-    #irreg_masa(s1,masa, insert=coments, o_type=Subsection)
-    #tabla = sismo.torsion_table
-    #sis_x = tabla[tabla['OutputCase']=='SDx Max']
-    #sis_y = tabla[tabla['OutputCase']=='SDy Max']
+    table = sismo.modal
+    ana_modal(s1, table, insert=coments, o_type=Subsubsection)
+    tabla = sismo.piso_blando_table
+    sis_x = tabla[tabla['OutputCase']=='SDx Max']
+    sis_y = tabla[tabla['OutputCase']=='SDy Max']
+    irreg_rigidez(s1,sis_x,sis_y, insert=coments, o_type=Subsubsection)
+    masa = sismo.rev_masa_table
+    irreg_masa(s1,masa, insert=coments, o_type=Subsection)
+    tabla = sismo.torsion_table
+    sis_x = tabla[tabla['OutputCase']=='SDx Max']
+    sis_y = tabla[tabla['OutputCase']=='SDy Max']
     s1.append(NoEscape(r'\newpage'))
-    #irreg_torsion(s1, sis_x, sis_y)
+    irreg_torsion(s1, sis_x, sis_y)
     sec_change = {'aligerado':[7.51,0.05],
                   'macisa':[2.25,0.20]}
     openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],

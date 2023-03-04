@@ -265,7 +265,7 @@ def min_shear(SapModel,seism_loads,is_regular=True,story='Story1'):
     _,base_shear=etb.get_table(SapModel,'Story Forces')
     base_shear = base_shear[base_shear['Story']==story]
     base_shear = base_shear[base_shear['Location']=='Bottom']
-    base_shear['StepType'] = base_shear['StepType'].fillna('Max')
+    base_shear['StepType'] = base_shear['StepType'].replace('','Max')
     base_shear = base_shear[base_shear['StepType']=='Max']
     base_shear = base_shear[['OutputCase','VX','VY']]
     #Extraemos los datos necesatios
