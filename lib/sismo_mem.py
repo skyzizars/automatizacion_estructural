@@ -3,7 +3,7 @@ import os
 sys.path.append(os.getcwd())
 
 
-from mem import latex_utils as ltx
+from lib import latex_utils as ltx
 from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure, Tabularx
 from pylatex.utils import NoEscape, bold
 from pylatex.package import Package
@@ -38,7 +38,6 @@ def factor_zona(obj,zona,insert='',o_type=Subsubsection):
     df = [['4','0.45'],['3','0.35'],['2','0.25'],['1','0.10']]
     df[4-zona][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+df[4-zona][1]+r'}}'
     df[4-zona] = [i+r'\cellcolor[rgb]{ .949,  .949,  .949} ' for i in df[4-zona]]
-    df = [['Zona','Z'],]
     
     
     with obj.create(o_type('Factor de Zona')):
@@ -59,7 +58,7 @@ def factor_zona(obj,zona,insert='',o_type=Subsubsection):
             with obj.create(MiniPage(width='0.35\\textwidth')):
                 with obj.create(Center()):
                     obj.append(NoEscape('\\includegraphics[width=4cm]{images/mapa_zona}'))
-            tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+            tab.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
         
 
 def factor_suelo(obj,zona,suelo,insert='',o_type=Subsubsection):
@@ -567,6 +566,9 @@ if __name__ == '__main__':
     
     doc.append(s1)
     doc.append(coments)
+    print("\n")
+    print("Iniciando la generación del documento en formato .pdf y .tex...")
     doc.generate_pdf('out/Memoria Sismo2')
     doc.generate_tex('out/Memoria Sismo2')
+    print("El documento ha sido generado con éxito")
             
