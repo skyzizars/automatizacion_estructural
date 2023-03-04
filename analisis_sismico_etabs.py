@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from lib import etabs_utils as etb
 from lib import sismo_utils as sis
-from mem import sismo_mem as smem
+from lib import sismo_mem as smem
 
 
 _SapModel, _EtabsObject = etb.connect_to_etabs()

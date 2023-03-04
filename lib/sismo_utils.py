@@ -5,7 +5,7 @@ import pandas as pd
 from lib import etabs_utils as etb
 import sys
 from ipywidgets import widgets
-from mem import latex_utils as ltx
+from lib import latex_utils as ltx
 from IPython.display import clear_output, display
 
 #Programado para etabs 2019
