@@ -77,6 +77,9 @@ def ana_modal(SapModel):
     modal = modal[['Mode','Period','UX','UY','RZ','SumUX','SumUY','SumRZ']]
     
     #Masas Participativas 
+    
+    modal['UX']=modal.UX.astype(float)
+    modal['UY']=modal.UY.astype(float)
     MP_x = float(max(modal.SumUX))
 
     MP_y = float(max(modal.SumUY))
@@ -88,7 +91,7 @@ def ana_modal(SapModel):
 
     mode_y = modal[modal.UY == max(modal.UY)].index
     T_y = float(modal.Period[mode_y[0]])
-    Uy = float(modal.UX[mode_y[0]])
+    Uy = float(modal.UY[mode_y[0]])
 
     
     #Reporte
