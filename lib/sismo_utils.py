@@ -534,7 +534,7 @@ class sismo_e30():
         self.set_data()
         
 
-    def w_change(self, change, url='..\datos\data.txt'):
+    def w_change(self, change, url='data\data.txt'):
         if change['type'] == 'change' and change['name'] == 'value':
             ltx.save_var(change['owner'].description, change['new'], url)
             self.data.update(ltx.read_dict(url))

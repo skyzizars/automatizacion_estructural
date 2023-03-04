@@ -12,8 +12,5 @@ Irregularidad Torsional,False
 Irregulariad Torsional Extrema,False
 Irregularidad de Masa,False
 Esquinas Entrantes,False
-Número de Pisos,6
 Dicontinuidad Vertical,False
 Discontinuidad del diafragma,False
-Número de Sotanos,0
-Número de Azoteas,0
