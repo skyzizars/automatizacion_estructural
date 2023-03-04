@@ -58,7 +58,7 @@ def factor_zona(obj,zona,insert='',o_type=Subsubsection):
                     
             with obj.create(MiniPage(width='0.35\\textwidth')):
                 with obj.create(Center()):
-                    obj.append(NoEscape('\\includegraphics[width=4cm]{mapa_zona}'))
+                    obj.append(NoEscape('\\includegraphics[width=4cm]{images/mapa_zona}'))
             tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
         
 
@@ -197,7 +197,7 @@ def factor_amplificacion(obj,insert='',o_type=Subsubsection):
                 obj.append(NoEscape(eq))
             with obj.create(MiniPage(width=r'0.4\textwidth')):
                 obj.append(NoEscape(r'\centering'))
-                obj.append(NoEscape('\\includegraphics[width=6.5cm]{Amplificacion}'))
+                obj.append(NoEscape('\\includegraphics[width=6.5cm]{images/Amplificacion}'))
             obj.append(NoEscape(r'\caption*{Fuente: Muñoz (2020)}'))
 
 
@@ -404,7 +404,7 @@ def irreg_esquinas(obj,sec_change=None,openings=None,insert='',o_type=Subsubsect
         fig = Figure(position='ht!')
         fig.append(NoEscape(r'\centering'))
         fig.append(NoEscape(r'\caption{Irregularidad por discontinuidad del diafragma}'))
-        fig.append(NoEscape(r'\includegraphics[scale=0.7]{i_diafragma.PNG}'))
+        fig.append(NoEscape(r'\includegraphics[scale=0.7]{images/i_diafragma.PNG}'))
         fig.append(NoEscape(r'\caption*{\small Fuente: Muñoz (2020)}'))
         obj.append(fig)
         
@@ -530,6 +530,7 @@ if __name__ == '__main__':
     geometry_options = { "left": "2.5cm", "top": "1.5cm" }
     doc = Document(geometry_options=geometry_options)
     doc.packages.append(Package('xcolor', options=['dvipsnames']))
+    doc.preamble.append(NoEscape(r'\graphicspath{ {%s/} }'%os.getcwd().replace('\\','/')))
     
     
     s1 = Section('Análisis Sísmico')
@@ -566,6 +567,6 @@ if __name__ == '__main__':
     
     doc.append(s1)
     doc.append(coments)
-    doc.generate_pdf('Memoria Sismo2')
-    doc.generate_tex('Memoria Sismo2')
+    doc.generate_pdf('out/Memoria Sismo2')
+    doc.generate_tex('out/Memoria Sismo2')
             
