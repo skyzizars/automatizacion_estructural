@@ -47,6 +47,19 @@ def show_table(table, column='OutputCase'):
 
 #Cálculo del exponente de altura
 def get_k(T):
+    """Devuelve el exponente relacionado con el periodo (T). Revise
+    28.3.2 NTE 030 2020
+    
+    Parámetros
+    ----------
+    T : Periodo fundamental de vibración de la estructura (seg)
+    
+    Returns
+    -------
+    k=1, si T<=0.5 seg.
+    k=0.75+0.5*T, si T>=0.5
+    k=2, si 0.75+0.5*T>2
+    """
     if T < 0.5:
         return 1
     elif 0.75+0.5*T < 2:
@@ -56,6 +69,21 @@ def get_k(T):
 
 #Cálculo del Factor C
 def get_C(T,Tp,Tl):
+    """Devuelve el factor de amplificacion sismica (C).Revise
+    Articulo 14 NTE 030 2020
+    
+    Parámetros
+    ----------
+    T : Periodo fundamental de vibración de la estructura (seg)
+    Tp: Periodo del suelo
+    Tl: Periodo del suelo
+    
+    Returns
+    -------
+    C=2.5, si T<Tp
+    C=2.5*Tp/T, si Tp<T<Tl
+    C=2.5*(Tp*Tl/T**2), si T>Tl
+    """
     if T < Tp:
         return 2.5
     elif T < Tl:
@@ -65,6 +93,22 @@ def get_C(T,Tp,Tl):
 
 #Cálculo del coeficiente de sismo estático
 def get_ZUCS_R(C,Z,U,S,R):
+    """Devuelve el coeficiente de sismo estatico. Revise
+    28.2 NTE 030 2020
+    
+    Parámetros
+    ----------
+    C: Factor de amplificacion sísmica
+    Z: Facto de zona
+    U: Factor de categoria de edificación
+    S: Factor de amplificacion del suelo
+    R: Factor de reduccion de las fuerzas sismicas
+    
+    Returns
+    -------
+    Z*U*C*S/R, si C/R>=0.11
+    Z*U*S*0.11, si C/R<0.11
+    """
     if C/R>0.11:
         return Z*U*C*S/R
     else:
@@ -72,6 +116,21 @@ def get_ZUCS_R(C,Z,U,S,R):
 
 #Sismo Estático
 def ana_modal(SapModel):
+    '''Devuelve datos del analisis modal, y los periodos fundamentales
+    para cada dirección de análisis si la masa participativa es mayor al
+    90%. Revise 29.1.2 NTE 030 2020
+   
+    Parámetros
+    ----------
+    SapModel: objeto propio del ETABS
+    
+    Returns
+    -------
+    mensaje: ----Aumentar grados de libertad, si MP_y o MP_x<0.9
+    modal=tabla "Modal Participating Mass Ratios"
+    T_x=Periodo fundamental en la dirección x
+    T_y=Periodo fundamental en la dirección y
+    '''
     _,modal = etb.get_table(SapModel,'Modal Participating Mass Ratios')
     
     modal = modal[['Mode','Period','UX','UY','RZ','SumUX','SumUY','SumRZ']]
@@ -110,6 +169,35 @@ def ana_modal(SapModel):
     return data
 
 def sismo_estatico(SapModel,N,Z,U,S,Tp,Tl,Ip,Ia,R_o):
+    '''Registra en un diccionario: el factor de Reduccion total R, los factores de 
+    amplificacion sísmica en ambas direcciones de analisis, los exponentes de altura 
+    relacionados con los periodos fundamentales en cada direccion de analisis y los 
+    coeficientes de sismo estatico para cada direccion de analisis.
+    
+    Parámetros
+    ----------
+    SapModel: objeto propio del ETABS
+    N: Numero de pisos
+    Z: Factor de zona
+    U: Factor de uso
+    S: Factor de amplificacion del suelo
+    Tp: Periodo del suelo para C=cte
+    Tl: Periodo del suelo para desplazamientos constantes
+    Ip: Factor de irregularidad en planta
+    Ia: Factor de irregularidad en altura
+    R_o: Coeficiente basico de reduccion
+
+    Returns
+    -------
+    Imprime los valores de 
+    data: Diccionario que contiene la tabla "Modal Participating Mass Ratios", k_x,
+    k_y, C_x, C_y, ZUCS_Rx y ZUCS_Ry
+
+    CONSULTAS:
+    el fator en R_o no deberia ser diferente para cada direccion de analisis?
+    revisar articulo 18 NTE 030 2020
+    que es N? 
+    '''
     data = {}
     data['R'] = R_o*Ip*Ia
     data['modal'], data['T_x'], data['T_y'] = ana_modal(SapModel).values()
@@ -119,7 +207,7 @@ def sismo_estatico(SapModel,N,Z,U,S,Tp,Tl,Ip,Ia,R_o):
     data['C_y']  = get_C(data['T_y'],Tp,Tl)
     data['ZUCS_Rx'] = get_ZUCS_R(data['C_x'],Z,U,S,data['R'])
     data['ZUCS_Ry'] = get_ZUCS_R(data['C_y'],Z,U,S,data['R'])
-
+    
     #Resumen
     print('Factor de Reduccion con Irregularidades: R={}'.format(data['R']))
     print('C en X: {0:.2f}'.format(data['C_x']))
@@ -136,6 +224,19 @@ def sismo_estatico(SapModel,N,Z,U,S,Tp,Tl,Ip,Ia,R_o):
 #Revisión por Torsión
 
 def get_max_over_avg_drifts(SapModel,loads):
+    '''Registra en un DataFrame la tabla de derivas máximas de entrepiso, 
+    deriva promedio y la razón de derivas máximas sobre derivas promedios.
+
+    Parámetros
+    ----------
+    SapModel: objeto propio del ETABS
+    loads: Casos de carga
+
+    Returns
+    -------
+    table: DataFrame que contiene la tabla "Story Max Over Avg Drifts", Max Drift,
+    Avg Drift y Ratio
+    '''
     SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(loads)
     _ , table = etb.get_table(SapModel,'Story Max Over Avg Drifts')
     table['OutputCase'] = table.OutputCase+' '+table.StepType
@@ -143,6 +244,25 @@ def get_max_over_avg_drifts(SapModel,loads):
     return table
 
 def create_rev_torsion_table(SapModel,loads,max_drift,R,is_regular=True):
+    '''Registra en un DataFrame la tabla de derivas maximas de entrepiso, 
+    deriva promedio y la razon de derivas maximas sobre derivas promedios
+
+    Parámetros
+    ----------
+    SapModel: objeto propio del ETABS
+    loads: Casos de carga
+    max_drift: deriva máxima
+    R: coeficiente de reduccion sismica
+    is_regular: boleano, true si es regular, false si es irregular
+
+    Returns
+    -------
+    table: DataFrame que contiene la tabla "Story Max Over Avg Drifts", Max Drift,
+    Avg Drift y Ratio
+    CONSULTAS:
+    Se esta considerando tambien que para aplicarse este criterio de irregularidad
+    la deriva maxima de entrepiso tiene que ser mayor que el 50% de la maxima permitida?
+    '''
     table = get_max_over_avg_drifts(SapModel,loads)
     stories  = etb.get_story_data(SapModel)
     table = table.merge(stories[['Story','Height']], on = 'Story')
