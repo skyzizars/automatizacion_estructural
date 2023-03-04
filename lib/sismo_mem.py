@@ -83,7 +83,7 @@ def factor_suelo(obj,zona,suelo,insert='',o_type=Subsubsection):
         obj.append(insert)
         with obj.create(Table(position='ht!')) as tab:
             tab.append(NoEscape(r'\centering'))
-            tab.append(NoEscape(r'\caption{Factor de zona}'))
+            tab.append(NoEscape(r'\caption{Factor de suelo}'))
             with obj.create(Tabular(r'|>{\centering\arraybackslash}m{3.75cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|')) as table:
                 table.add_hline()
                 table.add_row((MultiColumn(5, align='|c|', data=bold('FACTOR DE SUELO SEGÚN E-030')),))
@@ -93,7 +93,7 @@ def factor_suelo(obj,zona,suelo,insert='',o_type=Subsubsection):
                 for row in data:
                     table.add_row([NoEscape(i) for i in row])
                     table.add_hline()
-            tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+            tab.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
     
 
 def periodos_suelo(obj,suelo,insert='',o_type=Subsubsection):
@@ -126,7 +126,7 @@ def periodos_suelo(obj,suelo,insert='',o_type=Subsubsection):
                 for row in data:
                     table.add_row([NoEscape(i) for i in row])
                     table.add_hline()
-            tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+            tab.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
 
 
 def sist_estructural(obj,insert='',o_type=Subsubsection):
@@ -170,7 +170,7 @@ def sist_estructural(obj,insert='',o_type=Subsubsection):
                     else:
                         table.add_row((MultiColumn(2,align='|l|',data=bold(row[0])),))
                         table.add_hline()
-            tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+            tab.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
             
             
 
@@ -411,15 +411,15 @@ def irreg_esquinas(obj,sec_change=None,openings=None,insert='',o_type=Subsubsect
             data = [['Longitud del aligerado (L1)',sec_change['aligerado'][0],'m'],
                     ['Espesor del aligerado (e1)',sec_change['aligerado'][1],'m'],
                     ['Area del aligerado A1=L1$\\cdot$ e1','area1','$m^2$'],
-                    ['Longitud de la losa macisa (L2)',sec_change['macisa'][0],'m'],
-                    ['Espesor de la losa macisa (e2)',sec_change['macisa'][1],'m'],
-                    ['Area de la losa macisa A1=L1$\\cdot$ e1','area2','$m^2$'],
+                    ['Longitud de la losa maciza (L2)',sec_change['maciza'][0],'m'],
+                    ['Espesor de la losa maciza (e2)',sec_change['maciza'][1],'m'],
+                    ['Area de la losa maciza A1=L1$\\cdot$ e1','area2','$m^2$'],
                     ['Ratio','ratio','\%'],
                     ['Ratio límite','25.00','\%'],
                     ['Verificación','','']]
             
             data[2][1] = '%.2f'%(sec_change['aligerado'][0]*sec_change['aligerado'][1])
-            data[5][1] = '%.2f'%(sec_change['macisa'][0]*sec_change['macisa'][1])
+            data[5][1] = '%.2f'%(sec_change['maciza'][0]*sec_change['maciza'][1])
             data[6][1] = '%.2f'%(float(data[5][1])/float(data[2][1])*100)
             data[8][1] = r'\textcolor[rgb]{ .267,  .447,  .769}{\textbf{Regular}}' if float(data[6][1]) > float(data[7][1]) else r'\textcolor[rgb]{ 1,  0,  0}{\textbf{Irregular}}'
             
@@ -463,7 +463,7 @@ def irreg_esquinas(obj,sec_change=None,openings=None,insert='',o_type=Subsubsect
 
          
 
-
+#Generación del documento
     
 if __name__ == '__main__':
     import os
@@ -535,14 +535,18 @@ if __name__ == '__main__':
     s1 = Section('Análisis Sísmico')
 
     coments = 'Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \n'
-
-    factor_zona(s1, zona, insert=coments, o_type=Subsection)
-    s1.append(coments)
-    factor_suelo(s1, zona, suelo, insert=coments, o_type=Subsection)
+    
+    coments_zona1=NoEscape(r'Este factor se interpreta como la aceleración máxima horizontal en el suelo rígido con una probabilidad de 10 \% de ser excedida en 50 años')
+    factor_zona(s1, zona, insert=coments_zona1, o_type=Subsection)
+ 
+    coments_suelo='Este factor se interpreta como  un factor de modificación de la aceleración pico del suelo para un perfil determinado respecto al pefil tipo S1'
+    factor_suelo(s1, zona, suelo, insert=coments_suelo, o_type=Subsection)
     periodos_suelo(s1, suelo)   
-    s1.append(coments)
-    sist_estructural(s1, insert=coments, o_type=Subsection)
-    factor_amplificacion(s1, insert=coments, o_type=Subsection)
+    
+    coments_sist_est="Muros y pórticos respectivamente"
+    sist_estructural(s1, insert=coments_sist_est, o_type=Subsection)
+
+    factor_amplificacion(s1, insert='', o_type=Subsection)
     factor_importancia(s1,categoria)
     table = sismo.modal
     ana_modal(s1, table, insert=coments, o_type=Subsubsection)
@@ -558,7 +562,7 @@ if __name__ == '__main__':
     s1.append(NoEscape(r'\newpage'))
     irreg_torsion(s1, sis_x, sis_y)
     sec_change = {'aligerado':[7.51,0.05],
-                  'macisa':[2.25,0.20]}
+                  'maciza':[2.25,0.20]}
     openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
                 'area_planta' : 120.41}
     irreg_esquinas(s1, sec_change=sec_change, openings=openings)
