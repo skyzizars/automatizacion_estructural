@@ -27,106 +27,155 @@ def change_filter(change, table, column, widget):
             display(table[table[column] == change['new']])
 
 
-class Sismo(sis.sismo_e30):
+
+data = {'Factor de Importancia': 'C',
+                     'Sistema Estructural X': 'Dual de Concreto Armado',
+                     'Sistema Estructural Y': 'Dual de Concreto Armado',
+                     'Número de Pisos': '4',
+                     'Número de Sotanos': '0',
+                     'Número de Azoteas': '1',
+                     'Factor Zona': '2',
+                     'Factor Suelo': 'S2',
+                     'Piso Blando': 'False',
+                     'Piso Blando Extremo': 'False',
+                     'Irregularidad de Masa': 'False',
+                     'Irregularidad Vertical': 'False',
+                     'Dicontinuidad Vertical': 'False',
+                     'Dicontinuidad Vertical Extrema': 'False',
+                     'Irregularidad Torsional': 'False',
+                     'Irregulariad Torsional Extrema': 'False',
+                     'Esquinas Entrantes': 'False',
+                     'Discontinuidad del diafragma': 'False',
+                     'Sistemas no Paralelos': 'False',
+                     'seism_loads': {'Sismo_EstX': 'Sx',
+                                    'Sismo_EstY': 'Sy',
+                                    'Sismo_DinX': 'SDx',
+                                    'Sismo_DinY': 'SDy'}         
+                     }
+
+class Sismo(sis.Sismo_e30):
     
     def __init__(self):
-        sis.sismo_e30.__init__(self,data=False,seism_loads=False)
+        sis.Sismo_e30.__init__(self)
+        self.data.factor_zona(zona = 4)
+        self.data.factor_suelo(suelo = 'S2')
+        self.data.categoria_edificacion('C')
+        self.data.sist_estructural('Dual de Concreto Armado','Dual de Concreto Armado')
+        self.data.set_pisos(4,0,0)
+        self.data.irreg_altura()
+        self.data.irreg_planta()
+        
 
     def parametros_e30(self):
-        zona = dropdown(['1', '2', '3', '4'], 'Factor Zona', val=self.data['Factor Zona'])
-        uso = dropdown(self.cat_edificacion.categoria, 'Factor de Importancia', val=self.data['Factor de Importancia'])
-        suelo = dropdown(['S0', 'S1', 'S2', 'S3'], 'Factor Suelo', val=self.data['Factor Suelo'])
-        sistema = dropdown(self.sist_estructural.sistema, 'Sistema Estructural X', val=self.data['Sistema Estructural X'])
-        pisos = input_box('Número de Pisos', val=self.data['Número de Pisos'])
-        sotanos = input_box('Número de Sotanos', val=self.data['Número de Sotanos'])
-        azoteas = input_box('Número de Azoteas', val=self.data['Número de Azoteas'])
-        zona.observe(self.w_change)
-        uso.observe(self.w_change)
-        suelo.observe(self.w_change)
-        sistema.observe(self.w_change)
-        pisos.observe(self.w_change)
-        sotanos.observe(self.w_change)
-        azoteas.observe(self.w_change)
-        return display(widgets.VBox([zona, uso, suelo, sistema, pisos, sotanos, azoteas]))
+        categorias= ['A1 aislado','A1 no aislado','A2','B','C']
+        sistemas =['Pórticos Especiales de Acero Resistentes a Momentos',
+                    'Pórticos Intermedios de Acero Resistentes a Momentos',
+                    'Pórticos Ordinarios de Acero Resistentes a Momentos',
+                    'Pórticos Especiales de Acero Concénticamente Arriostrados',
+                    'Pórticos Ordinarios de Acero Concénticamente Arriostrados',
+                    'Pórticos Acero Excéntricamente Arriostrados',
+                    'Pórticos de Concreto Armado',
+                    'Dual de Concreto Armado',
+                    'De Muros Estructurales de Concreto Armado',
+                    'Muros de Ductilidad Limita de Concreto Armado',
+                    'Albañilería Armada o Confinada',
+                    'Madera']
+
+        zona = dropdown([1, 2, 3, 4], 'Factor Zona', val=self.data.zona)
+        uso = dropdown(categorias, 'Factor de Importancia', val=self.data.categoria)
+        suelo = dropdown(['S0', 'S1', 'S2', 'S3'], 'Factor Suelo', val=self.data.suelo)
+        sistema_x = dropdown(sistemas, 'Sistema Estructural X', val=self.data.sistema_x)
+        sistema_y = dropdown(sistemas, 'Sistema Estructural Y', val=self.data.sistema_y)
+        pisos = input_box('Número de Pisos', val=str(self.data.n_pisos))
+        sotanos = input_box('Número de Sotanos', val=str(self.data.n_sotanos))
+        azoteas = input_box('Número de Azoteas', val=str(self.data.n_azoteas))
+
+        zona.observe(lambda _: self.data.factor_zona(zona.value))
+        uso.observe(lambda _: self.data.categoria_edificacion(uso.value))
+        suelo.observe(lambda _: self.data.factor_suelo(suelo.value))
+        sistema_x.observe(lambda _: self.data.sist_estructural(sistema_x.value,self.data.sistema_y))
+        sistema_y.observe(lambda _: self.data.sist_estructural(self.data.sistema_x,sistema_y.value))
+        pisos.observe(lambda _: self.data.set_pisos(pisos.value,self.data.n_azoteas,self.data.n_sotanos))
+        sotanos.observe(lambda _: self.data.set_pisos(self.data.n_pisos,sotanos.value,self.data.n_sotanos))
+        azoteas.observe(lambda _: self.data.set_pisos(self.data.n_pisos,self.data.n_azoteas,azoteas.value))
+        return display(widgets.VBox([zona, uso, suelo, sistema_x,sistema_y, pisos, sotanos, azoteas]))
     
     def irregularidades_e30(self):
-        i_piso_b = check_box('Piso Blando', eval(self.data['Piso Blando']))
-        i_piso_be = check_box('Piso Blando Extremo', eval(self.data['Piso Blando Extremo']))
-        i_masa = check_box('Irregularidad de Masa', eval(self.data['Irregularidad de Masa']))
-        i_vert = check_box('Irregularidad Vertical', eval(self.data['Irregularidad Vertical']))
-        i_disc = check_box('Dicontinuidad Vertical', eval(self.data['Dicontinuidad Vertical']))
-        i_disc_e = check_box('Dicontinuidad Vertical Extrema', eval(self.data['Dicontinuidad Vertical Extrema']))
+        i_piso_b = check_box('Piso Blando', self.data.i_piso_blando)
+        i_piso_b.observe(lambda _: self.data.irreg_altura(i_piso_blando=i_piso_b.value))
+        i_piso_be = check_box('Piso Blando Extremo', self.data.i_piso_blando_e)
+        i_piso_be.observe(lambda _: self.data.irreg_altura(i_piso_blando_e=i_piso_be.value))
+        i_masa = check_box('Irregularidad de Masa', self.data.i_masa)
+        i_masa.observe(lambda _: self.data.irreg_altura(i_masa=i_masa.value))
+        i_vert = check_box('Irregularidad Vertical', self.data.i_vertical)
+        i_vert.observe(lambda _: self.data.irreg_altura(i_vertical=i_vert.value))
+        i_disc = check_box('Dicontinuidad Vertical', self.data.i_discontinuidad_vertical)
+        i_disc.observe(lambda _: self.data.irreg_altura(i_discontinuidad_vertical=i_disc.value))
+        i_disc_e = check_box('Dicontinuidad Vertical Extrema', self.data.i_discontinuidad_vertical_e)
+        i_disc_e.observe(lambda _: self.data.irreg_altura(i_discontinuidad_vertical_e=i_disc_e.value))
         description_a = widgets.HTML(value='<b>Irregularidad en Altura</b>')
         i_altura = widgets.VBox([description_a, i_piso_b, i_piso_be, i_masa, i_vert, i_disc, i_disc_e])
-        for i in [description_a, i_piso_b, i_piso_be, i_masa, i_vert, i_disc, i_disc_e]:
-            i.observe(self.w_change)
 
-        i_torsion = check_box('Irregularidad Torsional', eval(self.data['Irregularidad Torsional']))
-        i_tosion_e = check_box('Irregulariad Torsional Extrema', eval(self.data['Irregulariad Torsional Extrema']))
-        i_esquinas = check_box('Esquinas Entrantes', eval(self.data['Esquinas Entrantes']))
-        i_disc_diaf = check_box('Discontinuidad del diafragma', eval(self.data['Discontinuidad del diafragma']))
-        i_no_paral = check_box('Sistemas no Paralelos', eval(self.data['Sistemas no Paralelos']))
+
+        i_torsion = check_box('Irregularidad Torsional', self.data.i_torsional)
+        i_torsion.observe(lambda _: self.data.irreg_planta(i_torsional=i_torsion.value))
+        i_tosion_e = check_box('Irregulariad Torsional Extrema', self.data.i_torsional_e)
+        i_tosion_e.observe(lambda _: self.data.irreg_planta(i_torsional_e=i_tosion_e.value))
+        i_esquinas = check_box('Esquinas Entrantes', self.data.i_esquinas_entrantes)
+        i_esquinas.observe(lambda _: self.data.irreg_planta(i_esquinas_entrantes=i_esquinas.value))
+        i_disc_diaf = check_box('Discontinuidad del diafragma', self.data.i_discontinuidad_diafragma)
+        i_disc_diaf.observe(lambda _: self.data.irreg_planta(i_discontinuidad_diafragma=i_disc_diaf.value))
+        i_no_paral = check_box('Sistemas no Paralelos', self.data.i_sistemas_no_paralelos)
+        i_no_paral.observe(lambda _: self.data.irreg_planta(i_sistemas_no_paralelos=i_no_paral.value))
         description_p = widgets.HTML(value='<b>Irregularidad en Planta</b>')
         i_planta = widgets.VBox([description_p, i_torsion, i_tosion_e, i_esquinas, i_disc_diaf, i_no_paral])
-        for i in [description_p, i_torsion, i_tosion_e, i_esquinas, i_disc_diaf, i_no_paral]:
-            i.observe(self.w_change)
+
         return widgets.HBox([i_altura, i_planta])
-    
-    def w_change(self, change, url='data\data.txt'):
-        if change['type'] == 'change' and change['name'] == 'value':
-            ltx.save_var(change['owner'].description, change['new'], url)
-            self.data.update(ltx.read_dict(url))
-            self.set_data()
 
+    def show_params(self):
+        self.data.periodos_suelo()
+        self.data.factor_R()
+        self.data.show_params()
 
-    def select_load(self,SapModel):
+    def select_loads(self,SapModel):
         #Guardamos la lista de los loadcases existentes
         _,load_cases,_ = SapModel.LoadCases.GetNameList()
         load_cases = [load for load in load_cases if load[0]!= '~' and load!= 'Modal']
+        #inicializando valores
+        if not self.loads.seism_loads:
+            self.loads.seism_loads = {'Sismo_EstX':load_cases[-4],
+                                    'Sismo_EstY':load_cases[-3],
+                                    'Sismo_DinX':load_cases[-2],
+                                    'Sismo_DinY':load_cases[-1]}
         if len (load_cases)>=1:
-            self.Sismo_EstX = dropdown(load_cases,'Sismo Estatico en X',load_cases[0])
-            self.Sismo_EstY = dropdown(load_cases,'Sismo Estatico en Y',load_cases[0])
-            self.Sismo_DinX = dropdown(load_cases,'Sismo Dinámico en X',load_cases[0])
-            self.Sismo_DinY = dropdown(load_cases,'Sismo Dinámico en Y',load_cases[0])
+            self.Sismo_EstX = dropdown(load_cases,'Sismo Estatico en X',self.loads.seism_loads['Sismo_EstX'])
+            self.Sismo_EstY = dropdown(load_cases,'Sismo Estatico en Y',self.loads.seism_loads['Sismo_EstY'])
+            self.Sismo_DinX = dropdown(load_cases,'Sismo Dinámico en X',self.loads.seism_loads['Sismo_DinX'])
+            self.Sismo_DinY = dropdown(load_cases,'Sismo Dinámico en Y',self.loads.seism_loads['Sismo_DinY'])
             Title_SismoX = widgets.HTML(value='<b>Dirección X</b>')
             Title_SismoY = widgets.HTML(value='<b>Dirección Y</b>')
             layout_X = widgets.VBox([Title_SismoX, self.Sismo_EstX, self.Sismo_DinX])
             layout_Y = widgets.VBox([Title_SismoY, self.Sismo_EstY, self.Sismo_DinY])
-            
-            #inicializando valores
-            self.seism_loads = {'Sismo_EstX' : load_cases[0],
-                                'Sismo_EstY' : load_cases[0],
-                                'Sismo_DinX' : load_cases[0],
-                                'Sismo_DinY' : load_cases[0] }
-
+            # funcion de cambio   
+            def change_s_load(change,s_load):
+                if change['type'] == 'change' and change['name'] == 'value':
+                        self.loads.seism_loads[s_load] = change['new']
             #Observacion en caso de cambio
-            self.Sismo_EstX.observe(self.change_cbx_Sx)
-            self.Sismo_EstY.observe(self.change_cbx_Sy)
-            self.Sismo_DinX.observe(self.change_cbx_SDx)
-            self.Sismo_DinY.observe(self.change_cbx_SDy)      
+            self.Sismo_EstX.observe(lambda change: change_s_load(change,'Sismo_EstX'))
+            self.Sismo_EstY.observe(lambda change: change_s_load(change,'Sismo_EstY'))
+            self.Sismo_DinX.observe(lambda change: change_s_load(change,'Sismo_DinX'))
+            self.Sismo_DinY.observe(lambda change: change_s_load(change,'Sismo_DinY'))      
 
             return widgets.HBox([layout_X, layout_Y])
             
         else:
             print('NO HA INGRESADO NINGUN CASO DE CARGA EN EL MODELO')
             return None
-    
-    def change_cbx_Sx(self,change):
-        if change['type'] == 'change' and change['name'] == 'value':
-            self.seism_loads['Sismo_EstX'] = change['new']
-    def change_cbx_Sy(self,change):
-        if change['type'] == 'change' and change['name'] == 'value':
-            self.seism_loads['Sismo_EstY']= change['new']
-    def change_cbx_SDx(self,change):
-        if change['type'] == 'change' and change['name'] == 'value':
-            self.seism_loads['Sismo_DinX']= change['new']
-    def change_cbx_SDy(self,change):
-        if change['type'] == 'change' and change['name'] == 'value':
-            self.seism_loads['Sismo_DinY']= change['new']
 
     def show_table(self,table, column='OutputCase'):
         list_columns = tuple(table[column].unique())
-        widget = dropdown(list_columns + ('sin filtro',), 'Filtro', val='sin filtro')
+        widget = dropdown(list_columns + ('sin filtro',), 'Filtro', val=list_columns[0])
         widget.observe(lambda change: change_filter(change, table, column, widget))
+        f_table = table[table[column] == list_columns[0]]
         display(widget)
-        display(table)
+        display(f_table)

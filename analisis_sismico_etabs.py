@@ -47,7 +47,30 @@ datos = {'Factor de Importancia': 'C',
         'Discontinuidad del diafragma': 'False',
         'Sistemas no Paralelos': 'False'}
 
+
+
+
 sismo = sis.sismo_e30(data=datos)
+self.zona = int(self.data['Factor Zona'])
+self.Z = float(self.factor_zona[self.factor_zona.Zona == zona].Z)
+categoria = self.data['Factor de Importancia']
+self.U = float(self.cat_edificacion[self.cat_edificacion.categoria == categoria].U)
+suelo = self.data['Factor Suelo']
+self.S = float(self.factor_suelo[self.factor_suelo.Z == zona][suelo])
+self.Tp = self.periodos_suelo[suelo].loc['Tp']
+self.Tl = self.periodos_suelo[suelo].loc['Tl']
+sistema_x = self.data['Sistema Estructural X']
+sistema_y = self.data['Sistema Estructural X']
+self.Rox = float(self.sist_estructural[self.sist_estructural.sistema == sistema_x]['R_0'])
+self.Roy = float(self.sist_estructural[self.sist_estructural.sistema == sistema_y]['R_0'])
+self.max_drift_x = float(self.sist_estructural[self.sist_estructural.sistema == sistema_x]['max_drift'])
+self.max_drift_y = float(self.sist_estructural[self.sist_estructural.sistema == sistema_y]['max_drift'])
+self.N = int(self.data['Número de Pisos'])
+self.n_sotanos = int(self.data['Número de Sotanos'])
+self.n_azoteas = int(self.data['Número de Azoteas'])
+self.Ip = min([j for i, j in self.irreg_planta.items() if eval(self.data[i])] + [1, ])
+self.Ia = min([j for i, j in self.irreg_altura.items() if eval(self.data[i])] + [1, ])
+
 sismo.show_params()
 sismo.analisis_sismo(_SapModel)
 

@@ -1,129 +1,140 @@
 import sys
 import os
-sys.path.append(os.getcwd()+'\..')
+sys.path.append(os.getcwd())
 import pandas as pd
 from lib import etabs_utils as etb
 
 
 #Programado para etabs 2019
+   
 
 #Funciones básicas
-class sismo_e30():
-    def __init__(self,data=False,seism_loads=False):
-        #Defninicion y generacion de datos
-        self.data = {'Factor de Importancia': 'C',
-                     'Sistema Estructural X': 'Dual de Concreto Armado',
-                     'Sistema Estructural Y': 'Dual de Concreto Armado',
-                     'Número de Pisos': '4',
-                     'Número de Sotanos': '0',
-                     'Número de Azoteas': '1',
-                     'Factor Zona': '2',
-                     'Factor Suelo': 'S2',
-                     'Piso Blando': 'False',
-                     'Piso Blando Extremo': 'False',
-                     'Irregularidad de Masa': 'False',
-                     'Irregularidad Vertical': 'False',
-                     'Dicontinuidad Vertical': 'False',
-                     'Dicontinuidad Vertical Extrema': 'False',
-                     'Irregularidad Torsional': 'False',
-                     'Irregulariad Torsional Extrema': 'False',
-                     'Esquinas Entrantes': 'False',
-                     'Discontinuidad del diafragma': 'False',
-                     'Sistemas no Paralelos': 'False'}
+class Sismo_e30():
+    def __init__(self): 
+        self.data = self.Data()
+        self.loads = self.Loads()
+        self.tables = self.Tables()
         
-        if data:
-            self.data.update(data)
+    class Loads():
+        def __init__(self):
+            pass
+        def set_seism_loads(self,seism_loads):
+            self.seism_loads = seism_loads
+
+    class Data():
+        def __init__(self):
+            pass
+
+        def factor_zona(self,zona):
+            table = pd.DataFrame([[4, 0.45], [3, 0.35], [2, 0.25], [1, 0.1]], columns=['Zona', 'Z'])
+            self.zona = int(zona)
+            self.Z = float(table.query('Zona == @zona')['Z'])
+
+        def factor_suelo(self,suelo,zona=None):
+            table = pd.DataFrame(
+                [[4, 0.8, 1, 1.05, 1.1],
+                [3, 0.8, 1, 1.15, 1.20],
+                [2, 0.80, 1, 1.2, 1.4],
+                [1, 0.8, 1, 1.6, 2]],
+                columns=['Z', 'S0', 'S1', 'S2', 'S3'])
+            if zona:
+                self.factor_zona(zona)
+            zona = self.zona
+            self.suelo = suelo
+            self.S = float(table.query('Z == @zona')[suelo])
         
-        self.seism_loads =  {'Sismo_EstX': 'Sx',
-                             'Sismo_EstY': 'Sy',
-                             'Sismo_DinX': 'SDx',
-                             'Sismo_DinY': 'SDy'}
-        
-        if seism_loads:
-            self.seism_loads.update(seism_loads)
-        
-        self.factor_zona = pd.DataFrame([[4, 0.45], [3, 0.35], [2, 0.25], [1, 0.1]], columns=['Zona', 'Z'])
-        self.factor_suelo = pd.DataFrame(
-            [[4, 0.8, 1, 1.05, 1.1],
-             [3, 0.8, 1, 1.15, 1.20],
-             [2, 0.80, 1, 1.2, 1.4],
-             [1, 0.8, 1, 1.6, 2]],
-            columns=['Z', 'S0', 'S1', 'S2', 'S3'])
-        self.periodos_suelo = pd.DataFrame(
-            [[0.3, 0.4, 0.6, 1],
-             [3, 2.5, 2, 1.6]],
-            columns=['S0', 'S1', 'S2', 'S3'],
-            index=['Tp', 'Tl'])
-        self.sist_estructural = pd.DataFrame(
-            [['Pórticos Especiales de Acero Resistentes a Momentos', 8, 0.01],
-             ['Pórticos Intermedios de Acero Resistentes a Momentos', 5, 0.01],
-             ['Pórticos Ordinarios de Acero Resistentes a Momentos', 4, 0.01],
-             ['Pórticos Especiales de Acero Concénticamente Arriostrados', 7, 0.01],
-             ['Pórticos Ordinarios de Acero Concénticamente Arriostrados', 4, 0.1],
-             ['Pórticos Acero Excéntricamente Arriostrados', 8, 0.01],
-             ['Pórticos de Concreto Armado', 8, 0.007],
-             ['Dual de Concreto Armado', 7, 0.007],
-             ['De Muros Estructurales de Concreto Armado', 6, 0.007],
-             ['Muros de Ductilidad Limita de Concreto Armado', 4, 0.005],
-             ['Albañilería Armada o Confinada', 3, 0.005],
-             ['Madera', 7, 0.01]],
-            columns=['sistema', 'R_0', 'max_drift'])
+        def periodos_suelo(self,suelo=None,zona=None):
+            table = pd.DataFrame(
+                [[0.3, 0.4, 0.6, 1],
+                [3, 2.5, 2, 1.6]],
+                columns=['S0', 'S1', 'S2', 'S3'],
+                index=['Tp', 'Tl'])
+            if suelo:
+                self.factor_suelo(suelo,zona)
+            suelo = self.suelo
+            self.Tp = table[suelo].loc['Tp']
+            self.Tl = table[suelo].loc['Tl']
 
-        self.cat_edificacion = pd.DataFrame(
-            [['A1 aislado', 1],
-             ['A1 no aislado', 1.5],
-             ['A2', 1.5],
-             ['B', 1.3],
-             ['C', 1]],
-            columns=['categoria', 'U']
-        )
+        def sist_estructural(self,sistema_x,sistema_y):
+            table = pd.DataFrame(
+                [['Pórticos Especiales de Acero Resistentes a Momentos', 8, 0.01],
+                ['Pórticos Intermedios de Acero Resistentes a Momentos', 5, 0.01],
+                ['Pórticos Ordinarios de Acero Resistentes a Momentos', 4, 0.01],
+                ['Pórticos Especiales de Acero Concénticamente Arriostrados', 7, 0.01],
+                ['Pórticos Ordinarios de Acero Concénticamente Arriostrados', 4, 0.1],
+                ['Pórticos Acero Excéntricamente Arriostrados', 8, 0.01],
+                ['Pórticos de Concreto Armado', 8, 0.007],
+                ['Dual de Concreto Armado', 7, 0.007],
+                ['De Muros Estructurales de Concreto Armado', 6, 0.007],
+                ['Muros de Ductilidad Limita de Concreto Armado', 4, 0.005],
+                ['Albañilería Armada o Confinada', 3, 0.005],
+                ['Madera', 7, 0.01]],
+                columns=['sistema', 'R_0', 'max_drift'])
+            self.sistema_x = sistema_x
+            self.sistema_y = sistema_y
+            self.Rox = float(table.query('sistema == @sistema_x')['R_0'])
+            self.Roy = float(table.query('sistema == @sistema_y')['R_0'])
+            self.max_drift_x = float(table.query('sistema == @sistema_x')['max_drift'])
+            self.max_drift_y = float(table.query('sistema == @sistema_y')['max_drift'])
 
-        self.irreg_altura = {
-            'Piso Blando': 0.75,
-            'Piso Blando Extremo': 0.50,
-            'Irregularidad de Masa': 0.90,
-            'Irregularidad Vertical': 0.90,
-            'Dicontinuidad Vertical': 0.80,
-            'Dicontinuidad Vertical Extrema': 0.60,
-        }
-
-        self.irreg_planta = {
-            'Irregularidad Torsional': 0.75,
-            'Irregulariad Torsional Extrema': 0.60,
-            'Esquinas Entrantes': 0.90, 
-            'Discontinuidad del diafragma': 0.85,
-            'Sistemas no Paralelos': 0.90
-        }
-
-        self.set_data()
-
-    def set_data(self):
-        zona = int(self.data['Factor Zona'])
-        self.Z = float(self.factor_zona[self.factor_zona.Zona == zona].Z)
-        categoria = self.data['Factor de Importancia']
-        self.U = float(self.cat_edificacion[self.cat_edificacion.categoria == categoria].U)
-        suelo = self.data['Factor Suelo']
-        self.S = float(self.factor_suelo[self.factor_suelo.Z == zona][suelo])
-        self.Tp = self.periodos_suelo[suelo].loc['Tp']
-        self.Tl = self.periodos_suelo[suelo].loc['Tl']
-        sistema_x = self.data['Sistema Estructural X']
-        sistema_y = self.data['Sistema Estructural X']
-        self.Rox = float(self.sist_estructural[self.sist_estructural.sistema == sistema_x]['R_0'])
-        self.Roy = float(self.sist_estructural[self.sist_estructural.sistema == sistema_y]['R_0'])
-        self.max_drift_x = float(self.sist_estructural[self.sist_estructural.sistema == sistema_x]['max_drift'])
-        self.max_drift_y = float(self.sist_estructural[self.sist_estructural.sistema == sistema_y]['max_drift'])
-        self.N = int(self.data['Número de Pisos'])
-        self.n_sotanos = int(self.data['Número de Sotanos'])
-        self.n_azoteas = int(self.data['Número de Azoteas'])
-        self.Ip = min([j for i, j in self.irreg_planta.items() if eval(self.data[i])] + [1, ])
-        self.Ia = min([j for i, j in self.irreg_altura.items() if eval(self.data[i])] + [1, ])    
+        def categoria_edificacion(self,categoria):
+            table = pd.DataFrame(
+                [['A1 aislado', 1],
+                ['A1 no aislado', 1.5],
+                ['A2', 1.5],
+                ['B', 1.3],
+                ['C', 1]],
+                columns=['categoria', 'U']
+            )
+            self.categoria = categoria
+            self.U = float(table.query('categoria == @categoria')['U'])
 
 
-    def show_params(self):
-        self.Rx = self.Rox * self.Ia * self.Ip
-        self.Ry = self.Roy * self.Ia * self.Ip
-        print('''
-\033[1mParámetros de sitio:\033[0m
+        def set_pisos(self,n_pisos,n_azoteas,n_sotanos):
+            self.n_pisos, self.n_azoteas, self.n_sotanos = n_pisos,n_azoteas,n_sotanos
+
+        def irreg_planta(self,i_torsional=False,i_torsional_e=False,i_esquinas_entrantes=False,
+                        i_discontinuidad_diafragma=False,i_sistemas_no_paralelos=False):
+            self.i_torsional,self.i_torsional_e,self.i_esquinas_entrantes = i_torsional,i_torsional_e,i_esquinas_entrantes
+            self.i_discontinuidad_diafragma,self.i_sistemas_no_paralelos = i_discontinuidad_diafragma,i_sistemas_no_paralelos
+            self.Ip = 1
+            if i_torsional:
+                self.Ip = min(self.Ip,0.75)
+            elif i_torsional_e:
+                self.Ip = min(self.Ip,0.60)
+            elif i_esquinas_entrantes:
+                self.Ip = min(self.Ip,0.90)
+            elif i_discontinuidad_diafragma:
+                self.Ip = min(self.Ip,0.85)
+            elif i_sistemas_no_paralelos:
+                self.Ip = min(self.Ip,0.90)
+
+        def irreg_altura(self,i_piso_blando=False,i_piso_blando_e=False,i_masa=False,i_vertical=False,
+                        i_discontinuidad_vertical=False,i_discontinuidad_vertical_e=False):
+            self.i_piso_blando,self.i_piso_blando_e,self.i_masa,self.i_vertical = i_piso_blando,i_piso_blando_e,i_masa,i_vertical
+            self.i_discontinuidad_vertical,self.i_discontinuidad_vertical_e = i_discontinuidad_vertical,i_discontinuidad_vertical_e
+            self.Ia = 1
+            if i_piso_blando:
+                self.Ia = min(self.Ia,0.75)
+            elif i_piso_blando_e:
+                self.Ia = min(self.Ia,0.50)
+            elif i_masa:
+                self.Ia = min(self.Ia,0.90)
+            elif i_vertical:
+                self.Ia = min(self.Ia,0.90)
+            elif i_discontinuidad_vertical:
+                self.Ia = min(self.Ia,0.80)
+            elif i_discontinuidad_vertical_e:
+                self.Ia = min(self.Ia,0.60)
+
+        def factor_R(self):
+            self.Rx = self.Rox * self.Ia * self.Ip
+            self.Ry = self.Roy * self.Ia * self.Ip
+            self.is_regular = self.Ip == 1 and self.Ia == 1
+
+        def show_params(self):
+            print('''
+\033[1m Parámetros de sitio:\033[0m
 Factor de zona: 
     Z={:.2f}
 Factor de Importancia: 
@@ -145,6 +156,9 @@ Factor de Reducción:
     Ry={:.2f}
 '''.format(self.Z, self.U, self.S, self.Tp, self.Tl, self.Rox, self.Roy, self.Ip, self.Ia, self.Rx, self.Ry))
         
+    class Tables():
+        def __init__(self):
+            pass
 
     #Sismo Estático
     def ana_modal(self,SapModel,report=False):
@@ -194,9 +208,9 @@ Factor de Reducción:
             print('Periodo y Masa Participativa X: Tx={0:.3f}'.format(Tx)+', Ux={0:.3f}'.format(Ux))
             print('Periodo y Masa Participativa Y: Ty={0:.3f}'.format(Ty)+', Uy={0:.3f}'.format(Uy))
         
-        self.modal = modal
-        self.Tx = Tx
-        self.Ty = Ty
+        self.tables.modal = modal
+        self.data.Tx = Tx
+        self.data.Ty = Ty
 
     def sismo_estatico(self,SapModel,report=False):
         '''Registra en un diccionario: el factor de Reduccion total R, los factores de 
@@ -263,15 +277,15 @@ Factor de Reducción:
             C=2.5*Tp/T, si Tp<T<Tl
             C=2.5*(Tp*Tl/T**2), si T>Tl
             """
-            if T < self.Tp:
+            if T < self.data.Tp:
                 return 2.5
-            elif T < self.Tl:
-                return 2.5*self.Tp/T
+            elif T < self.data.Tl:
+                return 2.5*self.data.Tp/T
             else:
-                return 2.5*self.Tp*self.Tl/T**2
+                return 2.5*self.data.Tp*self.data.Tl/T**2
             
         def get_ZUCS_R(C,R):
-            ZUS = self.Z*self.U*self.S
+            ZUS = self.data.Z*self.data.U*self.data.S
             if C/R>0.11:
                 return C/R*ZUS
             else:
@@ -279,26 +293,24 @@ Factor de Reducción:
 
 
         self.ana_modal(SapModel)
-        self.Rx = self.Rox*self.Roy
-        self.Ry = self.Rox*self.Roy
-        self.kx = get_k(self.Tx)
-        self.ky = get_k(self.Ty)
-        self.Cx = get_C(self.Tx)
-        self.Cy = get_C(self.Ty)
-        self.ZUCS_Rx = get_ZUCS_R(self.Cx,self.Rx)
-        self.ZUCS_Ry = get_ZUCS_R(self.Cy,self.Ry)
+        self.data.kx = get_k(self.data.Tx)
+        self.data.ky = get_k(self.data.Ty)
+        self.data.Cx = get_C(self.data.Tx)
+        self.data.Cy = get_C(self.data.Ty)
+        self.data.ZUCS_Rx = get_ZUCS_R(self.data.Cx,self.data.Rx)
+        self.data.ZUCS_Ry = get_ZUCS_R(self.data.Cy,self.data.Ry)
 
         if report:
             #Resumen
-            print('Factor de Reduccion con Irregularidades en X: R={}'.format(self.Rx))
-            print('Factor de Reduccion con Irregularidades en Y: R={}'.format(self.Ry))
-            print('C en X: {0:.2f}'.format(self.Cx))
-            print('C en Y: {0:.2f}'.format(self.Cy))
+            print('Factor de Reduccion con Irregularidades en X: R={}'.format(self.data.Rx))
+            print('Factor de Reduccion con Irregularidades en Y: R={}'.format(self.data.Ry))
+            print('C en X: {0:.2f}'.format(self.data.Cx))
+            print('C en Y: {0:.2f}'.format(self.data.Cy))
 
-            print('\nCoeficiente de sismo estático X: {0:.3f}'.format(self.ZUCS_Rx))
-            print('Coeficiente de sismo estático Y: {0:.3f}'.format(self.ZUCS_Rx))
-            print('Exponente de altura X: {0:.2f}'.format(self.kx))
-            print('Exponente de altura Y: {0:.2f}'.format(self.kx))
+            print('\nCoeficiente de sismo estático X: {0:.3f}'.format(self.data.ZUCS_Rx))
+            print('Coeficiente de sismo estático Y: {0:.3f}'.format(self.data.ZUCS_Rx))
+            print('Exponente de altura X: {0:.2f}'.format(self.data.kx))
+            print('Exponente de altura Y: {0:.2f}'.format(self.data.kx))
 
     #Revisión por Torsión      
     def irregularidad_torsion(self,SapModel):
@@ -318,8 +330,7 @@ Factor de Reducción:
         table: DataFrame que contiene la tabla "Story Max Over Avg Drifts", Max Drift,
         Avg Drift y Ratio
         '''
-        self.is_regular = self.Ip == 1 and self.Ia == 1
-        set_loads = [load for load in self.seism_loads.values()]
+        set_loads = [load for load in self.loads.seism_loads.values()]
         SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_loads)
         SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])
 
@@ -330,20 +341,23 @@ Factor de Reducción:
 
         stories  = etb.get_story_data(SapModel)
         table = table.merge(stories[['Story','Height']], on = 'Story')
-        if self.is_regular:
-            table['Drifts']=table['Max Drift'].apply(lambda x:float(x))/table['Height'].apply(lambda x:float(x))*0.75*self.Rx
+        if self.data.is_regular:
+            table['Drifts']=table['Max Drift'].apply(lambda x:float(x))/table['Height'].apply(lambda x:float(x))*0.75
         else:
-            table['Drifts']=table['Max Drift'].apply(lambda x:float(x))/table['Height'].apply(lambda x:float(x))*0.85*self.Rx
-        table['Drift < Dmax/2'] = table['Drifts'] < self.max_drift_x/2
+            table['Drifts']=table['Max Drift'].apply(lambda x:float(x))/table['Height'].apply(lambda x:float(x))*0.85
+
+        table['Drifts'] = table.apply((lambda row: float(row['Max Drift'])*self.data.Rx if 'x' in row['OutputCase'] else float(row['Max Drift'])*self.data.Ry),axis=1)
+
+        table['Drift < Dmax/2'] = table['Drifts'] < self.data.max_drift_x/2
         tor_reg = (table['Drift < Dmax/2']) | (table['Ratio'].apply(lambda x: float(x)) < 1.3)
         table['tor_reg'] = tor_reg.apply(lambda x: 'Regular' if x else 'Irregular')
 
-        self.torsion_table = table
+        self.tables.torsion_table = table
 
     #Piso Blando
         
     def piso_blando(self,SapModel):
-        set_loads = [load for load in self.seism_loads.values()]
+        set_loads = [load for load in self.loads.seism_loads.values()]
         SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_loads)
         SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])
 
@@ -388,7 +402,7 @@ Factor de Reducción:
         is_reg = (table['lat_rig(k)'] > table['0.7_prev_k']) & (table['lat_rig(k)'] > table['0.8k_prom'])
         table['is_reg'] = is_reg.apply(lambda x: 'Regular' if x else 'Irregular')   
 
-        self.piso_blando_table = table
+        self.tables.piso_blando_table = table
 
     # Masa
 
@@ -398,8 +412,8 @@ Factor de Reducción:
         masa = masa[['Story','Mass']]
         
         stories = masa.Story
-        sotanos = list(stories[-1-self.n_sotanos:])
-        azoteas = list(stories[0:self.n_azoteas+1])
+        sotanos = list(stories[-1-self.data.n_sotanos:])
+        azoteas = list(stories[0:self.data.n_azoteas+1])
             
         def set_story(story):
             if story in sotanos:
@@ -426,13 +440,13 @@ Factor de Reducción:
         masa['is_regular'] = masa.apply(is_reg, axis = 1)
         
         masa = masa[['Story','Mass','1.5 Mass','story_type','is_regular']].fillna('')
-        self.rev_masa_table = masa
+        self.tables.rev_masa_table = masa
 
     # Derivas
     def derivas(self):
-        rev_drift = self.torsion_table[['Story','OutputCase','Direction','Drifts']]
-        rev_drift = rev_drift.assign(Drift_Check = (rev_drift['Drifts'] < self.max_drift_x).apply(lambda x: 'Cumple' if x else 'No Cumple'))
-        self.drift_table = rev_drift
+        rev_drift = self.tables.torsion_table[['Story','OutputCase','Direction','Drifts']]
+        rev_drift = rev_drift.assign(Drift_Check = (rev_drift['Drifts'] < self.data.max_drift_x).apply(lambda x: 'Cumple' if x else 'No Cumple'))
+        self.tables.drift_table = rev_drift
 
     # Centros de Masas y Rigideces
 
@@ -441,11 +455,12 @@ Factor de Reducción:
         rev_CM_CR = rev_CM_CR[['Story','XCCM','XCR','YCCM','YCR']]
         rev_CM_CR['DifX'] = rev_CM_CR.XCCM.apply(lambda x: float(x)) - rev_CM_CR.XCR.apply(lambda x: float(x))
         rev_CM_CR['DifY'] = rev_CM_CR.YCCM.apply(lambda x: float(x)) - rev_CM_CR.YCR.apply(lambda x: float(x))
-        self.CM_CR_table = rev_CM_CR
+        self.tables.CM_CR_table = rev_CM_CR
 
     def min_shear(self,SapModel,story='Story1'):
         etb.set_units(SapModel,'Ton_m_C')
-        set_loads = [load for load in self.seism_loads.values()]
+        seism_loads = self.loads.seism_loads
+        set_loads = [load for load in seism_loads.values()]
         SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_loads)
         SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])
         _,base_shear=etb.get_table(SapModel,'Story Forces')
@@ -455,11 +470,11 @@ Factor de Reducción:
         base_shear = base_shear[base_shear['StepType']=='Max']
         base_shear = base_shear[['OutputCase','VX','VY']]
         #Extraemos los datos necesatios
-        Sx = float(base_shear[base_shear['OutputCase'] == self.seism_loads['Sismo_EstX']]['VX'])
-        SDx = float(base_shear[base_shear['OutputCase'] == self.seism_loads['Sismo_DinX']]['VX'])
-        Sy = float(base_shear[base_shear['OutputCase'] == self.seism_loads['Sismo_EstY']]['VY'])
-        SDy = float(base_shear[base_shear['OutputCase'] == self.seism_loads['Sismo_DinY']]['VY'])
-        per_min = 80 if self.is_regular else 90 #porcentaje mínimo 80% o 90% si es regular o no
+        Sx = float(base_shear[base_shear['OutputCase'] == seism_loads['Sismo_EstX']]['VX'])
+        SDx = float(base_shear[base_shear['OutputCase'] == seism_loads['Sismo_DinX']]['VX'])
+        Sy = float(base_shear[base_shear['OutputCase'] == seism_loads['Sismo_EstY']]['VY'])
+        SDy = float(base_shear[base_shear['OutputCase'] == seism_loads['Sismo_DinY']]['VY'])
+        per_min = 80 if self.data.is_regular else 90 #porcentaje mínimo 80% o 90% si es regular o no
         per_x = abs(round(SDx/Sx*100,2)) #relacion entre sismo en x
         per_y = abs(round(SDy/Sy*100,2)) #relacion entre sismo en y
         fex = 1 if per_x > per_min else round(per_min/per_x,2) #relacion entre sismo en x
@@ -471,16 +486,16 @@ Factor de Reducción:
             ['% min',per_min,per_min],
             ['%',per_x,per_y],
             ['F.E.',fex,fey]])
-        self.shear_table = table
+        self.tables.shear_table = table
         
-    def analisis_sismo(self, SapModel):
+    def analisis_sismo(self, SapModel,base_story='Story1'):
         self.sismo_estatico(SapModel)
         self.piso_blando(SapModel)
         self.irregularidad_masa(SapModel)
         self.centro_masa_inercia(SapModel)
         self.irregularidad_torsion(SapModel)
         self.derivas()
-        self.min_shear(SapModel)
+        self.min_shear(SapModel,base_story)
     
 
 
@@ -504,33 +519,42 @@ if __name__ == '__main__':
                 'Albañilería Armada o Confinada',
                 'Madera']
 
-    datos = {'Factor de Importancia': 'C',
-            'Sistema Estructural X': sistemas[0],
-            'Sistema Estructural Y': sistemas[1],
-            'Número de Pisos': '4',
-            'Número de Sotanos': '0',
-            'Número de Azoteas': '0',
-            'Factor Zona': '2',
-            'Factor Suelo': 'S2',
-            'Piso Blando': 'False',
-            'Piso Blando Extremo': 'False',
-            'Irregularidad de Masa': 'False',
-            'Irregularidad Vertical': 'False',
-            'Dicontinuidad Vertical': 'False',
-            'Dicontinuidad Vertical Extrema': 'False',
-            'Irregularidad Torsional': 'False',
-            'Irregulariad Torsional Extrema': 'False',
-            'Esquinas Entrantes': 'False',
-            'Discontinuidad del diafragma': 'False',
-            'Sistemas no Paralelos': 'False'}
+    categorias = ['A1 aislado',
+                  'A1 no aislado',
+                  'A2',
+                  'B',
+                  'C']
     
     sis_loads = {'Sismo_EstX': 'Sx',
                  'Sismo_EstY': 'Sy',
                  'Sismo_DinX': 'SDx',
-                 'Sismo_DinY': 'SDy'
-        }
+                 'Sismo_DinY': 'SDy'}
+    zona = 4
+    suelo = 'S1'
+    sist_x = sistemas[0]
+    sist_y = sistemas[1]
+    categoria = categorias[4]
+    n_pisos = 4
+    n_sotanos = 0
+    n_azoteas = 0
 
-    sismo = sismo_e30(data=datos,seism_loads=sis_loads)
-    sismo.show_params()
+    sismo = Sismo_e30()
+    sismo.data.factor_zona(zona)
+    sismo.data.factor_suelo(suelo)
+    sismo.data.periodos_suelo()
+    sismo.data.sist_estructural(sist_x,sist_y)
+    sismo.data.categoria_edificacion(categoria)
+    sismo.data.set_pisos(n_pisos,n_azoteas,n_sotanos)
+    sismo.data.irreg_altura(i_vertical=True)
+    sismo.data.irreg_planta(i_torsional=True)
+    sismo.data.factor_R()
+    sismo.data.set_pisos(n_pisos, n_azoteas, n_sotanos)
+    sismo.data.show_params()
+    
+    sismo.loads.set_seism_loads(sis_loads)
+    
     sismo.analisis_sismo(_SapModel)
+    
+    tablas = sismo.tables
+
     
