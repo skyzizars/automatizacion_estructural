@@ -169,10 +169,8 @@ def ana_modal(SapModel):
     return data
 
 def sismo_estatico(SapModel,N,Z,U,S,Tp,Tl,Ip,Ia,R_o):
-    '''Registra en un diccionario: el factor de Reduccion total R, los factores de 
-    amplificacion sísmica en ambas direcciones de analisis, los exponentes de altura 
-    relacionados con los periodos fundamentales en cada direccion de analisis y los 
-    coeficientes de sismo estatico para cada direccion de analisis.
+    '''Registra en un diccionario: los factores R, k, C, y  resultados del analisis
+    modal, e imprime dichos valores.
     
     Parámetros
     ----------
@@ -191,12 +189,7 @@ def sismo_estatico(SapModel,N,Z,U,S,Tp,Tl,Ip,Ia,R_o):
     -------
     Imprime los valores de 
     data: Diccionario que contiene la tabla "Modal Participating Mass Ratios", k_x,
-    k_y, C_x, C_y, ZUCS_Rx y ZUCS_Ry
-
-    CONSULTAS:
-    el fator en R_o no deberia ser diferente para cada direccion de analisis?
-    revisar articulo 18 NTE 030 2020
-    que es N? 
+    k_y, C_x, C_y, ZUCS_Rx y ZUCS_Ry 
     '''
     data = {}
     data['R'] = R_o*Ip*Ia
