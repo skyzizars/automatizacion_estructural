@@ -3,7 +3,7 @@ import os
 sys.path.append(os.getcwd())
 
 
-from mem import latex_utils as ltx
+from lib import latex_utils as ltx
 from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure, Tabularx
 from pylatex.utils import NoEscape, bold
 from pylatex.package import Package
@@ -38,7 +38,6 @@ def factor_zona(obj,zona,insert='',o_type=Subsubsection):
     df = [['4','0.45'],['3','0.35'],['2','0.25'],['1','0.10']]
     df[4-zona][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+df[4-zona][1]+r'}}'
     df[4-zona] = [i+r'\cellcolor[rgb]{ .949,  .949,  .949} ' for i in df[4-zona]]
-    df = [['Zona','Z'],]
     
     
     with obj.create(o_type('Factor de Zona')):
@@ -523,7 +522,7 @@ if __name__ == '__main__':
     # sismo.show_params()
     sismo.analisis_sismo(_SapModel)
     
-    zona = 2
+    zona = 1
     suelo = 'S1'
     categoria = 'A2'
 
@@ -537,7 +536,7 @@ if __name__ == '__main__':
 
     coments = 'Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \n'
 
-    factor_zona(s1, zona, insert=coments, o_type=Subsection)
+    factor_zona(s1, zona, o_type=Subsection)
     s1.append(coments)
     factor_suelo(s1, zona, suelo, insert=coments, o_type=Subsection)
     periodos_suelo(s1, suelo)   
