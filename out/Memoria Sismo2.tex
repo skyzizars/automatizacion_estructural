@@ -113,12 +113,12 @@ Tl&3.00&\textcolor[rgb]{ 1,  0,  0}{\textbf{2.50}}\cellcolor[rgb]{ .949,  .949, 
 %
 \subsection{Sistema Estructural}%
 \label{subsec:SistemaEstructural}%
-Después de realizar el análisis sísmico se determino que los sistemas estructurales en X, Y son:%
-Muros y pórticos respectivamente%
+Después de realizar el análisis sísmico se determino que los sistemas estructurales en X, Y son %
+De muros estructurales y Dual respectivamente.%
 
 
 \begin{table}[ht!]%
-\caption{coeficiente básico de reducción}%
+\caption{Coeficiente básico de reducción}%
 \begin{tabular}{|>{\arraybackslash}m{10cm}| >{\centering\arraybackslash}m{4cm}|}%
 \hline%
 \multicolumn{2}{|c|}{\textbf{SISTEMAS ESTRUCTURALES}}\\%
@@ -143,9 +143,9 @@ Porticos Excentricamente Arriostrados (EBF)&8\\%
 \hline%
 Porticos&8\\%
 \hline%
-Dual&7\\%
+Dual\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{7}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
 \hline%
-De muros estructurales&6\\%
+De muros estructurales\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{6}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
 \hline%
 Muros de ductilidad limitada&4\\%
 \hline%
@@ -161,7 +161,7 @@ Muros de ductilidad limitada&4\\%
 \subsection{Factor de Amplificación sísmica}%
 \label{subsec:FactordeAmplificacinssmica}%
 %
-Se determina según el artículo 11 de la E{-}30%
+Se determina según el artículo 14 de la E{-}030%
 \setlength{\jot}{0.5cm}%
 
 
@@ -183,12 +183,12 @@ Se determina según el artículo 11 de la E{-}30%
 \end{figure}
 
 %
-\subsubsection{Factor de Importancia}%
-\label{ssubsec:FactordeImportancia}%
+\subsection{Factor de Importancia}%
+\label{subsec:FactordeImportancia}%
 %
 
 
-\begin{table}[h!]%
+\begin{table}[ht!]%
 \centering%
 \caption{Factor de Uso o Importancia}%
 \begin{tabular}{|>{\arraybackslash}m{3cm}|m{8cm}|>{\arraybackslash}m{2.8cm}|}%
@@ -208,19 +208,45 @@ C Edificaciones Comunes&Edificaciones comunes tales como: viviendas, oficinas, h
 D Edificaciones temporales&Construcciones provisionales para depósitos, casetas y otras similares.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{A criterio del proyectista}\\%
 \hline%
 \end{tabular}%
-\caption*{Fuente: E-30 (2018)}%
+\caption*{Fuente: E-030 (2018)}%
 \end{table}
 
 %
-\subsubsection{Análisis modal Art. 26.1 E{-}030}%
-\label{ssubsec:AnlisismodalArt.26.1E{-}030}%
-\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 26.1.1]%
+\subsection{Espectro de respuesta de aceleraciones}%
+\label{subsec:Espectroderespuestadeaceleraciones}%
+
+%
+\subsection{Peso sísmico}%
+\label{subsec:Pesossmico}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 26]%
+\textit{El peso (P), se calcula adicionando a la carga permanente y total de la edificación un porcentaje de la carga viva o sobrecarga. En edificaciones de categoría C, se toma el 25\% de la carga viva.}%
+\end{tcolorbox}%
+
+%
+\subsection{Excentricidad accidental}%
+\label{subsec:Excentricidadaccidental}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 28.5]%
+\textit{La incertidumbre en la localización de los centros de masa en cada nivel, se considera mediante una excentricidad accidental perpendicular a la dirección del sismo igual a 0,05 veces la dimensión del edificio en la dirección perpendicular a la dirección de análisis. En cada caso se considera el signo más desfavorable.}%
+\end{tcolorbox}%
+Para determinar el sentido mas desfavorable de la excentricidad accidental se calculó el centro de masa y centro de rigidez del edificio, resultando negativo en ambos casos.%
+
+
+\begin{figure}[ht!]%
+\centering%
+\caption{Excentricidad de la masa en ETABS}%
+\includegraphics[scale=0.7]{images/excentricidad.PNG}%
+\label{masa}%
+\end{figure}
+
+%
+\subsection{Análisis modal Art. 29.1 E{-}030}%
+\label{subsec:AnlisismodalArt.29.1E{-}030}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 29.1.1]%
+\textit{Los modos de vibración pueden determinarse por un procedimiento de análisis que considere apropiadamente las características de rigidez y la distribución de las masas.}%
+\end{tcolorbox}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 29.1.2]%
 \textit{En cada dirección se consideran aquellos modos de vibración cuya suma de masas efectivas sea por lo menos el 90\% de la masa total, pero se toma en cuenta por lo menos los tres primeros modos predominantes en la dirección de análisis.}%
 \end{tcolorbox}%
-\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 26.1.2]%
-\textit{En cada dirección se consideran aquellos modos de vibración cuya suma de masas efectivas sea por lo menos el 90\% de la masa total, pero se toma en cuenta por lo menos los tres primeros modos predominantes en la dirección de análisis.}%
-\end{tcolorbox}%
-Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \newline%
 %
 
 
@@ -246,6 +272,10 @@ Mode & Period & UX & UY & RZ & SumUX & SumUY & SumRZ \\
 \end{tabular}
 %
 \end{table}
+
+%
+\subsection{Análisis de Irregularidades}%
+\label{subsec:AnlisisdeIrregularidades}%
 
 %
 \subsubsection{Irregularidad de Rigidez{-}Piso Blando}%
@@ -297,12 +327,11 @@ Story1 & SDy Max & 28.563 & 82.237 & 35708.771 & 19909.452 &  & Regular \\
 \end{table}
 
 %
-\subsection{Irregularidad de Masa o Peso}%
-\label{subsec:IrregularidaddeMasaoPeso}%
+\subsubsection{Irregularidad de Masa o Peso}%
+\label{ssubsec:IrregularidaddeMasaoPeso}%
 \begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Tabla N°9 E-030]%
 Se tiene irregularidad de masa (o peso) cuando el peso de un piso determinado según el artículo 26, es nayor que 1,5 veces el peso de un piso adyascente. Este criterio no se aplica en azoteas ni en sótanos%
 \end{tcolorbox}%
-Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \newline%
 %
 
 
@@ -379,8 +408,8 @@ Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.002826 & True & Regul
 \end{table}
 
 %
-\subsubsection{Irregularidad por Esquinas Entrantes}%
-\label{ssubsec:IrregularidadporEsquinasEntrantes}%
+\subsubsection{Irregularidad por Discontinuidad del Diafragma}%
+\label{ssubsec:IrregularidadporDiscontinuidaddelDiafragma}%
 \begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Tabla N°9 E-030]%
 \textit{La estructura se califica como irregular cuando los diafragmas tienen discontinuidades abruptas o variaciones importantes en rigidez, incluyendo aberturas mayores que 50\% del área bruta del diafragma.} \\ \textit{También  existe  irregularidad  cuando,  en  cualquiera de  los pisos y para cualquiera de las direcciones de análisis, se tiene alguna sección transversal del diafragma con un área neta resistente menor que 25\% del área de la sección transversal total de la misma dirección calculada con las dimensiones totales de la planta.}%
 \end{tcolorbox}%
@@ -446,7 +475,5 @@ Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.002826 & True & Regul
 \end{tabular}%
 \end{table}
 
-%
-Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \newline%
 %
 \end{document}

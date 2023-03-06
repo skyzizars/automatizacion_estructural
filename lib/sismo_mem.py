@@ -129,7 +129,7 @@ def periodos_suelo(obj,suelo,insert='',o_type=Subsubsection):
             tab.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
 
 
-def sist_estructural(obj,insert='',o_type=Subsubsection):
+def sist_estructural(obj,sist_x,sist_y,insert='',o_type=Subsubsection):
     
     data = [['Acero:',''],
             ['Porticos Especiales Resistentes a Momento (SMF)',8],
@@ -146,17 +146,22 @@ def sist_estructural(obj,insert='',o_type=Subsubsection):
             [r'\textbf{Albañilería Armada o Confinada}',3],
             [r'\textbf{Madera}',7]]
     
+    for i in range(len(data)-1):
+        if sist_x in data[i] or sist_y in data[i]:
+            data[i][0] = str(data[i][0])+r'\cellcolor[rgb]{ .949,  .949,  .949} '
+            data[i][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+str(data[i][1])+r'}}'+r'\cellcolor[rgb]{ .949,  .949,  .949} '
+
     obj.packages.append(Package('array'))
     obj.packages.append(Package('colortbl'))
     obj.packages.append(Package('graphicx'))
     obj.packages.append(Package('caption'))
     
     with obj.create(o_type('Sistema Estructural')):
-        obj.append('Después de realizar el análisis sísmico se determino que los sistemas estructurales en X, Y son:')
+        obj.append('Después de realizar el análisis sísmico se determino que los sistemas estructurales en X, Y son ')
         obj.append(insert)
         
         with obj.create(Table(position='ht!')) as tab:
-            tab.append(NoEscape(r'\caption{coeficiente básico de reducción}'))
+            tab.append(NoEscape(r'\caption{Coeficiente básico de reducción}'))
             with obj.create(Tabular(r'|>{\arraybackslash}m{10cm}| >{\centering\arraybackslash}m{4cm}|')) as table:
                 table.add_hline()
                 table.add_row((MultiColumn(2,align='|c|',data=bold('SISTEMAS ESTRUCTURALES')),))
@@ -188,7 +193,7 @@ def factor_amplificacion(obj,insert='',o_type=Subsubsection):
             
     with obj.create(o_type('Factor de Amplificación sísmica')):
         obj.append(insert)
-        obj.append('Se determina según el artículo 11 de la E-30')
+        obj.append('Se determina según el artículo 14 de la E-030')
         obj.append(NoEscape(r'\setlength{\jot}{0.5cm}'))
         with obj.create(Figure(position='h!')):
             obj.append(NoEscape(r'\caption{Factor de amplificación}'))
@@ -200,7 +205,7 @@ def factor_amplificacion(obj,insert='',o_type=Subsubsection):
             obj.append(NoEscape(r'\caption*{Fuente: Muñoz (2020)}'))
 
 
-def factor_importancia(obj,categoria,insert='',o_type=Subsubsection):
+def factor_importancia(obj,categoria,insert='',o_type=Subsection):
     obj.packages.append(Package('colortbl'))
     obj.packages.append(Package('caption'))
     obj.packages.append(Package('xcolor'))
@@ -225,7 +230,7 @@ def factor_importancia(obj,categoria,insert='',o_type=Subsubsection):
         
     with obj.create(o_type('Factor de Importancia')):
         obj.append(insert)
-        with obj.create(Table(position='h!')):
+        with obj.create(Table(position='ht!')):
             obj.append(NoEscape('\centering'))
             obj.append(NoEscape('\caption{Factor de Uso o Importancia}'))
             with obj.create(Tabular(NoEscape(r'|>{\arraybackslash}m{3cm}|m{8cm}|>{\arraybackslash}m{2.8cm}|'))) as table:
@@ -239,20 +244,57 @@ def factor_importancia(obj,categoria,insert='',o_type=Subsubsection):
                 for row in data[1:]:
                     table.add_row([NoEscape(i) for i in row])
                     table.add_hline()
-            obj.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+            obj.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
 
+def espectro_respuesta(obj,insert='',o_type=Subsubsection):
+             
+    with obj.create(o_type('Espectro de respuesta de aceleraciones')):
+        obj.append(insert)
 
+def peso_sismico(obj,insert='',o_type=Subsubsection):
+             
+    obj.packages.append(Package('tcolorbox'))
+    obj.packages.append(Package('booktabs'))
+    obj.packages.append(Package('array'))
+        
+    with obj.create(o_type('Peso sísmico')):
+        mbox = mybox3(r'Art. 26')
+        mbox.append(NoEscape(r'\textit{El peso (P), se calcula adicionando a la carga permanente y total de la edificación un porcentaje de la carga viva o sobrecarga. En edificaciones de categoría C, se toma el 25\% de la carga viva.}'))
+        obj.append(mbox)
 
+        obj.append(insert)
+
+def excentricidad_accidental(obj,insert='',o_type=Subsubsection):
+             
+    obj.packages.append(Package('tcolorbox'))
+    obj.packages.append(Package('booktabs'))
+    obj.packages.append(Package('array'))
+        
+    with obj.create(o_type('Excentricidad accidental')):
+        mbox = mybox3(r'Art. 28.5')
+        mbox.append(NoEscape(r'\textit{La incertidumbre en la localización de los centros de masa en cada nivel, se considera mediante una excentricidad accidental perpendicular a la dirección del sismo igual a 0,05 veces la dimensión del edificio en la dirección perpendicular a la dirección de análisis. En cada caso se considera el signo más desfavorable.}'))
+        obj.append(mbox)
+
+        obj.append(insert)
+
+        fig = Figure(position='ht!')
+        fig.append(NoEscape(r'\centering'))
+        fig.append(NoEscape(r'\caption{Excentricidad de la masa en ETABS}'))
+        fig.append(NoEscape(r'\includegraphics[scale=0.7]{images/excentricidad.PNG}'))
+        fig.append(NoEscape(r'\label{masa}'))
+        obj.append(fig)
+    
+        
 def ana_modal(obj,table,insert='',o_type=Subsection):
     obj.packages.append(Package('tcolorbox'))
     obj.packages.append(Package('booktabs'))
     obj.packages.append(Package('array'))
         
-    with obj.create(o_type(r'Análisis modal Art. 26.1 E-030')):
-        mbox = mybox3(r'Art. 26.1.1')
-        mbox.append(NoEscape(r'\textit{En cada dirección se consideran aquellos modos de vibración cuya suma de masas efectivas sea por lo menos el 90\% de la masa total, pero se toma en cuenta por lo menos los tres primeros modos predominantes en la dirección de análisis.}'))
+    with obj.create(o_type(r'Análisis modal Art. 29.1 E-030')):
+        mbox = mybox3(r'Art. 29.1.1')
+        mbox.append(NoEscape(r'\textit{Los modos de vibración pueden determinarse por un procedimiento de análisis que considere apropiadamente las características de rigidez y la distribución de las masas.}'))
         obj.append(mbox)
-        mbox2 = mybox3(r'Art. 26.1.2')
+        mbox2 = mybox3(r'Art. 29.1.2')
         mbox2.append(NoEscape(r'\textit{En cada dirección se consideran aquellos modos de vibración cuya suma de masas efectivas sea por lo menos el 90\% de la masa total, pero se toma en cuenta por lo menos los tres primeros modos predominantes en la dirección de análisis.}'))
         obj.append(mbox2)
         
@@ -270,7 +312,9 @@ def ana_modal(obj,table,insert='',o_type=Subsection):
             obj.append(NoEscape('\caption{Periodos y porcentajes de masa participativa}'))
             obj.append(NoEscape(table))
 
-
+def analisis_irregularidades(obj,insert='',o_type=Subsection):
+    with obj.create(o_type(r'Análisis de Irregularidades')):    
+        obj.append(insert)
 
 def irreg_rigidez(obj,sis_x,sis_y,insert='',o_type=Subsubsection):
     obj.packages.append(Package('tcolorbox'))
@@ -378,7 +422,7 @@ def irreg_torsion(obj,sis_x,sis_y,insert='',o_type=Subsubsection):
         obj.append(table2)
     
 
-def irreg_esquinas(obj,sec_change=None,openings=None,insert='',o_type=Subsubsection):
+def irreg_discontinuidad_diaf(obj,sec_change=None,openings=None,insert='',o_type=Subsubsection):
     '''
     recibe el objeto y produce un informe de irregularidad de esquinas entrante
     sintaxis de sec_change (diccionario):
@@ -395,7 +439,7 @@ def irreg_esquinas(obj,sec_change=None,openings=None,insert='',o_type=Subsubsect
     obj.packages.append(Package('array'))
     doc.packages.append(Package('float'))
     
-    with obj.create(o_type('Irregularidad por Esquinas Entrantes')):
+    with obj.create(o_type('Irregularidad por Discontinuidad del Diafragma')):
         mbox = mybox2('Tabla N°9 E-030')
         mbox.append(NoEscape(r'\textit{La estructura se califica como irregular cuando los diafragmas tienen discontinuidades abruptas o variaciones importantes en rigidez, incluyendo aberturas mayores que 50\% del área bruta del diafragma.} \\ \textit{También  existe  irregularidad  cuando,  en  cualquiera de  los pisos y para cualquiera de las direcciones de análisis, se tiene alguna sección transversal del diafragma con un área neta resistente menor que 25\% del área de la sección transversal total de la misma dirección calculada con las dimensiones totales de la planta.}'))
         obj.append(mbox)
@@ -525,6 +569,8 @@ if __name__ == '__main__':
     zona = 2
     suelo = 'S1'
     categoria = 'A2'
+    sist_estruct_X='De muros estructurales'
+    sist_estruct_Y='Dual'
 
     geometry_options = { "left": "2.5cm", "top": "1.5cm" }
     doc = Document(geometry_options=geometry_options)
@@ -533,8 +579,6 @@ if __name__ == '__main__':
     
     
     s1 = Section('Análisis Sísmico')
-
-    coments = 'Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \n'
     
     coments_zona1=NoEscape(r'Este factor se interpreta como la aceleración máxima horizontal en el suelo rígido con una probabilidad de 10 \% de ser excedida en 50 años')
     factor_zona(s1, zona, insert=coments_zona1, o_type=Subsection)
@@ -543,19 +587,30 @@ if __name__ == '__main__':
     factor_suelo(s1, zona, suelo, insert=coments_suelo, o_type=Subsection)
     periodos_suelo(s1, suelo)   
     
-    coments_sist_est="Muros y pórticos respectivamente"
-    sist_estructural(s1, insert=coments_sist_est, o_type=Subsection)
+    coments_sist_est=sist_estruct_X+' y '+sist_estruct_Y+' respectivamente.'
+    sist_estructural(s1,sist_estruct_X,sist_estruct_Y, insert=coments_sist_est, o_type=Subsection)
 
     factor_amplificacion(s1, insert='', o_type=Subsection)
     factor_importancia(s1,categoria)
+
+    espectro_respuesta(s1,insert='',o_type=Subsection)
+
+    peso_sismico(s1, insert='', o_type=Subsection)
+    
+    coments_excentricidad='Para determinar el sentido mas desfavorable de la excentricidad accidental se calculó el centro de masa y centro de rigidez del edificio, resultando negativo en ambos casos.'
+    excentricidad_accidental(s1,insert=coments_excentricidad,o_type=Subsection)
+
     table = sismo.modal
-    ana_modal(s1, table, insert=coments, o_type=Subsubsection)
+    ana_modal(s1, table, insert='', o_type=Subsection)
     tabla = sismo.piso_blando_table
     sis_x = tabla[tabla['OutputCase']=='SDx Max']
     sis_y = tabla[tabla['OutputCase']=='SDy Max']
-    irreg_rigidez(s1,sis_x,sis_y, insert=coments, o_type=Subsubsection)
+
+    analisis_irregularidades(s1,insert='',o_type=Subsection)
+    coments_rigidez = 'Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \n'
+    irreg_rigidez(s1,sis_x,sis_y, insert=coments_rigidez, o_type=Subsubsection)
     masa = sismo.rev_masa_table
-    irreg_masa(s1,masa, insert=coments, o_type=Subsection)
+    irreg_masa(s1,masa, insert='', o_type=Subsubsection)
     tabla = sismo.torsion_table
     sis_x = tabla[tabla['OutputCase']=='SDx Max']
     sis_y = tabla[tabla['OutputCase']=='SDy Max']
@@ -565,11 +620,11 @@ if __name__ == '__main__':
                   'maciza':[2.25,0.20]}
     openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
                 'area_planta' : 120.41}
-    irreg_esquinas(s1, sec_change=sec_change, openings=openings)
+    irreg_discontinuidad_diaf(s1, sec_change=sec_change, openings=openings)
 
     
     doc.append(s1)
-    doc.append(coments)
+    
     print("\n")
     print("Iniciando la generación del documento en formato .pdf y .tex...")
     doc.generate_pdf('out/Memoria Sismo2')
