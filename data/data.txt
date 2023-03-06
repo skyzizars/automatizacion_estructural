@@ -1,10 +1,10 @@
-Factor de Importancia,A2
-Sistema Estructural,Dual de Concreto Armado
-Número de Pisos,8
+Factor de Importancia,C
+Sistema Estructural,P�rticos de Concreto Armado
+Número de Pisos,6
 Número de Sotanos,0
 Número de Azoteas,0
-Factor Zona,2
-Factor Suelo,S1
+Factor Zona,4
+Factor Suelo,S2
 Piso Blando,False
 Piso Blando Extremo,False
 Irregularidad Vertical,True

@@ -1,8 +1,11 @@
+<<<<<<< HEAD:lib/sismo_mem.py
 import sys
 import os
 sys.path.append(os.getcwd())
 
 
+=======
+>>>>>>> c174bd40675d5ab17bf2be30108894e5d496e6a8:mem/sismo_mem.py
 from lib import latex_utils as ltx
 from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure, Tabularx
 from pylatex.utils import NoEscape, bold
