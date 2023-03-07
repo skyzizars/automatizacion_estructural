@@ -527,12 +527,6 @@ Factor de Reducción:
         tabla = self.tables.torsion_table
         sis_x = tabla[tabla['OutputCase']=='SDx Max']
         sis_y = tabla[tabla['OutputCase']=='SDy Max']
-        smem.irreg_torsion(sec, sis_x, sis_y)
-        sec_change = {'aligerado':[7.51,0.05],
-                    'macisa':[2.25,0.20]}
-        openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
-                    'area_planta' : 120.41}
-        smem.irreg_esquinas(sec, sec_change=sec_change, openings=openings)
         doc.append(sec)
         doc.generate_pdf('out/Memoria Sismo2')
         doc.generate_tex('out/Memoria Sismo2')
