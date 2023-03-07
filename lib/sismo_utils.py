@@ -160,6 +160,9 @@ Factor de Reducción:
         def __init__(self):
             pass
 
+    def set_base_story(self,base_story):
+        self.base_story = base_story
+        
     #Sismo Estático
     def ana_modal(self,SapModel,report=False):
         '''Devuelve datos del analisis modal, y los periodos fundamentales
@@ -488,14 +491,14 @@ Factor de Reducción:
             ['F.E.',fex,fey]])
         self.tables.shear_table = table
         
-    def analisis_sismo(self, SapModel,base_story='Story1'):
+    def analisis_sismo(self, SapModel):
         self.sismo_estatico(SapModel)
         self.piso_blando(SapModel)
         self.irregularidad_masa(SapModel)
         self.centro_masa_inercia(SapModel)
         self.irregularidad_torsion(SapModel)
         self.derivas()
-        self.min_shear(SapModel,base_story)
+        self.min_shear(SapModel,self.base_story)
 
     def generate_memoria(self):
         from pylatex import Document, Section, Subsection,Subsubsection
@@ -586,6 +589,7 @@ if __name__ == '__main__':
     sismo.data.show_params()
     
     sismo.loads.set_seism_loads(sis_loads)
+    sismo.set_base_story('story 1')
     
     sismo.analisis_sismo(_SapModel)
     

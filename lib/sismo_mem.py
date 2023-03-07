@@ -2,7 +2,6 @@ import sys
 import os
 sys.path.append(os.getcwd())
 
-
 from lib import latex_utils as ltx
 from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure
 from pylatex.utils import NoEscape, bold
@@ -12,7 +11,13 @@ import pandas as pd
 import warnings
 warnings.simplefilter('ignore', category=Warning)
 
+def def_obj(obj):
+    class Object(obj):
+        def insert(self,obj):
+            factor_zona(obj,zona,insert='',o_type=Subsubsection)
 
+    object = Object()
+    return object
 
 def mybox3(title):
     mbox = Environment()
@@ -28,6 +33,7 @@ def mybox2(title):
 
 
 def factor_zona(obj,zona,insert='',o_type=Subsubsection):
+    obj = o_type('Factor zona')
     obj.packages.append(Package('array'))
     obj.packages.append(Package('colortbl'))
     obj.packages.append(Package('graphicx'))
@@ -37,27 +43,28 @@ def factor_zona(obj,zona,insert='',o_type=Subsubsection):
     df = [['4','0.45'],['3','0.35'],['2','0.25'],['1','0.10']]
     df[4-zona][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+df[4-zona][1]+r'}}'
     df[4-zona] = [i+r'\cellcolor[rgb]{ .949,  .949,  .949} ' for i in df[4-zona]]
-    
-    
-    with obj.create(o_type('Factor de Zona')):
-        obj.append(insert)
-        with obj.create(Table(position='ht!')) as tab:
-            with obj.create(MiniPage(width='0.55\\textwidth')) as mp:
-                    mp.append(NoEscape(r'\caption{Factor de zona}'))
-                    with obj.create(Tabular(r'|>{\centering\arraybackslash}m{3.75cm}|>{\centering\arraybackslash}m{3.75cm}|')) as table:
-                        table.add_hline()
-                        table.add_row((MultiColumn(2, align='|c|', data=bold('FACTOR DE ZONA SEGÚN E-030')),))
-                        table.add_hline()
-                        table.add_row((NoEscape('\\textbf{ZONA}'), NoEscape('\\textbf{Z}')))
-                        table.add_hline()
-                        for row in df:
-                                table.add_row((NoEscape(row[0]), NoEscape(row[1])))
-                                table.add_hline()
-                    
-            with obj.create(MiniPage(width='0.35\\textwidth')):
-                with obj.create(Center()):
-                    obj.append(NoEscape('\\includegraphics[width=4cm]{images/mapa_zona}'))
-            tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+
+    obj.append(insert)
+
+    with obj.create(Table(position='ht!')) as tab:
+        with obj.create(MiniPage(width='0.55\\textwidth')) as mp:
+                mp.append(NoEscape(r'\caption{Factor de zona}'))
+                with obj.create(Tabular(r'|>{\centering\arraybackslash}m{3.75cm}|>{\centering\arraybackslash}m{3.75cm}|')) as table:
+                    table.add_hline()
+                    table.add_row((MultiColumn(2, align='|c|', data=bold('FACTOR DE ZONA SEGÚN E-030')),))
+                    table.add_hline()
+                    table.add_row((NoEscape('\\textbf{ZONA}'), NoEscape('\\textbf{Z}')))
+                    table.add_hline()
+                    for row in df:
+                            table.add_row((NoEscape(row[0]), NoEscape(row[1])))
+                            table.add_hline()
+                
+        with obj.create(MiniPage(width='0.35\\textwidth')):
+            with obj.create(Center()):
+                obj.append(NoEscape('\\includegraphics[width=4cm]{images/mapa_zona}'))
+        tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+
+    return obj
         
 
 def factor_suelo(obj,zona,suelo,insert='',o_type=Subsubsection):
@@ -525,6 +532,7 @@ if __name__ == '__main__':
     sismo.data.show_params()
     
     sismo.loads.set_seism_loads(sis_loads)
+    sismo.set_base_story('story 1')
     
     sismo.analisis_sismo(_SapModel)
     
