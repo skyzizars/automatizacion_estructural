@@ -3,7 +3,7 @@ import os
 sys.path.append(os.getcwd())
 
 
-from mem import latex_utils as ltx
+from lib import latex_utils as ltx
 from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure, Tabularx
 from pylatex.utils import NoEscape, bold
 from pylatex.package import Package
@@ -38,7 +38,6 @@ def factor_zona(obj,zona,insert='',o_type=Subsubsection):
     df = [['4','0.45'],['3','0.35'],['2','0.25'],['1','0.10']]
     df[4-zona][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+df[4-zona][1]+r'}}'
     df[4-zona] = [i+r'\cellcolor[rgb]{ .949,  .949,  .949} ' for i in df[4-zona]]
-    df = [['Zona','Z'],]
     
     
     with obj.create(o_type('Factor de Zona')):
@@ -493,39 +492,44 @@ if __name__ == '__main__':
                 'Albañilería Armada o Confinada',
                 'Madera']
 
-    datos = {'Factor de Importancia': 'C',
-            'Sistema Estructural': sistemas[0],
-            'Número de Pisos': '4',
-            'Número de Sotanos': '0',
-            'Número de Azoteas': '0',
-            'Factor Zona': '2',
-            'Factor Suelo': 'S2',
-            'Piso Blando': 'False',
-            'Piso Blando Extremo': 'False',
-            'Irregularidad de Masa': 'False',
-            'Irregularidad Vertical': 'False',
-            'Dicontinuidad Vertical': 'False',
-            'Dicontinuidad Vertical Extrema': 'False',
-            'Irregularidad Torsional': 'False',
-            'Irregulariad Torsional Extrema': 'False',
-            'Esquinas Entrantes': 'False',
-            'Discontinuidad del diafragma': 'False',
-            'Sistemas no Paralelos': 'False'}
+    categorias = ['A1 aislado',
+                  'A1 no aislado',
+                  'A2',
+                  'B',
+                  'C']
     
-    seism_loads = {'Sismo_EstX': 'Sx',
+    sis_loads = {'Sismo_EstX': 'Sx',
                  'Sismo_EstY': 'Sy',
                  'Sismo_DinX': 'SDx',
-                 'Sismo_DinY': 'SDy'
-        }
+                 'Sismo_DinY': 'SDy'}
 
-    sismo = sis.sismo_e30(data=datos)
-    sismo.seism_loads = seism_loads
-    # sismo.show_params()
+    zona = 4
+    suelo = 'S1'
+    sist_x = sistemas[0]
+    sist_y = sistemas[1]
+    categoria = categorias[4]
+    n_pisos = 4
+    n_sotanos = 0
+    n_azoteas = 0
+
+    sismo = sis.Sismo_e30()
+    sismo.data.factor_zona(zona)
+    sismo.data.factor_suelo(suelo)
+    sismo.data.periodos_suelo()
+    sismo.data.sist_estructural(sist_x,sist_y)
+    sismo.data.categoria_edificacion(categoria)
+    sismo.data.set_pisos(n_pisos,n_azoteas,n_sotanos)
+    sismo.data.irreg_altura(i_vertical=True)
+    sismo.data.irreg_planta(i_torsional=True)
+    sismo.data.factor_R()
+    sismo.data.set_pisos(n_pisos, n_azoteas, n_sotanos)
+    sismo.data.show_params()
+    
+    sismo.loads.set_seism_loads(sis_loads)
+    
     sismo.analisis_sismo(_SapModel)
     
-    zona = 2
-    suelo = 'S1'
-    categoria = 'A2'
+
 
     geometry_options = { "left": "2.5cm", "top": "1.5cm" }
     doc = Document(geometry_options=geometry_options)
@@ -537,7 +541,7 @@ if __name__ == '__main__':
 
     coments = 'Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \n'
 
-    factor_zona(s1, zona, insert=coments, o_type=Subsection)
+    factor_zona(s1, zona, o_type=Subsection)
     s1.append(coments)
     factor_suelo(s1, zona, suelo, insert=coments, o_type=Subsection)
     periodos_suelo(s1, suelo)   
@@ -545,15 +549,15 @@ if __name__ == '__main__':
     sist_estructural(s1, insert=coments, o_type=Subsection)
     factor_amplificacion(s1, insert=coments, o_type=Subsection)
     factor_importancia(s1,categoria)
-    table = sismo.modal
+    table = sismo.tables.modal
     ana_modal(s1, table, insert=coments, o_type=Subsubsection)
-    tabla = sismo.piso_blando_table
+    tabla = sismo.tables.piso_blando_table
     sis_x = tabla[tabla['OutputCase']=='SDx Max']
     sis_y = tabla[tabla['OutputCase']=='SDy Max']
     irreg_rigidez(s1,sis_x,sis_y, insert=coments, o_type=Subsubsection)
-    masa = sismo.rev_masa_table
+    masa = sismo.tables.rev_masa_table
     irreg_masa(s1,masa, insert=coments, o_type=Subsection)
-    tabla = sismo.torsion_table
+    tabla = sismo.tables.torsion_table
     sis_x = tabla[tabla['OutputCase']=='SDx Max']
     sis_y = tabla[tabla['OutputCase']=='SDy Max']
     s1.append(NoEscape(r'\newpage'))

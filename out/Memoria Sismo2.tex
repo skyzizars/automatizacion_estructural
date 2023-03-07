@@ -28,7 +28,6 @@
 \label{sec:AnlisisSsmico}%
 \subsection{Factor de Zona}%
 \label{subsec:FactordeZona}%
-Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \newline%
 %
 
 
@@ -41,7 +40,13 @@ Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante
 \hline%
 \textbf{ZONA}&\textbf{Z}\\%
 \hline%
-Zona&Z\\%
+4\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{0.45}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
+\hline%
+3&0.35\\%
+\hline%
+2&0.25\\%
+\hline%
+1&0.10\\%
 \hline%
 \end{tabular}%
 \end{minipage}%
@@ -71,11 +76,11 @@ Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante
 \hline%
 \backslashbox{\textit{\textbf{ZONA}}}{\textit{\textbf{SUELO}}}&\textbf{S0}&\textbf{S1}&\textbf{S2}&\textbf{S3}\\%
 \hline%
-4&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.05&1.10\\%
+4\cellcolor[rgb]{ .949,  .949,  .949} &0.80\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{1.00}}\cellcolor[rgb]{ .949,  .949,  .949} \cellcolor[rgb]{ .949,  .949,  .949} &1.05\cellcolor[rgb]{ .949,  .949,  .949} &1.10\cellcolor[rgb]{ .949,  .949,  .949} \\%
 \hline%
 3&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.15&1.20\\%
 \hline%
-2\cellcolor[rgb]{ .949,  .949,  .949} &0.80\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{1.00}}\cellcolor[rgb]{ .949,  .949,  .949} \cellcolor[rgb]{ .949,  .949,  .949} &1.20\cellcolor[rgb]{ .949,  .949,  .949} &1.40\cellcolor[rgb]{ .949,  .949,  .949} \\%
+2&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.20&1.40\\%
 \hline%
 1&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.60&2.00\\%
 \hline%
@@ -201,11 +206,11 @@ Se determina según el artículo 11 de la E{-}30%
 \hline%
 \multirow{2}[4]{3cm}{A Edificaciones Escenciales}&A1: Establecimiento del sector salud (públicos y privados) del segundo y tercer nivel, según lo normado por el ministerio de salud.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{Con aislamiento 1.0 y sin aislamiento 1.5.}\\%
 \cline{2-3}%
-&A2: Edificaciones escenciales para el manejo de las emergencias, el funcionamiento del gobierno y en general aquellas que puedan servir de refugio después de un desastre.\cellcolor[rgb]{1,  .949,  .8}&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{\textcolor[rgb]{ 1,  0,  0}{\textbf{1.50}}\cellcolor[rgb]{1,  .949,  .8}}\\%
+&A2: Edificaciones escenciales para el manejo de las emergencias, el funcionamiento del gobierno y en general aquellas que puedan servir de refugio después de un desastre.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.50}\\%
 \hline%
 B Edificaciones Importantes &Edificaciones donde se reúnen gran cantidad de personas tales como cines, teatros, estadios, coliseos, centros comerciales, terminales de buses de pasajeros, establecimientos penitenciarios, o que guardan patrimonios valiosos como museos y bibliotecas.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.30}\\%
 \hline%
-C Edificaciones Comunes&Edificaciones comunes tales como: viviendas, oficinas, hoteles, restaurantes, depósitos e instalaciones industriales cuya falla no acarree peligros adicionales de incendios o fugas de contaminantes.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.00}\\%
+C Edificaciones Comunes\cellcolor[rgb]{ .949,  .949,  .949}&Edificaciones comunes tales como: viviendas, oficinas, hoteles, restaurantes, depósitos e instalaciones industriales cuya falla no acarree peligros adicionales de incendios o fugas de contaminantes.\cellcolor[rgb]{ .949,  .949,  .949}&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{\textcolor[rgb]{ 1,  0,  0}{\textbf{1.00}}\cellcolor[rgb]{ .949,  .949,  .949}}\\%
 \hline%
 D Edificaciones temporales&Construcciones provisionales para depósitos, casetas y otras similares.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{A criterio del proyectista}\\%
 \hline%
@@ -378,16 +383,16 @@ Existe irregularidad torsional cuando, en cualquiera de las direcciones de anál
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story8 & SDx Max & X & 0.003021 & 0.002475 & 1.221 & 2.5 & 0.007250 & False & Regular \\
-Story7 & SDx Max & X & 0.003476 & 0.002869 & 1.211 & 2.5 & 0.008342 & False & Regular \\
-Story6 & SDx Max & X & 0.004116 & 0.003335 & 1.234 & 2.5 & 0.009878 & False & Regular \\
-Story5 & SDx Max & X & 0.00454 & 0.003673 & 1.236 & 2.5 & 0.010896 & False & Regular \\
-Story4 & SDx Max & X & 0.004657 & 0.003773 & 1.234 & 2.5 & 0.011177 & False & Regular \\
-Story3 & SDx Max & X & 0.004479 & 0.003582 & 1.25 & 2.5 & 0.010750 & False & Regular \\
-Story2 & SDx Max & X & 0.003811 & 0.002958 & 1.288 & 2.5 & 0.009146 & False & Regular \\
-Story1 & SDx Max & X & 0.001124 & 0.000904 & 1.244 & 1.5 & 0.004496 & False & Regular \\
-NT & SDx Max & X & 0.00024 & 0.00012 & 2 & 1.75 & 0.000823 & True & Regular \\
-NT & SDx Max & Y & 2.8E-05 & 1.4E-05 & 2 & 1.75 & 0.000096 & True & Regular \\
+Story8 & SDx Max & X & 0.003021 & 0.002475 & 1.221 & 2.5 & 0.016313 & False & Regular \\
+Story7 & SDx Max & X & 0.003476 & 0.002869 & 1.211 & 2.5 & 0.018770 & False & Regular \\
+Story6 & SDx Max & X & 0.004116 & 0.003335 & 1.234 & 2.5 & 0.022226 & False & Regular \\
+Story5 & SDx Max & X & 0.00454 & 0.003673 & 1.236 & 2.5 & 0.024516 & False & Regular \\
+Story4 & SDx Max & X & 0.004657 & 0.003773 & 1.234 & 2.5 & 0.025148 & False & Regular \\
+Story3 & SDx Max & X & 0.004479 & 0.003582 & 1.25 & 2.5 & 0.024187 & False & Regular \\
+Story2 & SDx Max & X & 0.003811 & 0.002958 & 1.288 & 2.5 & 0.020579 & False & Regular \\
+Story1 & SDx Max & X & 0.001124 & 0.000904 & 1.244 & 1.5 & 0.006070 & False & Regular \\
+NT & SDx Max & X & 0.00024 & 0.00012 & 2 & 1.75 & 0.001296 & True & Regular \\
+NT & SDx Max & Y & 2.8E-05 & 1.4E-05 & 2 & 1.75 & 0.000151 & True & Regular \\
 \bottomrule
 \end{tabular}
 }%
@@ -404,24 +409,24 @@ NT & SDx Max & Y & 2.8E-05 & 1.4E-05 & 2 & 1.75 & 0.000096 & True & Regular \\
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story8 & SDy Max & X & 0.000535 & 0.000322 & 1.662 & 2.5 & 0.001284 & True & Regular \\
-Story8 & SDy Max & Y & 0.000498 & 0.000478 & 1.042 & 2.5 & 0.001195 & True & Regular \\
-Story7 & SDy Max & X & 0.00059 & 0.000357 & 1.65 & 2.5 & 0.001416 & True & Regular \\
-Story7 & SDy Max & Y & 0.000527 & 0.00051 & 1.033 & 2.5 & 0.001265 & True & Regular \\
-Story6 & SDy Max & X & 0.000632 & 0.000387 & 1.633 & 2.5 & 0.001517 & True & Regular \\
-Story6 & SDy Max & Y & 0.000533 & 0.000517 & 1.031 & 2.5 & 0.001279 & True & Regular \\
-Story5 & SDy Max & X & 0.00065 & 0.000402 & 1.618 & 2.5 & 0.001560 & True & Regular \\
-Story5 & SDy Max & Y & 0.000523 & 0.000506 & 1.034 & 2.5 & 0.001255 & True & Regular \\
-Story4 & SDy Max & X & 0.000637 & 0.000397 & 1.605 & 2.5 & 0.001529 & True & Regular \\
-Story4 & SDy Max & Y & 0.000488 & 0.000471 & 1.035 & 2.5 & 0.001171 & True & Regular \\
-Story3 & SDy Max & X & 0.000577 & 0.000361 & 1.597 & 2.5 & 0.001385 & True & Regular \\
-Story3 & SDy Max & Y & 0.000423 & 0.000407 & 1.038 & 2.5 & 0.001015 & True & Regular \\
-Story2 & SDy Max & X & 0.00046 & 0.000287 & 1.602 & 2.5 & 0.001104 & True & Regular \\
-Story2 & SDy Max & Y & 0.000332 & 0.000313 & 1.058 & 2.5 & 0.000797 & True & Regular \\
-Story1 & SDy Max & X & 0.000167 & 0.000103 & 1.625 & 1.5 & 0.000668 & True & Regular \\
-Story1 & SDy Max & Y & 0.000126 & 0.000108 & 1.173 & 1.5 & 0.000504 & True & Regular \\
-NT & SDy Max & X & 3.3E-05 & 1.6E-05 & 2 & 1.75 & 0.000113 & True & Regular \\
-NT & SDy Max & Y & 2.7E-05 & 1.3E-05 & 2 & 1.75 & 0.000093 & True & Regular \\
+Story8 & SDy Max & X & 0.000535 & 0.000322 & 1.662 & 2.5 & 0.002889 & True & Regular \\
+Story8 & SDy Max & Y & 0.000498 & 0.000478 & 1.042 & 2.5 & 0.002689 & True & Regular \\
+Story7 & SDy Max & X & 0.00059 & 0.000357 & 1.65 & 2.5 & 0.003186 & True & Regular \\
+Story7 & SDy Max & Y & 0.000527 & 0.00051 & 1.033 & 2.5 & 0.002846 & True & Regular \\
+Story6 & SDy Max & X & 0.000632 & 0.000387 & 1.633 & 2.5 & 0.003413 & True & Regular \\
+Story6 & SDy Max & Y & 0.000533 & 0.000517 & 1.031 & 2.5 & 0.002878 & True & Regular \\
+Story5 & SDy Max & X & 0.00065 & 0.000402 & 1.618 & 2.5 & 0.003510 & False & Irregular \\
+Story5 & SDy Max & Y & 0.000523 & 0.000506 & 1.034 & 2.5 & 0.002824 & True & Regular \\
+Story4 & SDy Max & X & 0.000637 & 0.000397 & 1.605 & 2.5 & 0.003440 & True & Regular \\
+Story4 & SDy Max & Y & 0.000488 & 0.000471 & 1.035 & 2.5 & 0.002635 & True & Regular \\
+Story3 & SDy Max & X & 0.000577 & 0.000361 & 1.597 & 2.5 & 0.003116 & True & Regular \\
+Story3 & SDy Max & Y & 0.000423 & 0.000407 & 1.038 & 2.5 & 0.002284 & True & Regular \\
+Story2 & SDy Max & X & 0.00046 & 0.000287 & 1.602 & 2.5 & 0.002484 & True & Regular \\
+Story2 & SDy Max & Y & 0.000332 & 0.000313 & 1.058 & 2.5 & 0.001793 & True & Regular \\
+Story1 & SDy Max & X & 0.000167 & 0.000103 & 1.625 & 1.5 & 0.000902 & True & Regular \\
+Story1 & SDy Max & Y & 0.000126 & 0.000108 & 1.173 & 1.5 & 0.000680 & True & Regular \\
+NT & SDy Max & X & 3.3E-05 & 1.6E-05 & 2 & 1.75 & 0.000178 & True & Regular \\
+NT & SDy Max & Y & 2.7E-05 & 1.3E-05 & 2 & 1.75 & 0.000146 & True & Regular \\
 \bottomrule
 \end{tabular}
 }%
