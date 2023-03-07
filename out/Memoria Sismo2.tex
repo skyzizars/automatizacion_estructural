@@ -40,11 +40,11 @@ Este factor se interpreta como la aceleración máxima horizontal en el suelo r�
 \hline%
 \textbf{ZONA}&\textbf{Z}\\%
 \hline%
-4&0.45\\%
+4\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{0.45}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
 \hline%
 3&0.35\\%
 \hline%
-2\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{0.25}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
+2&0.25\\%
 \hline%
 1&0.10\\%
 \hline%
@@ -73,11 +73,11 @@ Este factor se interpreta como  un factor de modificación de la aceleración pi
 \hline%
 \backslashbox{\textit{\textbf{ZONA}}}{\textit{\textbf{SUELO}}}&\textbf{S0}&\textbf{S1}&\textbf{S2}&\textbf{S3}\\%
 \hline%
-4&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.05&1.10\\%
+4\cellcolor[rgb]{ .949,  .949,  .949} &0.80\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{1.00}}\cellcolor[rgb]{ .949,  .949,  .949} \cellcolor[rgb]{ .949,  .949,  .949} &1.05\cellcolor[rgb]{ .949,  .949,  .949} &1.10\cellcolor[rgb]{ .949,  .949,  .949} \\%
 \hline%
 3&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.15&1.20\\%
 \hline%
-2\cellcolor[rgb]{ .949,  .949,  .949} &0.80\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{1.00}}\cellcolor[rgb]{ .949,  .949,  .949} \cellcolor[rgb]{ .949,  .949,  .949} &1.20\cellcolor[rgb]{ .949,  .949,  .949} &1.40\cellcolor[rgb]{ .949,  .949,  .949} \\%
+2&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.20&1.40\\%
 \hline%
 1&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.60&2.00\\%
 \hline%
@@ -199,11 +199,11 @@ Se determina según el artículo 14 de la E{-}030%
 \hline%
 \multirow{2}[4]{3cm}{A Edificaciones Escenciales}&A1: Establecimiento del sector salud (públicos y privados) del segundo y tercer nivel, según lo normado por el ministerio de salud.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{Con aislamiento 1.0 y sin aislamiento 1.5.}\\%
 \cline{2-3}%
-&A2: Edificaciones escenciales para el manejo de las emergencias, el funcionamiento del gobierno y en general aquellas que puedan servir de refugio después de un desastre.\cellcolor[rgb]{1,  .949,  .8}&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{\textcolor[rgb]{ 1,  0,  0}{\textbf{1.50}}\cellcolor[rgb]{1,  .949,  .8}}\\%
+&A2: Edificaciones escenciales para el manejo de las emergencias, el funcionamiento del gobierno y en general aquellas que puedan servir de refugio después de un desastre.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.50}\\%
 \hline%
 B Edificaciones Importantes &Edificaciones donde se reúnen gran cantidad de personas tales como cines, teatros, estadios, coliseos, centros comerciales, terminales de buses de pasajeros, establecimientos penitenciarios, o que guardan patrimonios valiosos como museos y bibliotecas.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.30}\\%
 \hline%
-C Edificaciones Comunes&Edificaciones comunes tales como: viviendas, oficinas, hoteles, restaurantes, depósitos e instalaciones industriales cuya falla no acarree peligros adicionales de incendios o fugas de contaminantes.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.00}\\%
+C Edificaciones Comunes\cellcolor[rgb]{ .949,  .949,  .949}&Edificaciones comunes tales como: viviendas, oficinas, hoteles, restaurantes, depósitos e instalaciones industriales cuya falla no acarree peligros adicionales de incendios o fugas de contaminantes.\cellcolor[rgb]{ .949,  .949,  .949}&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{\textcolor[rgb]{ 1,  0,  0}{\textbf{1.00}}\cellcolor[rgb]{ .949,  .949,  .949}}\\%
 \hline%
 D Edificaciones temporales&Construcciones provisionales para depósitos, casetas y otras similares.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{A criterio del proyectista}\\%
 \hline%
@@ -343,7 +343,7 @@ Se tiene irregularidad de masa (o peso) cuando el peso de un piso determinado se
 Story & Masa & 1.5 Masa & Tipo de Piso & is\_reg \\
 \midrule
 Story3 & 9.191 &  & Azotea & Regular \\
-Story2 & 13.850 & 20.774 & Piso & Regular \\
+Story2 & 13.850 &  & Azotea & Regular \\
 Story1 & 14.612 & 21.918 & Piso & Regular \\
 Base & 2.723 &  & Sotano & Regular \\
 \bottomrule
@@ -374,12 +374,12 @@ Existe irregularidad torsional cuando, en cualquiera de las direcciones de anál
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story3 & SDx Max & X & 0.004028 & 0.003867 & 1.042 & 3.6 & 0.006713 & False & Regular \\
-Story3 & SDx Max & Y & 0.000643 & 0.000622 & 1.034 & 3.6 & 0.001072 & True & Regular \\
-Story2 & SDx Max & X & 0.004952 & 0.004773 & 1.037 & 3.6 & 0.008253 & False & Regular \\
-Story2 & SDx Max & Y & 0.000826 & 0.000802 & 1.03 & 3.6 & 0.001377 & True & Regular \\
-Story1 & SDx Max & X & 0.004885 & 0.004718 & 1.036 & 5 & 0.005862 & False & Regular \\
-Story1 & SDx Max & Y & 0.00083 & 0.000808 & 1.028 & 5 & 0.000996 & True & Regular \\
+Story3 & SDx Max & X & 0.004028 & 0.003867 & 1.042 & 3.6 & 0.021751 & False & Regular \\
+Story3 & SDx Max & Y & 0.000643 & 0.000622 & 1.034 & 3.6 & 0.003472 & True & Regular \\
+Story2 & SDx Max & X & 0.004952 & 0.004773 & 1.037 & 3.6 & 0.026741 & False & Regular \\
+Story2 & SDx Max & Y & 0.000826 & 0.000802 & 1.03 & 3.6 & 0.004460 & False & Regular \\
+Story1 & SDx Max & X & 0.004885 & 0.004718 & 1.036 & 5 & 0.026379 & False & Regular \\
+Story1 & SDx Max & Y & 0.00083 & 0.000808 & 1.028 & 5 & 0.004482 & False & Regular \\
 \bottomrule
 \end{tabular}
 }%
@@ -396,12 +396,12 @@ Story1 & SDx Max & Y & 0.00083 & 0.000808 & 1.028 & 5 & 0.000996 & True & Regula
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story3 & SDy Max & X & 0.001227 & 0.00117 & 1.049 & 3.6 & 0.002045 & True & Regular \\
-Story3 & SDy Max & Y & 0.00176 & 0.001751 & 1.005 & 3.6 & 0.002933 & True & Regular \\
-Story2 & SDy Max & X & 0.001508 & 0.001443 & 1.045 & 3.6 & 0.002513 & True & Regular \\
-Story2 & SDy Max & Y & 0.002307 & 0.002297 & 1.004 & 3.6 & 0.003845 & False & Regular \\
-Story1 & SDy Max & X & 0.001486 & 0.001426 & 1.042 & 5 & 0.001783 & True & Regular \\
-Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.002826 & True & Regular \\
+Story3 & SDy Max & X & 0.001227 & 0.00117 & 1.049 & 3.6 & 0.006626 & False & Regular \\
+Story3 & SDy Max & Y & 0.00176 & 0.001751 & 1.005 & 3.6 & 0.009504 & False & Regular \\
+Story2 & SDy Max & X & 0.001508 & 0.001443 & 1.045 & 3.6 & 0.008143 & False & Regular \\
+Story2 & SDy Max & Y & 0.002307 & 0.002297 & 1.004 & 3.6 & 0.012458 & False & Regular \\
+Story1 & SDy Max & X & 0.001486 & 0.001426 & 1.042 & 5 & 0.008024 & False & Regular \\
+Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.012717 & False & Regular \\
 \bottomrule
 \end{tabular}
 }%
