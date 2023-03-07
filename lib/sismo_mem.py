@@ -4,11 +4,10 @@ sys.path.append(os.getcwd())
 
 
 from lib import latex_utils as ltx
-from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure, Tabularx
+from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure
 from pylatex.utils import NoEscape, bold
 from pylatex.package import Package
 from pylatex.base_classes import Environment
-from ordered_set import OrderedSet
 import pandas as pd
 import warnings
 warnings.simplefilter('ignore', category=Warning)
@@ -177,7 +176,7 @@ def sist_estructural(obj,insert='',o_type=Subsubsection):
 def factor_amplificacion(obj,insert='',o_type=Subsubsection):
     obj.packages.append(Package('graphicx'))
     obj.packages.append(Package('amsmath'))
-    doc.packages.append(Package('caption'))
+    obj.packages.append(Package('caption'))
     
     eq = r'''
     \begin{align*}
@@ -393,7 +392,7 @@ def irreg_esquinas(obj,sec_change=None,openings=None,insert='',o_type=Subsubsect
     obj.packages.append(Package('tcolorbox'))
     obj.packages.append(Package('caption'))
     obj.packages.append(Package('array'))
-    doc.packages.append(Package('float'))
+    obj.packages.append(Package('float'))
     
     with obj.create(o_type('Irregularidad por Esquinas Entrantes')):
         mbox = mybox2('Tabla N°9 E-030')
