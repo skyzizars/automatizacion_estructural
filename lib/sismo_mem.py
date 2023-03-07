@@ -4,11 +4,10 @@ sys.path.append(os.getcwd())
 
 
 from lib import latex_utils as ltx
-from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure, Tabularx
+from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure
 from pylatex.utils import NoEscape, bold
 from pylatex.package import Package
 from pylatex.base_classes import Environment
-from ordered_set import OrderedSet
 import pandas as pd
 import warnings
 warnings.simplefilter('ignore', category=Warning)
@@ -182,7 +181,7 @@ def sist_estructural(obj,sist_x,sist_y,insert='',o_type=Subsubsection):
 def factor_amplificacion(obj,insert='',o_type=Subsubsection):
     obj.packages.append(Package('graphicx'))
     obj.packages.append(Package('amsmath'))
-    doc.packages.append(Package('caption'))
+    obj.packages.append(Package('caption'))
     
     eq = r'''
     \begin{align*}
@@ -211,7 +210,7 @@ def factor_importancia(obj,categoria,insert='',o_type=Subsection):
     obj.packages.append(Package('xcolor'))
     obj.packages.append(Package('array'))
     obj.packages.append(Package('multirow'))
-
+    obj.packages.append(Package('float'))
     
     cat_ind = {'A1':0,'A2':1,'B':2,'C':3,'D':4}
     data = [['A Edificaciones Escenciales','A1: Establecimiento del sector salud (públicos y privados) del segundo y tercer nivel, según lo normado por el ministerio de salud.','Con aislamiento 1.0 y sin aislamiento 1.5.'],
@@ -230,7 +229,7 @@ def factor_importancia(obj,categoria,insert='',o_type=Subsection):
         
     with obj.create(o_type('Factor de Importancia')):
         obj.append(insert)
-        with obj.create(Table(position='ht!')):
+        with obj.create(Table(position='h!')):
             obj.append(NoEscape('\centering'))
             obj.append(NoEscape('\caption{Factor de Uso o Importancia}'))
             with obj.create(Tabular(NoEscape(r'|>{\arraybackslash}m{3cm}|m{8cm}|>{\arraybackslash}m{2.8cm}|'))) as table:
@@ -250,6 +249,9 @@ def espectro_respuesta(obj,insert='',o_type=Subsubsection):
              
     with obj.create(o_type('Espectro de respuesta de aceleraciones')):
         obj.append(insert)
+
+
+
 
 def peso_sismico(obj,insert='',o_type=Subsubsection):
              
@@ -437,7 +439,7 @@ def irreg_discontinuidad_diaf(obj,sec_change=None,openings=None,insert='',o_type
     obj.packages.append(Package('tcolorbox'))
     obj.packages.append(Package('caption'))
     obj.packages.append(Package('array'))
-    doc.packages.append(Package('float'))
+    obj.packages.append(Package('float'))
     
     with obj.create(o_type('Irregularidad por Discontinuidad del Diafragma')):
         mbox = mybox2('Tabla N°9 E-030')
