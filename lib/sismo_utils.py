@@ -107,7 +107,7 @@ class sismo_e30():
         self.Tp = self.periodos_suelo[suelo].loc['Tp']
         self.Tl = self.periodos_suelo[suelo].loc['Tl']
         sistema_x = self.data['Sistema Estructural X']
-        sistema_y = self.data['Sistema Estructural X']
+        sistema_y = self.data['Sistema Estructural Y']
         self.Rox = float(self.sist_estructural[self.sist_estructural.sistema == sistema_x]['R_0'])
         self.Roy = float(self.sist_estructural[self.sist_estructural.sistema == sistema_y]['R_0'])
         self.max_drift_x = float(self.sist_estructural[self.sist_estructural.sistema == sistema_x]['max_drift'])
@@ -148,20 +148,20 @@ Factor de Reducción:
 
     #Sismo Estático
     def ana_modal(self,SapModel,report=False):
-        '''Devuelve datos del analisis modal, y los periodos fundamentales
-        para cada dirección de análisis si la masa participativa es mayor al
-        90%. Revise 29.1.2 NTE 030 2020
+        '''Registra datos del analisis modal y periodos fundamentales
+        para cada dirreción de análisis, con opcion a mostrar reporte.
     
         Parámetros
         ----------
         SapModel: objeto propio del ETABS
+        report: boleano, 'False' por defecto
         
         Returns
         -------
         mensaje: ----Aumentar grados de libertad, si MP_y o MP_x<0.9
-        modal=tabla "Modal Participating Mass Ratios"
-        T_x=Periodo fundamental en la dirección x
-        T_y=Periodo fundamental en la dirección y
+        self.modal=tabla "Modal Participating Mass Ratios"
+        self.T_x=Periodo fundamental en la dirección x
+        self.T_y=Periodo fundamental en la dirección y
         '''
         _,modal = etb.get_table(SapModel,'Modal Participating Mass Ratios')
         modal = modal[['Mode','Period','UX','UY','RZ','SumUX','SumUY','SumRZ']]
@@ -279,7 +279,7 @@ Factor de Reducción:
 
 
         self.ana_modal(SapModel)
-        self.Rx = self.Rox*self.Roy
+        self.Rx = self.Rox*self.Rox
         self.Ry = self.Rox*self.Roy
         self.kx = get_k(self.Tx)
         self.ky = get_k(self.Ty)
@@ -302,21 +302,17 @@ Factor de Reducción:
 
     #Revisión por Torsión      
     def irregularidad_torsion(self,SapModel):
-        '''Registra en un DataFrame la tabla de derivas maximas de entrepiso, 
-        deriva promedio y la razon de derivas maximas sobre derivas promedios
+        '''Se realiza la verificacion de irregularidad torsional
+        en la tabla "Story Max Over Avg Drifts" modificada
 
         Parámetros
         ----------
         SapModel: objeto propio del ETABS
-        loads: Casos de carga
-        max_drift: deriva máxima
-        R: coeficiente de reduccion sismica
-        is_regular: boleano, true si es regular, false si es irregular
-
+        
         Returns
         -------
-        table: DataFrame que contiene la tabla "Story Max Over Avg Drifts", Max Drift,
-        Avg Drift y Ratio
+        table: tabla "Story Max Over Avg Drifts" modificada para 
+        indicar si es regular o irregular segun el criterio de torsion.
         '''
         self.is_regular = self.Ip == 1 and self.Ia == 1
         set_loads = [load for load in self.seism_loads.values()]
@@ -343,6 +339,19 @@ Factor de Reducción:
     #Piso Blando
         
     def piso_blando(self,SapModel):
+        '''Registra en un DataFrame la tabla de derivas maximas de entrepiso, 
+        deriva promedio y la razon de derivas maximas sobre derivas promedios
+        para la verificacion de irregularidad torsional.
+
+        Parámetros
+        ----------
+        SapModel: objeto propio del ETABS
+        
+        Returns
+        -------
+        table: DataFrame que contiene la tabla "Story Max Over Avg Drifts" modificada
+        para indicar si es regular o irregular segun el criterio de torsion
+        '''
         set_loads = [load for load in self.seism_loads.values()]
         SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_loads)
         SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])
