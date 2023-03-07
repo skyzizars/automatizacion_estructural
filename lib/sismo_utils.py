@@ -496,6 +496,46 @@ Factor de Reducción:
         self.irregularidad_torsion(SapModel)
         self.derivas()
         self.min_shear(SapModel,base_story)
+
+    def generate_memoria(self):
+        from pylatex import Document, Section, Subsection,Subsubsection
+        from pylatex.utils import NoEscape
+        from pylatex.package import Package
+        from lib import sismo_mem as smem
+        zona = self.data.zona
+        suelo = self.data.suelo
+        categoria = self.data.categoria
+        geometry_options = { "left": "2.5cm", "top": "1.5cm" }
+        doc = Document(geometry_options=geometry_options)
+        doc.packages.append(Package('xcolor', options=['dvipsnames']))
+        doc.preamble.append(NoEscape(r'\graphicspath{ {%s/} }'%os.getcwd().replace('\\','/')))
+        sec = Section('Análisis Sísmico')
+        smem.factor_zona(sec, zona)
+        smem.factor_suelo(sec, zona, suelo)
+        smem.periodos_suelo(sec, suelo)   
+        smem.sist_estructural(sec)
+        smem.factor_amplificacion(sec)
+        smem.factor_importancia(sec,categoria)
+        table = self.tables.modal
+        smem.ana_modal(sec, table)
+        tabla = self.tables.piso_blando_table
+        sis_x = tabla[tabla['OutputCase']=='SDx Max']
+        sis_y = tabla[tabla['OutputCase']=='SDy Max']
+        smem.irreg_rigidez(sec,sis_x,sis_y)
+        masa = self.tables.rev_masa_table
+        smem.irreg_masa(sec,masa)
+        tabla = self.tables.torsion_table
+        sis_x = tabla[tabla['OutputCase']=='SDx Max']
+        sis_y = tabla[tabla['OutputCase']=='SDy Max']
+        smem.irreg_torsion(sec, sis_x, sis_y)
+        sec_change = {'aligerado':[7.51,0.05],
+                    'macisa':[2.25,0.20]}
+        openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
+                    'area_planta' : 120.41}
+        smem.irreg_esquinas(sec, sec_change=sec_change, openings=openings)
+        doc.append(sec)
+        doc.generate_pdf('out/Memoria Sismo2')
+        doc.generate_tex('out/Memoria Sismo2')
     
 
 
@@ -556,5 +596,6 @@ if __name__ == '__main__':
     sismo.analisis_sismo(_SapModel)
     
     tablas = sismo.tables
+    sismo.generate_memoria()
 
     
