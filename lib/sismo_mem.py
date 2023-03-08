@@ -4,7 +4,7 @@ sys.path.append(os.getcwd())
 
 
 from lib import latex_utils as ltx
-from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure
+from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure,MultiRow
 from pylatex.utils import NoEscape, bold
 from pylatex.package import Package
 from pylatex.base_classes import Environment
@@ -244,6 +244,41 @@ def factor_importancia(obj,categoria,insert='',o_type=Subsection):
                     table.add_row([NoEscape(i) for i in row])
                     table.add_hline()
             obj.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
+
+def tabla_resumen(obj,insert=''):
+    obj.append(NoEscape(r'\newpage'))
+    obj.append(insert)
+    with obj.create(Table(position='ht!')) as table:
+        table.append(NoEscape('\centering'))
+        table.add_caption('Resumen de parámetros sísmicos')
+        table.append(NoEscape(r'\extrarowheight = -0.3ex'))
+        table.append(NoEscape(r'\renewcommand{\arraystretch}{1.5}'))
+        with table.create(Tabular(r'm{5cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|')) as tabular:
+            tabular.add_hline(2,4)
+            tabular.add_row('',MultiColumn(3,align='c|',data=bold("PARÁMETROS SÍSMICOS")))
+            tabular.add_hline(2,4)
+            tabular.add_row('','',NoEscape(r'\textit{\textbf{X}}'),NoEscape(r'\textit{\textbf{Y}}'))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Factor de Zona (Tabla N°1)}'), NoEscape(r'\textbf{Z}'),MultiColumn(2,align='c|',data='0.25')))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Factor de Uso (Tabla N°5)}'), NoEscape(r'\textbf{U}'), MultiColumn(2,align='c|',data='1.00')))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Factor de Suelo (Tabla N°3)}'), NoEscape(r'\textbf{S}'), MultiColumn(2,align='c|',data='1.40')))
+            tabular.add_hline(2,4)
+            tabular.add_row((MultiRow(2, data=NoEscape(r'\textit{Periodos(Tabla N°4)}')), NoEscape(r'\textbf{T\raisebox{-0.5ex}{\scriptsize{P}}}'),MultiColumn(2,align='c|',data='1.00') ))
+            tabular.add_hline(2, 4)
+            tabular.add_row(('', NoEscape(r'\textbf{T\raisebox{-0.5ex}{\scriptsize{L}}}'),MultiColumn(2,align='c|',data='1.60') ))
+            tabular.add_hline(2,4)
+            tabular.add_row(('Coef. Básico de Reducción (Tabla N°7)', NoEscape(r'\textbf{R\raisebox{-0.5ex}{\scriptsize{o}}}'), '6.00', '8.00'))
+            tabular.add_hline(2,4)
+            tabular.add_row(('Irregularidad en altura (Tabla N°8)', NoEscape(r'\textbf{I\raisebox{-0.5ex}{\scriptsize{a}}}'), '1.00', '1.00'))
+            tabular.add_hline(2,4)
+            tabular.add_row(('Irregularidad en planta (Tabla N°9)', NoEscape(r'\textbf{I\raisebox{-0.5ex}{\scriptsize{p}}}'), '1.00', '1.00'))
+            tabular.add_hline(2,4)
+            tabular.add_row(('Coef. de Reducción (Articulo 22)', NoEscape(r'\textbf{R}'), '6.00', '8.00'))
+            tabular.add_hline(2,4)
+            tabular.add_row(('', NoEscape(r'\textbf{ZUSg/R}'), '0.57', '0.43'))
+            tabular.add_hline(2,4)
 
 def espectro_respuesta(obj,insert='',o_type=Subsubsection):
              
@@ -598,6 +633,8 @@ if __name__ == '__main__':
 
     factor_amplificacion(s1, insert='', o_type=Subsection)
     factor_importancia(s1,categoria)
+
+    tabla_resumen(s1,insert='')
 
     espectro_respuesta(s1,insert='',o_type=Subsection)
 
