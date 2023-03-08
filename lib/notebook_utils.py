@@ -147,6 +147,17 @@ class Sismo(sis.Sismo_e30):
         else:
             print('NO HA INGRESADO NINGUN CASO DE CARGA EN EL MODELO')
             return None
+        
+    def select_base_story(self,SapModel):
+        stories = SapModel.Story.GetStories_2()[2]
+        self.stories_dropdown = dropdown(stories,'Piso Base',stories[0])
+        self.base_story = stories[0]
+        def change_base_load(change):
+                if change['type'] == 'change' and change['name'] == 'value':
+                        self.base_story = change['new']
+        self.stories_dropdown.observe(lambda change: change_base_load(change))
+                
+        return self.stories_dropdown
 
     def show_table(self,table, column='OutputCase'):
         list_columns = tuple(table[column].unique())
