@@ -477,7 +477,8 @@ Factor de Reducción:
     def centro_masa_inercia(self,SapModel):
         '''Se obtiene una tabla que contiena los centros de rigides y 
         de masas por entrepiso.
-        Parametros
+  
+              Parametros
         -------
 
         SapModel: objeto propio del ETABS
