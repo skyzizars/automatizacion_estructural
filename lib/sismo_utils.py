@@ -495,7 +495,7 @@ Factor de Reducción:
         self.sismo_estatico(SapModel)
         self.piso_blando(SapModel)
         self.irregularidad_masa(SapModel)
-        self.centro_masa_inercia(SapModel)
+        #self.centro_masa_inercia(SapModel)
         self.irregularidad_torsion(SapModel)
         self.derivas()
         self.min_shear(SapModel,self.base_story)
@@ -505,6 +505,8 @@ Factor de Reducción:
         from pylatex.utils import NoEscape
         from pylatex.package import Package
         from lib import sismo_mem as smem
+        seism_x = self.loads.seism_loads['Sismo_DinX'] + ' Max'
+        seism_y = self.loads.seism_loads['Sismo_DinY'] + ' Max'
         zona = self.data.zona
         suelo = self.data.suelo
         categoria = self.data.categoria
@@ -513,23 +515,28 @@ Factor de Reducción:
         doc.packages.append(Package('xcolor', options=['dvipsnames']))
         doc.preamble.append(NoEscape(r'\graphicspath{ {%s/} }'%os.getcwd().replace('\\','/')))
         sec = Section('Análisis Sísmico')
-        smem.factor_zona(sec, zona)
-        smem.factor_suelo(sec, zona, suelo)
-        smem.periodos_suelo(sec, suelo)   
-        smem.sist_estructural(sec)
-        smem.factor_amplificacion(sec)
-        smem.factor_importancia(sec,categoria)
-        table = self.tables.modal
-        smem.ana_modal(sec, table)
-        tabla = self.tables.piso_blando_table
-        sis_x = tabla[tabla['OutputCase']=='SDx Max']
-        sis_y = tabla[tabla['OutputCase']=='SDy Max']
-        smem.irreg_rigidez(sec,sis_x,sis_y)
-        masa = self.tables.rev_masa_table
-        smem.irreg_masa(sec,masa)
-        tabla = self.tables.torsion_table
-        sis_x = tabla[tabla['OutputCase']=='SDx Max']
-        sis_y = tabla[tabla['OutputCase']=='SDy Max']
+        f_zona = smem.factor_zona(zona, o_type=Subsection)
+        f_suelo = smem.factor_suelo(zona, suelo)
+        p_suelo = smem.periodos_suelo(suelo)   
+        s_est = smem.sist_estructural()
+        f_amp = smem.factor_amplificacion()
+        f_imp = smem.factor_importancia(categoria)
+        a_modal = smem.ana_modal(self.tables.modal)             
+        sis_x = self.tables.piso_blando_table.query('OutputCase == @seism_x')
+        sis_y = self.tables.piso_blando_table.query('OutputCase == @seism_y')
+        i_rig = smem.irreg_rigidez(sis_x,sis_y)
+        i_masa = smem.irreg_masa(self.tables.rev_masa_table)
+        sis_x = self.tables.torsion_table.query('OutputCase == @seism_x')
+        sis_y = self.tables.torsion_table.query('OutputCase == @seism_y')
+        i_torsion = smem.irreg_torsion(sis_x, sis_y)
+        sec_change = {'aligerado':[7.51,0.05],
+                    'macisa':[2.25,0.20]}
+        openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
+                    'area_planta' : 120.41}
+        i_esquinas = smem.irreg_esquinas(sec_change=sec_change, openings=openings)
+        for i in [f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,a_modal,i_rig,i_masa,i_torsion]:
+            sec.append(i)
+        
         doc.append(sec)
         doc.generate_pdf('out/Memoria Sismo2')
         doc.generate_tex('out/Memoria Sismo2')
@@ -574,6 +581,7 @@ if __name__ == '__main__':
     n_pisos = 4
     n_sotanos = 0
     n_azoteas = 0
+    story_base = 'Story1'
 
     sismo = Sismo_e30()
     sismo.data.factor_zona(zona)
@@ -589,7 +597,7 @@ if __name__ == '__main__':
     sismo.data.show_params()
     
     sismo.loads.set_seism_loads(sis_loads)
-    sismo.set_base_story('story 1')
+    sismo.set_base_story(story_base)
     
     sismo.analisis_sismo(_SapModel)
     
