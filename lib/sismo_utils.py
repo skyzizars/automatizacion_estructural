@@ -221,15 +221,7 @@ Factor de Reducción:
         Parámetros
         ----------
         SapModel: objeto propio del ETABS
-        N: Numero de pisos
-        Z: Factor de zona
-        U: Factor de uso
-        S: Factor de amplificacion del suelo
-        Tp: Periodo del suelo para C=cte
-        Tl: Periodo del suelo para desplazamientos constantes
-        Ip: Factor de irregularidad en planta
-        Ia: Factor de irregularidad en altura
-        R_o: Coeficiente basico de reduccion
+        report: Boleano, 'False' por defecto
 
         Returns
         -------
@@ -315,7 +307,7 @@ Factor de Reducción:
     #Revisión por Torsión      
     def irregularidad_torsion(self,SapModel):
         '''Se realiza la verificacion de irregularidad torsional
-        en la tabla "Story Max Over Avg Drifts" modificada
+        en la tabla "Story Max Over Avg Drifts" modificada.
 
         Parámetros
         ----------
@@ -323,8 +315,8 @@ Factor de Reducción:
         
         Returns
         -------
-        table: tabla "Story Max Over Avg Drifts" modificada para 
-        indicar si es regular o irregular segun el criterio de torsion.
+        self.tables.torsion_table: tabla "Story Max Over Avg Drifts" modificada 
+        para indicar si es regular o irregular segun el criterio de torsion.
         '''
         set_loads = [load for load in self.loads.seism_loads.values()]
         SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_loads)
@@ -353,6 +345,19 @@ Factor de Reducción:
     #Piso Blando
         
     def piso_blando(self,SapModel):
+        '''Se obtienen las tablas fuerzas cortantes y desplazamientos de
+        los centros de masas y se realiza la verificacion por piso blando.
+
+        Parámetros
+        ----------
+        SapModel: objeto propio del ETABS
+        
+        Returns
+        -------
+        self.tables.piso_blando_table: tabla que contiene los deplazamientos
+        relativos de entrepiso y la rigidez lateral con las verificaciones por
+        piso blando.
+        '''
         set_loads = [load for load in self.loads.seism_loads.values()]
         SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_loads)
         SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])
@@ -403,6 +408,19 @@ Factor de Reducción:
     # Masa
 
     def irregularidad_masa(self,SapModel):
+        '''Se obtiene una tabla que indica que pisos cumplen o no con 
+        el criterio de irregularidad de masa o peso. Tabla N°8 NTE E0.30.
+
+        Parámetros
+        ----------
+        SapModel: objeto propio del ETABS
+        
+        Returns
+        -------
+        self.tables.rev_masa_table: tabla que contiene las masas por piso
+        y la comparacion con 1.5 veces la masa de un piso adyacente exceptuando
+        las azoteas y sotanos.
+        '''
         _,masa = etb.get_table(SapModel,'Mass Summary by Story')
         masa['Mass'] = masa.UX
         masa = masa[['Story','Mass']]
@@ -440,6 +458,16 @@ Factor de Reducción:
 
     # Derivas
     def derivas(self):
+        '''Se obtiene una tabla que contiena las máximas derivas de
+        entrepiso y se compara con la máxima deriva permitida segun la
+        NTE E0.30
+                
+        Returns
+        -------
+        self.tables.drift_table: tabla que contiene las maximas derivas
+        de entrepiso y se realiza la comparacion con la maxima deriva permitida.
+        '''
+
         rev_drift = self.tables.torsion_table[['Story','OutputCase','Direction','Drifts']]
         rev_drift = rev_drift.assign(Drift_Check = (rev_drift['Drifts'] < self.data.max_drift_x).apply(lambda x: 'Cumple' if x else 'No Cumple'))
         self.tables.drift_table = rev_drift
@@ -447,6 +475,18 @@ Factor de Reducción:
     # Centros de Masas y Rigideces
 
     def centro_masa_inercia(self,SapModel):
+        '''Se obtiene una tabla que contiena los centros de rigides y 
+        de masas por entrepiso.
+        Parametros
+        -------
+
+        SapModel: objeto propio del ETABS
+                
+        Returns
+        -------
+        self.tables.CM_CR_table: tabla que contiene los centro de rigidez 
+        y de masas para comprobaciones posteriores.
+        '''
         _,rev_CM_CR = etb.get_table(SapModel,'Centers Of Mass And Rigidity')
         rev_CM_CR = rev_CM_CR[['Story','XCCM','XCR','YCCM','YCR']]
         rev_CM_CR['DifX'] = rev_CM_CR.XCCM.apply(lambda x: float(x)) - rev_CM_CR.XCR.apply(lambda x: float(x))
@@ -454,6 +494,21 @@ Factor de Reducción:
         self.tables.CM_CR_table = rev_CM_CR
 
     def min_shear(self,SapModel,story='Story1'):
+        '''Se obtienen los factor de correccion de la cortante basal
+        para los casos de carga dinamicos aplicando el criterios de
+        Fueza Cortante Minima. 29.4 NTE E0.30.
+
+        Parámetros
+        -------
+
+        SapModel: objeto propio del ETABS
+        story: indica el piso de la cortante basal.
+                
+        Returns
+        -------
+        self.tables.CM_CR_table: tabla que contiene los centro de rigidez 
+        y de masas para comprobaciones posteriores.
+        '''
         etb.set_units(SapModel,'Ton_m_C')
         seism_loads = self.loads.seism_loads
         set_loads = [load for load in seism_loads.values()]
@@ -485,6 +540,21 @@ Factor de Reducción:
         self.tables.shear_table = table
         
     def analisis_sismo(self, SapModel,base_story='Story1'):
+        '''Se llaman a todas las funciones relacionadas a alguna
+        verificacion del analisis sismico segun la norma NTE E.030
+
+        Parámetros
+        -------
+
+        SapModel: objeto propio del ETABS
+        base_story: indica el piso de la cortante basal.
+                
+        Returns
+        -------
+        todas las tablas de las funciones sismo_estatico, piso_blando
+        irregularidad_masa, centro_masa_inercia, irregularidad_torsion
+        derivas, min_shear.
+        '''
         self.sismo_estatico(SapModel)
         self.piso_blando(SapModel)
         self.irregularidad_masa(SapModel)
