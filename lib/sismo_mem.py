@@ -272,44 +272,49 @@ def factor_importancia(categoria,o_type=Subsubsection):
 
     return obj
 
-def espectro_respuesta(obj,insert='',o_type=Subsubsection):
-             
-    with obj.create(o_type('Espectro de respuesta de aceleraciones')):
-        obj.append(insert)
+def espectro_respuesta(o_type=Subsubsection):
+    obj = def_obj(o_type,NoEscape('Espectro de respuesta de aceleraciones'))      
+    obj.append(NoEscape('%insertion'))
 
-def peso_sismico(obj,insert='',o_type=Subsubsection):
-             
+    return obj
+
+def peso_sismico(o_type=Subsubsection):
+    obj = def_obj(o_type,NoEscape('Peso sísmico'))          
     obj.packages.append(Package('tcolorbox'))
     obj.packages.append(Package('booktabs'))
     obj.packages.append(Package('array'))
         
-    with obj.create(o_type('Peso sísmico')):
-        mbox = mybox3(r'Art. 26')
-        mbox.append(NoEscape(r'\textit{El peso (P), se calcula adicionando a la carga permanente y total de la edificación un porcentaje de la carga viva o sobrecarga. En edificaciones de categoría C, se toma el 25\% de la carga viva.}'))
-        obj.append(mbox)
 
-        obj.append(insert)
+    mbox = mybox3(r'Art. 26')
+    mbox.append(NoEscape(r'\textit{El peso (P), se calcula adicionando a la carga permanente y total de la edificación un porcentaje de la carga viva o sobrecarga. En edificaciones de categoría C, se toma el 25\% de la carga viva.}'))
+    obj.append(mbox)
 
-def excentricidad_accidental(obj,insert='',o_type=Subsubsection):
-             
+    obj.append(NoEscape('%insertion'))
+
+    return obj
+
+def excentricidad_accidental(o_type=Subsubsection):
+    obj = def_obj(o_type,NoEscape('Excentricidad accidental'))         
     obj.packages.append(Package('tcolorbox'))
     obj.packages.append(Package('booktabs'))
     obj.packages.append(Package('array'))
         
-    with obj.create(o_type('Excentricidad accidental')):
-        mbox = mybox3(r'Art. 28.5')
-        mbox.append(NoEscape(r'\textit{La incertidumbre en la localización de los centros de masa en cada nivel, se considera mediante una excentricidad accidental perpendicular a la dirección del sismo igual a 0,05 veces la dimensión del edificio en la dirección perpendicular a la dirección de análisis. En cada caso se considera el signo más desfavorable.}'))
-        obj.append(mbox)
 
-        obj.append(insert)
+    mbox = mybox3(r'Art. 28.5')
+    mbox.append(NoEscape(r'\textit{La incertidumbre en la localización de los centros de masa en cada nivel, se considera mediante una excentricidad accidental perpendicular a la dirección del sismo igual a 0,05 veces la dimensión del edificio en la dirección perpendicular a la dirección de análisis. En cada caso se considera el signo más desfavorable.}'))
+    obj.append(mbox)
 
-        fig = Figure(position='ht!')
-        fig.append(NoEscape(r'\centering'))
-        fig.append(NoEscape(r'\caption{Excentricidad de la masa en ETABS}'))
-        fig.append(NoEscape(r'\includegraphics[scale=0.7]{images/excentricidad.PNG}'))
-        fig.append(NoEscape(r'\label{masa}'))
-        obj.append(fig)
-        
+    obj.append(NoEscape('%insertion'))
+
+    fig = Figure(position='ht!')
+    fig.append(NoEscape(r'\centering'))
+    fig.append(NoEscape(r'\caption{Excentricidad de la masa en ETABS}'))
+    fig.append(NoEscape(r'\includegraphics[scale=0.7]{images/excentricidad.PNG}'))
+    fig.append(NoEscape(r'\label{masa}'))
+    obj.append(fig)
+
+    return obj
+    
 
         
 def ana_modal(table,o_type=Subsection):
@@ -341,9 +346,11 @@ def ana_modal(table,o_type=Subsection):
 
     return obj
 
-def analisis_irregularidades(obj,insert='',o_type=Subsection):
-    with obj.create(o_type(r'Análisis de Irregularidades')):    
-        obj.append(insert)
+def analisis_irregularidades(o_type=Subsection):
+    obj = def_obj(o_type,NoEscape(r'Análisis de Irregularidades')) 
+    obj.append(NoEscape('%insertion'))
+
+    return obj
 
 def irreg_rigidez(sis_x,sis_y,o_type=Subsubsection):
     obj = def_obj(o_type,NoEscape('Irregularidad de Rigidez-Piso Blando'))
@@ -360,8 +367,7 @@ def irreg_rigidez(sis_x,sis_y,o_type=Subsubsection):
         table = table.to_latex(hrules=True, column_format = 'c'*8).replace('0.000','')
         return table
     
-    
-        
+     
     mbox = mybox2('Tabla N°9 E-030')
     mbox.append(NoEscape('Existe irregularidad de rigidez cuando, en cualquiera de las direcciondes de análisis, en un entrepiso la rigidez lateral es menor que 70\% de la rigidez lateral del entrepiso inmediato superior, o es menor que 80\\% de la rigidez lateral promedio de los tres niveles superiores adyacentes. \n Las rigideces laterales pueden calcularse como la razón entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relatibo en el centro de masas, ambos evaluados para la misma condición de carga '))
     obj.append(mbox)
@@ -458,7 +464,7 @@ def irreg_torsion(sis_x,sis_y,insert='',o_type=Subsubsection):
     return obj
     
 
-def irreg_esquinas(sec_change=None,openings=None,o_type=Subsubsection):
+def irreg_discontinuidad_diaf(sec_change=None,openings=None,o_type=Subsubsection):
     '''
     recibe el objeto y produce un informe de irregularidad de esquinas entrante
     sintaxis de sec_change (diccionario):
@@ -470,7 +476,7 @@ def irreg_esquinas(sec_change=None,openings=None,o_type=Subsubsection):
         area_planta: area 
     '''
     
-    obj = def_obj(o_type,NoEscape('Irregularidad por Esquinas Entrantes'))
+    obj = def_obj(o_type,NoEscape('Irregularidad por Discontinuidad del Diafragma'))
     obj.packages.append(Package('tcolorbox'))
     obj.packages.append(Package('caption'))
     obj.packages.append(Package('array'))
@@ -630,48 +636,55 @@ if __name__ == '__main__':
     s1 = Section('Análisis Sísmico')
     
     coments_zona1=NoEscape(r'Este factor se interpreta como la aceleración máxima horizontal en el suelo rígido con una probabilidad de 10 \% de ser excedida en 50 años')
-    factor_zona(s1, zona, insert=coments_zona1, o_type=Subsection)
+    f_zona = factor_zona(zona)
+    f_zona.add(coments_zona1)
  
     coments_suelo='Este factor se interpreta como  un factor de modificación de la aceleración pico del suelo para un perfil determinado respecto al pefil tipo S1'
-    factor_suelo(s1, zona, suelo, insert=coments_suelo, o_type=Subsection)
-    periodos_suelo(s1, suelo)   
+    f_suelo = factor_suelo(zona, suelo)
+    f_suelo.add(coments_suelo)
+
+    p_suelo = periodos_suelo(suelo)
     
     coments_sist_est=sist_estruct_X+' y '+sist_estruct_Y+' respectivamente.'
-    sist_estructural(s1,sist_estruct_X,sist_estruct_Y, insert=coments_sist_est, o_type=Subsection)
+    s_est = sist_estructural(sist_estruct_X,sist_estruct_Y)
+    s_est.add(coments_sist_est)
 
-    factor_amplificacion(s1, insert='', o_type=Subsection)
-    factor_importancia(s1,categoria)
+    f_amp = factor_amplificacion()
+    f_imp = factor_importancia(categoria)
 
-    espectro_respuesta(s1,insert='',o_type=Subsection)
+    e_resp = espectro_respuesta()
 
-    peso_sismico(s1, insert='', o_type=Subsection)
+    p_sis = peso_sismico()
     
     coments_excentricidad='Para determinar el sentido mas desfavorable de la excentricidad accidental se calculó el centro de masa y centro de rigidez del edificio, resultando negativo en ambos casos.'
-    excentricidad_accidental(s1,insert=coments_excentricidad,o_type=Subsection)
+    e_accidental = excentricidad_accidental()
+    e_accidental.add(coments_excentricidad)
 
-    table = sismo.modal
-    ana_modal(s1, table, insert='', o_type=Subsection)
-    tabla = sismo.piso_blando_table
-    sis_x = tabla[tabla['OutputCase']=='SDx Max']
-    sis_y = tabla[tabla['OutputCase']=='SDy Max']
+    a_modal = ana_modal(sismo.tables.modal)
+    seism_x = sismo.loads.seism_loads['Sismo_DinX'] + ' Max'
+    seism_y = sismo.loads.seism_loads['Sismo_DinY'] + ' Max'
+    sis_x = sismo.tables.piso_blando_table.query('OutputCase == @seism_x')
+    sis_y = sismo.tables.piso_blando_table.query('OutputCase == @seism_y')
+    
 
-    analisis_irregularidades(s1,insert='',o_type=Subsection)
+    a_irreg = analisis_irregularidades()
+
     coments_rigidez = 'Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \n'
-    irreg_rigidez(s1,sis_x,sis_y, insert=coments_rigidez, o_type=Subsubsection)
-    masa = sismo.rev_masa_table
-    irreg_masa(s1,masa, insert='', o_type=Subsubsection)
-    tabla = sismo.torsion_table
-    sis_x = tabla[tabla['OutputCase']=='SDx Max']
-    sis_y = tabla[tabla['OutputCase']=='SDy Max']
-    s1.append(NoEscape(r'\newpage'))
-    irreg_torsion(s1, sis_x, sis_y)
+    i_rig = irreg_rigidez(sis_x,sis_y)
+    i_rig.add(coments_rigidez)
+    i_masa = irreg_masa(sismo.tables.rev_masa_table)
+    sis_x = sismo.tables.torsion_table.query('OutputCase == @seism_x')
+    sis_y = sismo.tables.torsion_table.query('OutputCase == @seism_y')
+    i_torsion = irreg_torsion(sis_x, sis_y)
     sec_change = {'aligerado':[7.51,0.05],
-                  'maciza':[2.25,0.20]}
+                  'macisa':[2.25,0.20]}
     openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
                 'area_planta' : 120.41}
-    irreg_discontinuidad_diaf(s1, sec_change=sec_change, openings=openings)
+    i_dis = irreg_discontinuidad_diaf(sec_change=sec_change, openings=openings)
 
-    
+    for i in [f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,e_resp,p_sis,e_accidental,a_modal,a_irreg,i_rig,i_masa,i_torsion,i_dis]:
+        s1.append(i)
+
     doc.append(s1)
     
     print("\n")
