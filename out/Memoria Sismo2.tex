@@ -11,6 +11,7 @@
 \usepackage{colortbl}%
 \usepackage{graphicx}%
 \usepackage{caption}%
+\usepackage{ragged2e}%
 \usepackage{slashbox}%
 \usepackage{amsmath}%
 \usepackage{xcolor}%
@@ -18,17 +19,18 @@
 \usepackage{tcolorbox}%
 \usepackage{booktabs}%
 \usepackage{float}%
-\usepackage{ragged2e}%
 %
-\graphicspath{ {d:/programas/automatizacion_estructural/} }%
+\graphicspath{ {D:/programas/automatizacion_estructural/} }%
 %
 \begin{document}%
 \normalsize%
 \section{Análisis Sísmico}%
 \label{sec:AnlisisSsmico}%
-\subsubsection{Factor de Zona}%
-\label{ssubsec:FactordeZona}%
-%
+\subsection{Factor zona}%
+\label{subsec:Factorzona}%
+Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. 
+\\%
+%insertion%
 
 
 \begin{table}[ht!]%
@@ -61,7 +63,7 @@
 %
 \subsubsection{Factor de suelo}%
 \label{ssubsec:Factordesuelo}%
-%
+%insertion%
 
 
 \begin{table}[ht!]%
@@ -73,13 +75,13 @@
 \hline%
 \backslashbox{\textit{\textbf{ZONA}}}{\textit{\textbf{SUELO}}}&\textbf{S0}&\textbf{S1}&\textbf{S2}&\textbf{S3}\\%
 \hline%
-4\cellcolor[rgb]{ .949,  .949,  .949} &0.80\cellcolor[rgb]{ .949,  .949,  .949} &1.00\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{1.05}}\cellcolor[rgb]{ .949,  .949,  .949} \cellcolor[rgb]{ .949,  .949,  .949} &1.10\cellcolor[rgb]{ .949,  .949,  .949} \\%
+4\cellcolor[rgb]{ .949,  .949,  .949} &0.80\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{1.00}}\cellcolor[rgb]{ .949,  .949,  .949} \cellcolor[rgb]{ .949,  .949,  .949} &1.05\cellcolor[rgb]{ .949,  .949,  .949} &1.10\cellcolor[rgb]{ .949,  .949,  .949} \\%
 \hline%
-3&0.80&1.00&1.15\cellcolor[rgb]{ .949,  .949,  .949} &1.20\\%
+3&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.15&1.20\\%
 \hline%
-2&0.80&1.00&1.20\cellcolor[rgb]{ .949,  .949,  .949} &1.40\\%
+2&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.20&1.40\\%
 \hline%
-1&0.80&1.00&1.60\cellcolor[rgb]{ .949,  .949,  .949} &2.00\\%
+1&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.60&2.00\\%
 \hline%
 \end{tabular}%
 \caption*{Fuente: E-30 (2018)}%
@@ -88,7 +90,7 @@
 %
 \subsubsection{Periodos de suelo}%
 \label{ssubsec:Periodosdesuelo}%
-%
+%insertion%
 
 
 \begin{table}[ht!]%
@@ -102,19 +104,22 @@
 \cline{2-5}%
 \multicolumn{1}{r|}{}&\textbf{S0}&\textbf{S1}&\textbf{S2}&\textbf{S3}\\%
 \hline%
-Tp&0.30&0.40&\textcolor[rgb]{ 1,  0,  0}{\textbf{0.60}}\cellcolor[rgb]{ .949,  .949,  .949} &1.00\\%
+Tp&0.30&\textcolor[rgb]{ 1,  0,  0}{\textbf{0.40}}\cellcolor[rgb]{ .949,  .949,  .949} &0.60&1.00\\%
 \hline%
-Tl&3.00&2.50&\textcolor[rgb]{ 1,  0,  0}{\textbf{2.00}}\cellcolor[rgb]{ .949,  .949,  .949} &1.60\\%
+Tl&3.00&\textcolor[rgb]{ 1,  0,  0}{\textbf{2.50}}\cellcolor[rgb]{ .949,  .949,  .949} &2.00&1.60\\%
 \hline%
 \end{tabular}%
 \caption*{Fuente: E-30 (2018)}%
 \end{table}
 
 %
+Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \newline%
+
+%
 \subsubsection{Sistema Estructural}%
 \label{ssubsec:SistemaEstructural}%
 Después de realizar el análisis sísmico se determino que los sistemas estructurales en X, Y son:%
-%
+%insertion%
 
 
 \begin{table}[ht!]%
@@ -160,7 +165,7 @@ Muros de ductilidad limitada&4\\%
 %
 \subsubsection{Factor de Amplificación sísmica}%
 \label{ssubsec:FactordeAmplificacinssmica}%
-%
+%insertion%
 Se determina según el artículo 11 de la E{-}30%
 \setlength{\jot}{0.5cm}%
 
@@ -185,7 +190,7 @@ Se determina según el artículo 11 de la E{-}30%
 %
 \subsubsection{Factor de Importancia}%
 \label{ssubsec:FactordeImportancia}%
-%
+%insertion%
 
 
 \begin{table}[h!]%
@@ -212,7 +217,7 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 \end{table}
 
 %
-\subsection{Análisis modal Art. 26.1 E{-}030}%
+\subsection{Análisis modal Art. 26.1 E-030}%
 \label{subsec:AnlisismodalArt.26.1E{-}030}%
 \begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 26.1.1]%
 \textit{En cada dirección se consideran aquellos modos de vibración cuya suma de masas efectivas sea por lo menos el 90\% de la masa total, pero se toma en cuenta por lo menos los tres primeros modos predominantes en la dirección de análisis.}%
@@ -220,7 +225,7 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 \begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 26.1.2]%
 \textit{En cada dirección se consideran aquellos modos de vibración cuya suma de masas efectivas sea por lo menos el 90\% de la masa total, pero se toma en cuenta por lo menos los tres primeros modos predominantes en la dirección de análisis.}%
 \end{tcolorbox}%
-%
+%insertion%
 
 
 \begin{table}[h!]%
@@ -232,37 +237,22 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 \toprule
 Mode & Period & UX & UY & RZ & SumUX & SumUY & SumRZ \\
 \midrule
-1 & 0.644 & 0.691 & 0.001 & 0.011 & 0.691 & 0.001 & 0.011 \\
-2 & 0.451 & 0.016 & 0.017 & 0.663 & 0.706 & 0.018 & 0.675 \\
-3 & 0.218 & 0.000 & 0.654 & 0.018 & 0.707 & 0.672 & 0.693 \\
-4 & 0.176 & 0.131 & 0.001 & 0.002 & 0.838 & 0.672 & 0.695 \\
-5 & 0.130 & 0.001 & 0.001 & 0.017 & 0.839 & 0.674 & 0.712 \\
-6 & 0.122 & 0.002 & 0.001 & 0.100 & 0.841 & 0.675 & 0.812 \\
-7 & 0.100 & 0.000 & 0.003 & 0.030 & 0.841 & 0.678 & 0.842 \\
-8 & 0.087 & 0.019 & 0.000 & 0.007 & 0.861 & 0.678 & 0.848 \\
-9 & 0.076 & 0.034 & 0.000 & 0.000 & 0.894 & 0.678 & 0.848 \\
-10 & 0.064 & 0.001 & 0.000 & 0.002 & 0.895 & 0.678 & 0.850 \\
-11 & 0.054 & 0.000 & 0.001 & 0.049 & 0.896 & 0.678 & 0.899 \\
-12 & 0.050 & 0.001 & 0.056 & 0.001 & 0.897 & 0.735 & 0.900 \\
-13 & 0.050 & 0.001 & 0.123 & 0.001 & 0.898 & 0.858 & 0.901 \\
-14 & 0.049 & 0.007 & 0.000 & 0.000 & 0.905 & 0.858 & 0.901 \\
-15 & 0.046 & 0.019 & 0.000 & 0.002 & 0.924 & 0.858 & 0.903 \\
-16 & 0.042 & 0.000 & 0.000 & 0.000 & 0.924 & 0.858 & 0.903 \\
-17 & 0.037 & 0.000 & 0.000 & 0.000 & 0.924 & 0.858 & 0.903 \\
-18 & 0.035 & 0.001 & 0.000 & 0.020 & 0.925 & 0.858 & 0.924 \\
-19 & 0.034 & 0.001 & 0.000 & 0.002 & 0.925 & 0.858 & 0.926 \\
-20 & 0.033 & 0.006 & 0.000 & 0.001 & 0.931 & 0.858 & 0.927 \\
-21 & 0.032 & 0.004 & 0.000 & 0.000 & 0.935 & 0.858 & 0.927 \\
-22 & 0.031 & 0.006 & 0.000 & 0.002 & 0.941 & 0.858 & 0.929 \\
-23 & 0.026 & 0.004 & 0.000 & 0.008 & 0.945 & 0.858 & 0.937 \\
-24 & 0.024 & 0.006 & 0.000 & 0.000 & 0.951 & 0.858 & 0.937 \\
+1 & 0.360 & 0.864 & 0.000 & 0.000 & 0.864 & 0.000 & 0.000 \\
+2 & 0.273 & 0.000 & 0.872 & 0.000 & 0.864 & 0.872 & 0.000 \\
+3 & 0.225 & 0.000 & 0.000 & 0.850 & 0.864 & 0.872 & 0.850 \\
+4 & 0.101 & 0.119 & 0.000 & 0.000 & 0.983 & 0.872 & 0.850 \\
+5 & 0.077 & 0.000 & 0.112 & 0.000 & 0.983 & 0.984 & 0.850 \\
+6 & 0.062 & 0.000 & 0.000 & 0.132 & 0.983 & 0.984 & 0.982 \\
+7 & 0.048 & 0.017 & 0.000 & 0.000 & 1.000 & 0.984 & 0.982 \\
+8 & 0.037 & 0.000 & 0.016 & 0.000 & 1.000 & 1.000 & 0.982 \\
+9 & 0.029 & 0.000 & 0.000 & 0.018 & 1.000 & 1.000 & 1.000 \\
 \bottomrule
 \end{tabular}
 %
 \end{table}
 
 %
-\subsubsection{Irregularidad de Rigidez{-}Piso Blando}%
+\subsubsection{Irregularidad de Rigidez-Piso Blando}%
 \label{ssubsec:IrregularidaddeRigidez{-}PisoBlando}%
 \begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Tabla N°9 E-030]%
 Existe irregularidad de rigidez cuando, en cualquiera de las direcciondes de análisis, en un entrepiso la rigidez lateral es menor que 70\% de la rigidez lateral del entrepiso inmediato superior, o es menor que 80\% de la rigidez lateral promedio de los tres niveles superiores adyacentes. 
@@ -273,7 +263,7 @@ Existe irregularidad de rigidez cuando, en cualquiera de las direcciondes de an�
 Existe irregularidad extrema de rigidez cuando, en cualquiera de las direcciones de análisis, en un entrepiso la rigidez lateral es menor que 60\% de la rigidez lateral del entrepiso inmediato superior, o es menor que 70\% de la rigidez lateral promedio de los tres niveles superiores adyacentes.
 Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga.%
 \end{tcolorbox}%
-%
+%insertion%
 
 
 \begin{table}[h!]%
@@ -283,14 +273,9 @@ Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante
 \toprule
 Story & OutputCase & VX & VY & Rigidez Lateral(k) & 70\%k previo & 80\%Prom(k) & is\_reg \\
 \midrule
-Story8 & SDx Max & 16.998 & 0.844 & 7535.714 &  &  & Regular \\
-Story7 & SDx Max & 34.801 & 1.727 & 15987.963 & 5275.000 &  & Regular \\
-Story6 & SDx Max & 49.265 & 2.437 & 19039.063 & 11191.574 &  & Regular \\
-Story5 & SDx Max & 60.929 & 3.010 & 21194.366 & 13327.344 & 11350.064 & Regular \\
-Story4 & SDx Max & 70.491 & 3.478 & 24846.429 & 14836.056 & 14992.371 & Regular \\
-Story3 & SDx Max & 77.406 & 3.810 & 29997.638 & 17392.500 & 17354.629 & Regular \\
-Story2 & SDx Max & 81.495 & 3.992 & 40326.263 & 20998.346 & 20276.915 & Regular \\
-Story1 & SDx Max & 82.631 & 4.029 & 175195.652 & 28228.384 & 25378.754 & Regular \\
+Story3 & SDx Max & 37.537 & 9.565 & 18791.749 &  &  & Regular \\
+Story2 & SDx Max & 74.277 & 19.164 & 28433.680 & 13154.224 &  & Regular \\
+Story1 & SDx Max & 95.209 & 24.671 & 35703.618 & 19903.576 &  & Regular \\
 \bottomrule
 \end{tabular}
 %
@@ -306,14 +291,9 @@ Story1 & SDx Max & 82.631 & 4.029 & 175195.652 & 28228.384 & 25378.754 & Regular
 \toprule
 Story & OutputCase & VX & VY & Rigidez Lateral(k) & 70\%k previo & 80\%Prom(k) & is\_reg \\
 \midrule
-Story8 & SDy Max & 0.953 & 19.257 & 40885.350 &  &  & Regular \\
-Story7 & SDy Max & 1.804 & 39.310 & 79414.949 & 28619.745 &  & Regular \\
-Story6 & SDy Max & 2.451 & 54.588 & 108958.283 & 55590.465 &  & Regular \\
-Story5 & SDy Max & 2.973 & 66.249 & 135201.224 & 76270.798 & 61135.622 & Regular \\
-Story4 & SDy Max & 3.465 & 75.805 & 166238.816 & 94640.857 & 86286.522 & Regular \\
-Story3 & SDy Max & 3.878 & 83.019 & 210709.137 & 116367.171 & 109439.553 & Regular \\
-Story2 & SDy Max & 4.154 & 87.479 & 295538.176 & 147496.396 & 136573.114 & Regular \\
-Story1 & SDy Max & 4.230 & 88.650 & 757692.308 & 206876.723 & 179329.634 & Regular \\
+Story3 & SDy Max & 11.261 & 31.883 & 18765.862 &  &  & Regular \\
+Story2 & SDy Max & 22.283 & 63.881 & 28442.075 & 13136.104 &  & Regular \\
+Story1 & SDy Max & 28.563 & 82.237 & 35708.771 & 19909.452 &  & Regular \\
 \bottomrule
 \end{tabular}
 %
@@ -325,7 +305,7 @@ Story1 & SDy Max & 4.230 & 88.650 & 757692.308 & 206876.723 & 179329.634 & Regul
 \begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Tabla N°9 E-030]%
 Se tiene irregularidad de masa (o peso) cuando el peso de un piso determinado según el artículo 26, es nayor que 1,5 veces el peso de un piso adyascente. Este criterio no se aplica en azoteas ni en sótanos%
 \end{tcolorbox}%
-%
+%insertion%
 
 
 \begin{table}[h!]%
@@ -335,16 +315,10 @@ Se tiene irregularidad de masa (o peso) cuando el peso de un piso determinado se
 \toprule
 Story & Masa & 1.5 Masa & Tipo de Piso & is\_reg \\
 \midrule
-Story8 & 6.669 &  & Azotea & Regular \\
-Story7 & 8.754 & 13.130 & Piso & Regular \\
-Story6 & 8.737 & 13.106 & Piso & Regular \\
-Story5 & 8.739 & 13.109 & Piso & Regular \\
-Story4 & 9.163 & 13.745 & Piso & Regular \\
-Story3 & 9.163 & 13.745 & Piso & Regular \\
-Story2 & 9.163 & 13.745 & Piso & Regular \\
-Story1 & 7.434 & 11.150 & Piso & Irregular \\
-NT & 3.560 & 5.340 & Piso & Regular \\
-Base & 3.918 &  & Sotano & Regular \\
+Story3 & 9.191 &  & Azotea & Regular \\
+Story2 & 13.850 & 20.774 & Piso & Regular \\
+Story1 & 14.612 & 21.918 & Piso & Regular \\
+Base & 2.723 &  & Sotano & Regular \\
 \bottomrule
 \end{tabular}
 %
@@ -361,7 +335,7 @@ Existe irregularidad torsional cuando, en cualquiera de las direcciones de anál
 Existe irregularidad torsional cuando, en cualquiera de las direcciones de análisis el desplazamiento relativo de entrepiso en un edificion ($\Delta_{max}$) en esa dirección, calculado incluyendo excentricidad accidental, es mayor que 1,3 veces el desplazamineto relativo promedio de los extremos del mismo entrepiso para la condicion de carga ($\Delta_{prom}$). 
  Este crriterio sólo se aplica en edificios con diafragmas rígidos y sólo si el máximo desplazamiento relativo de entrepiso es mayor que 50\% del desplazamiento permisible indicado en la Tabla N° 11%
 \end{tcolorbox}%
-%
+%insertion%
 
 
 \begin{table}[ht!]%
@@ -372,16 +346,12 @@ Existe irregularidad torsional cuando, en cualquiera de las direcciones de anál
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story8 & SDx Max & X & 0.003021 & 0.002475 & 1.221 & 2.5 & 0.021147 & False & Regular \\
-Story7 & SDx Max & X & 0.003476 & 0.002869 & 1.211 & 2.5 & 0.024332 & False & Regular \\
-Story6 & SDx Max & X & 0.004116 & 0.003335 & 1.234 & 2.5 & 0.028812 & False & Regular \\
-Story5 & SDx Max & X & 0.00454 & 0.003673 & 1.236 & 2.5 & 0.031780 & False & Regular \\
-Story4 & SDx Max & X & 0.004657 & 0.003773 & 1.234 & 2.5 & 0.032599 & False & Regular \\
-Story3 & SDx Max & X & 0.004479 & 0.003582 & 1.25 & 2.5 & 0.031353 & False & Regular \\
-Story2 & SDx Max & X & 0.003811 & 0.002958 & 1.288 & 2.5 & 0.026677 & False & Regular \\
-Story1 & SDx Max & X & 0.001124 & 0.000904 & 1.244 & 1.5 & 0.007868 & False & Regular \\
-NT & SDx Max & X & 0.00024 & 0.00012 & 2 & 1.75 & 0.001680 & True & Regular \\
-NT & SDx Max & Y & 2.8E-05 & 1.4E-05 & 2 & 1.75 & 0.000196 & True & Regular \\
+Story3 & SDx Max & X & 0.004028 & 0.003867 & 1.042 & 3.6 & 0.021751 & False & Regular \\
+Story3 & SDx Max & Y & 0.000643 & 0.000622 & 1.034 & 3.6 & 0.003472 & True & Regular \\
+Story2 & SDx Max & X & 0.004952 & 0.004773 & 1.037 & 3.6 & 0.026741 & False & Regular \\
+Story2 & SDx Max & Y & 0.000826 & 0.000802 & 1.03 & 3.6 & 0.004460 & False & Regular \\
+Story1 & SDx Max & X & 0.004885 & 0.004718 & 1.036 & 5 & 0.026379 & False & Regular \\
+Story1 & SDx Max & Y & 0.00083 & 0.000808 & 1.028 & 5 & 0.004482 & False & Regular \\
 \bottomrule
 \end{tabular}
 }%
@@ -398,24 +368,12 @@ NT & SDx Max & Y & 2.8E-05 & 1.4E-05 & 2 & 1.75 & 0.000196 & True & Regular \\
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story8 & SDy Max & X & 0.000535 & 0.000322 & 1.662 & 2.5 & 0.003745 & False & Irregular \\
-Story8 & SDy Max & Y & 0.000498 & 0.000478 & 1.042 & 2.5 & 0.003486 & True & Regular \\
-Story7 & SDy Max & X & 0.00059 & 0.000357 & 1.65 & 2.5 & 0.004130 & False & Irregular \\
-Story7 & SDy Max & Y & 0.000527 & 0.00051 & 1.033 & 2.5 & 0.003689 & False & Regular \\
-Story6 & SDy Max & X & 0.000632 & 0.000387 & 1.633 & 2.5 & 0.004424 & False & Irregular \\
-Story6 & SDy Max & Y & 0.000533 & 0.000517 & 1.031 & 2.5 & 0.003731 & False & Regular \\
-Story5 & SDy Max & X & 0.00065 & 0.000402 & 1.618 & 2.5 & 0.004550 & False & Irregular \\
-Story5 & SDy Max & Y & 0.000523 & 0.000506 & 1.034 & 2.5 & 0.003661 & False & Regular \\
-Story4 & SDy Max & X & 0.000637 & 0.000397 & 1.605 & 2.5 & 0.004459 & False & Irregular \\
-Story4 & SDy Max & Y & 0.000488 & 0.000471 & 1.035 & 2.5 & 0.003416 & True & Regular \\
-Story3 & SDy Max & X & 0.000577 & 0.000361 & 1.597 & 2.5 & 0.004039 & False & Irregular \\
-Story3 & SDy Max & Y & 0.000423 & 0.000407 & 1.038 & 2.5 & 0.002961 & True & Regular \\
-Story2 & SDy Max & X & 0.00046 & 0.000287 & 1.602 & 2.5 & 0.003220 & True & Regular \\
-Story2 & SDy Max & Y & 0.000332 & 0.000313 & 1.058 & 2.5 & 0.002324 & True & Regular \\
-Story1 & SDy Max & X & 0.000167 & 0.000103 & 1.625 & 1.5 & 0.001169 & True & Regular \\
-Story1 & SDy Max & Y & 0.000126 & 0.000108 & 1.173 & 1.5 & 0.000882 & True & Regular \\
-NT & SDy Max & X & 3.3E-05 & 1.6E-05 & 2 & 1.75 & 0.000231 & True & Regular \\
-NT & SDy Max & Y & 2.7E-05 & 1.3E-05 & 2 & 1.75 & 0.000189 & True & Regular \\
+Story3 & SDy Max & X & 0.001227 & 0.00117 & 1.049 & 3.6 & 0.006626 & False & Regular \\
+Story3 & SDy Max & Y & 0.00176 & 0.001751 & 1.005 & 3.6 & 0.009504 & False & Regular \\
+Story2 & SDy Max & X & 0.001508 & 0.001443 & 1.045 & 3.6 & 0.008143 & False & Regular \\
+Story2 & SDy Max & Y & 0.002307 & 0.002297 & 1.004 & 3.6 & 0.012458 & False & Regular \\
+Story1 & SDy Max & X & 0.001486 & 0.001426 & 1.042 & 5 & 0.008024 & False & Regular \\
+Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.012717 & False & Regular \\
 \bottomrule
 \end{tabular}
 }%
@@ -427,6 +385,7 @@ NT & SDy Max & Y & 2.7E-05 & 1.3E-05 & 2 & 1.75 & 0.000189 & True & Regular \\
 \begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Tabla N°9 E-030]%
 \textit{La estructura se califica como irregular cuando los diafragmas tienen discontinuidades abruptas o variaciones importantes en rigidez, incluyendo aberturas mayores que 50\% del área bruta del diafragma.} \\ \textit{También  existe  irregularidad  cuando,  en  cualquiera de  los pisos y para cualquiera de las direcciones de análisis, se tiene alguna sección transversal del diafragma con un área neta resistente menor que 25\% del área de la sección transversal total de la misma dirección calculada con las dimensiones totales de la planta.}%
 \end{tcolorbox}%
+%insertion%
 
 
 \begin{figure}[ht!]%
@@ -489,5 +448,7 @@ NT & SDy Max & Y & 2.7E-05 & 1.3E-05 & 2 & 1.75 & 0.000189 & True & Regular \\
 \end{tabular}%
 \end{table}
 
+%
+Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \newline%
 %
 \end{document}
