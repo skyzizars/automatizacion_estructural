@@ -27,32 +27,6 @@ def change_filter(change, table, column, widget):
             display(table[table[column] == change['new']])
 
 
-
-data = {'Factor de Importancia': 'C',
-                     'Sistema Estructural X': 'Dual de Concreto Armado',
-                     'Sistema Estructural Y': 'Dual de Concreto Armado',
-                     'Número de Pisos': '4',
-                     'Número de Sotanos': '0',
-                     'Número de Azoteas': '1',
-                     'Factor Zona': '2',
-                     'Factor Suelo': 'S2',
-                     'Piso Blando': 'False',
-                     'Piso Blando Extremo': 'False',
-                     'Irregularidad de Masa': 'False',
-                     'Irregularidad Vertical': 'False',
-                     'Dicontinuidad Vertical': 'False',
-                     'Dicontinuidad Vertical Extrema': 'False',
-                     'Irregularidad Torsional': 'False',
-                     'Irregulariad Torsional Extrema': 'False',
-                     'Esquinas Entrantes': 'False',
-                     'Discontinuidad del diafragma': 'False',
-                     'Sistemas no Paralelos': 'False',
-                     'seism_loads': {'Sismo_EstX': 'Sx',
-                                    'Sismo_EstY': 'Sy',
-                                    'Sismo_DinX': 'SDx',
-                                    'Sismo_DinY': 'SDy'}         
-                     }
-
 class Sismo(sis.Sismo_e30):
     
     def __init__(self):
@@ -142,7 +116,9 @@ class Sismo(sis.Sismo_e30):
         _,load_cases,_ = SapModel.LoadCases.GetNameList()
         load_cases = [load for load in load_cases if load[0]!= '~' and load!= 'Modal']
         #inicializando valores
-        if not self.loads.seism_loads:
+        try: 
+            self.loads.seism_loads
+        except:
             self.loads.seism_loads = {'Sismo_EstX':load_cases[-4],
                                     'Sismo_EstY':load_cases[-3],
                                     'Sismo_DinX':load_cases[-2],
@@ -171,6 +147,17 @@ class Sismo(sis.Sismo_e30):
         else:
             print('NO HA INGRESADO NINGUN CASO DE CARGA EN EL MODELO')
             return None
+        
+    def select_base_story(self,SapModel):
+        stories = SapModel.Story.GetStories_2()[2]
+        self.stories_dropdown = dropdown(stories,'Piso Base',stories[0])
+        self.base_story = stories[0]
+        def change_base_load(change):
+                if change['type'] == 'change' and change['name'] == 'value':
+                        self.base_story = change['new']
+        self.stories_dropdown.observe(lambda change: change_base_load(change))
+                
+        return self.stories_dropdown
 
     def show_table(self,table, column='OutputCase'):
         list_columns = tuple(table[column].unique())
@@ -179,3 +166,11 @@ class Sismo(sis.Sismo_e30):
         f_table = table[table[column] == list_columns[0]]
         display(widget)
         display(f_table)
+
+    def analisis_sismo(self,SapModel):
+        try:
+            super().analisis_sismo(SapModel)
+        except:
+            self.data.periodos_suelo(SapModel)
+            self.data.factor_R(SapModel)
+            super().analisis_sismo(SapModel)
