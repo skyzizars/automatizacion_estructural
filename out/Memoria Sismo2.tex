@@ -11,24 +11,25 @@
 \usepackage{colortbl}%
 \usepackage{graphicx}%
 \usepackage{caption}%
+\usepackage{ragged2e}%
 \usepackage{slashbox}%
 \usepackage{amsmath}%
 \usepackage{xcolor}%
 \usepackage{multirow}%
-\usepackage{float}%
 \usepackage{tcolorbox}%
 \usepackage{booktabs}%
-\usepackage{ragged2e}%
+\usepackage{float}%
 %
-\graphicspath{ {D:/CIVIL ENGINEER/PROYECTO LATEX-PYTHON-ETABS/GITHUB/automatizacion_estructural/} }%
+\graphicspath{ {D:/programas/automatizacion_estructural/} }%
 %
 \begin{document}%
 \normalsize%
 \section{Análisis Sísmico}%
 \label{sec:AnlisisSsmico}%
-\subsection{Factor de Zona}%
-\label{subsec:FactordeZona}%
-Este factor se interpreta como la aceleración máxima horizontal en el suelo rígido con una probabilidad de 10 \% de ser excedida en 50 años%
+\subsubsection{Factor zona}%
+\label{ssubsec:Factorzona}%
+Este factor se interpreta como la aceleración máxima horizontal en el suelo rígido con una probabilidad de 10 \% de ser excedida en 50 años\\%
+%insertion%
 
 
 \begin{table}[ht!]%
@@ -40,11 +41,11 @@ Este factor se interpreta como la aceleración máxima horizontal en el suelo r�
 \hline%
 \textbf{ZONA}&\textbf{Z}\\%
 \hline%
-4\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{0.45}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
+4&0.45\\%
 \hline%
 3&0.35\\%
 \hline%
-2&0.25\\%
+2\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{0.25}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
 \hline%
 1&0.10\\%
 \hline%
@@ -55,13 +56,14 @@ Este factor se interpreta como la aceleración máxima horizontal en el suelo r�
 \includegraphics[width=4cm]{images/mapa_zona}%
 \end{center}%
 \end{minipage}%
-\caption*{Fuente: E-030 (2018)}%
+\caption*{Fuente: E-30 (2018)}%
 \end{table}
 
 %
-\subsection{Factor de suelo}%
-\label{subsec:Factordesuelo}%
-Este factor se interpreta como  un factor de modificación de la aceleración pico del suelo para un perfil determinado respecto al pefil tipo S1%
+\subsubsection{Factor de suelo}%
+\label{ssubsec:Factordesuelo}%
+Este factor se interpreta como  un factor de modificación de la aceleración pico del suelo para un perfil determinado respecto al pefil tipo S1\\%
+%insertion%
 
 
 \begin{table}[ht!]%
@@ -73,11 +75,11 @@ Este factor se interpreta como  un factor de modificación de la aceleración pi
 \hline%
 \backslashbox{\textit{\textbf{ZONA}}}{\textit{\textbf{SUELO}}}&\textbf{S0}&\textbf{S1}&\textbf{S2}&\textbf{S3}\\%
 \hline%
-4\cellcolor[rgb]{ .949,  .949,  .949} &0.80\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{1.00}}\cellcolor[rgb]{ .949,  .949,  .949} \cellcolor[rgb]{ .949,  .949,  .949} &1.05\cellcolor[rgb]{ .949,  .949,  .949} &1.10\cellcolor[rgb]{ .949,  .949,  .949} \\%
+4&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.05&1.10\\%
 \hline%
 3&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.15&1.20\\%
 \hline%
-2&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.20&1.40\\%
+2\cellcolor[rgb]{ .949,  .949,  .949} &0.80\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{1.00}}\cellcolor[rgb]{ .949,  .949,  .949} \cellcolor[rgb]{ .949,  .949,  .949} &1.20\cellcolor[rgb]{ .949,  .949,  .949} &1.40\cellcolor[rgb]{ .949,  .949,  .949} \\%
 \hline%
 1&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.60&2.00\\%
 \hline%
@@ -88,7 +90,7 @@ Este factor se interpreta como  un factor de modificación de la aceleración pi
 %
 \subsubsection{Periodos de suelo}%
 \label{ssubsec:Periodosdesuelo}%
-%
+%insertion%
 
 
 \begin{table}[ht!]%
@@ -111,10 +113,11 @@ Tl&3.00&\textcolor[rgb]{ 1,  0,  0}{\textbf{2.50}}\cellcolor[rgb]{ .949,  .949, 
 \end{table}
 
 %
-\subsection{Sistema Estructural}%
-\label{subsec:SistemaEstructural}%
+\subsubsection{Sistema Estructural}%
+\label{ssubsec:SistemaEstructural}%
 Después de realizar el análisis sísmico se determino que los sistemas estructurales en X, Y son %
-De muros estructurales y Dual respectivamente.%
+De muros estructurales y Dual respectivamente.\\%
+%insertion%
 
 
 \begin{table}[ht!]%
@@ -158,9 +161,9 @@ Muros de ductilidad limitada&4\\%
 \end{table}
 
 %
-\subsection{Factor de Amplificación sísmica}%
-\label{subsec:FactordeAmplificacinssmica}%
-%
+\subsubsection{Factor de Amplificación sísmica}%
+\label{ssubsec:FactordeAmplificacinssmica}%
+%insertion%
 Se determina según el artículo 14 de la E{-}030%
 \setlength{\jot}{0.5cm}%
 
@@ -183,12 +186,12 @@ Se determina según el artículo 14 de la E{-}030%
 \end{figure}
 
 %
-\subsection{Factor de Importancia}%
-\label{subsec:FactordeImportancia}%
-%
+\subsubsection{Factor de Importancia}%
+\label{ssubsec:FactordeImportancia}%
+%insertion%
 
 
-\begin{table}[h!]%
+\begin{table}[ht!]%
 \centering%
 \caption{Factor de Uso o Importancia}%
 \begin{tabular}{|>{\arraybackslash}m{3cm}|m{8cm}|>{\arraybackslash}m{2.8cm}|}%
@@ -199,11 +202,11 @@ Se determina según el artículo 14 de la E{-}030%
 \hline%
 \multirow{2}[4]{3cm}{A Edificaciones Escenciales}&A1: Establecimiento del sector salud (públicos y privados) del segundo y tercer nivel, según lo normado por el ministerio de salud.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{Con aislamiento 1.0 y sin aislamiento 1.5.}\\%
 \cline{2-3}%
-&A2: Edificaciones escenciales para el manejo de las emergencias, el funcionamiento del gobierno y en general aquellas que puedan servir de refugio después de un desastre.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.50}\\%
+&A2: Edificaciones escenciales para el manejo de las emergencias, el funcionamiento del gobierno y en general aquellas que puedan servir de refugio después de un desastre.\cellcolor[rgb]{1,  .949,  .8}&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{\textcolor[rgb]{ 1,  0,  0}{\textbf{1.50}}\cellcolor[rgb]{1,  .949,  .8}}\\%
 \hline%
 B Edificaciones Importantes &Edificaciones donde se reúnen gran cantidad de personas tales como cines, teatros, estadios, coliseos, centros comerciales, terminales de buses de pasajeros, establecimientos penitenciarios, o que guardan patrimonios valiosos como museos y bibliotecas.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.30}\\%
 \hline%
-C Edificaciones Comunes\cellcolor[rgb]{ .949,  .949,  .949}&Edificaciones comunes tales como: viviendas, oficinas, hoteles, restaurantes, depósitos e instalaciones industriales cuya falla no acarree peligros adicionales de incendios o fugas de contaminantes.\cellcolor[rgb]{ .949,  .949,  .949}&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{\textcolor[rgb]{ 1,  0,  0}{\textbf{1.00}}\cellcolor[rgb]{ .949,  .949,  .949}}\\%
+C Edificaciones Comunes&Edificaciones comunes tales como: viviendas, oficinas, hoteles, restaurantes, depósitos e instalaciones industriales cuya falla no acarree peligros adicionales de incendios o fugas de contaminantes.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.00}\\%
 \hline%
 D Edificaciones temporales&Construcciones provisionales para depósitos, casetas y otras similares.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{A criterio del proyectista}\\%
 \hline%
@@ -212,88 +215,26 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 \end{table}
 
 %
-\newpage%
-%
-
-
-\begin{table}[ht!]%
-\centering%
-\caption{Resumen de parámetros sísmicos}%
-\extrarowheight = -0.3ex%
-\renewcommand{\arraystretch}{1.5}%
-\begin{tabular}{m{5cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|}%
-\cline{2%
--%
-4}%
-&\multicolumn{3}{c|}{\textbf{PARÁMETROS SÍSMICOS}}\\%
-\cline{2%
--%
-4}%
-&&\textit{\textbf{X}}&\textit{\textbf{Y}}\\%
-\cline{2%
--%
-4}%
-\textit{Factor de Zona (Tabla N°1)}&\textbf{Z}&\multicolumn{2}{c|}{0.25}\\%
-\cline{2%
--%
-4}%
-\textit{Factor de Uso (Tabla N°5)}&\textbf{U}&\multicolumn{2}{c|}{1.00}\\%
-\cline{2%
--%
-4}%
-\textit{Factor de Suelo (Tabla N°3)}&\textbf{S}&\multicolumn{2}{c|}{1.40}\\%
-\cline{2%
--%
-4}%
-\multirow{2}{*}{\textit{Periodos(Tabla N°4)}}&\textbf{T\raisebox{-0.5ex}{\scriptsize{P}}}&\multicolumn{2}{c|}{1.00}\\%
-\cline{2%
--%
-4}%
-&\textbf{T\raisebox{-0.5ex}{\scriptsize{L}}}&\multicolumn{2}{c|}{1.60}\\%
-\cline{2%
--%
-4}%
-Coef. Básico de Reducción (Tabla N°7)&\textbf{R\raisebox{-0.5ex}{\scriptsize{o}}}&6.00&8.00\\%
-\cline{2%
--%
-4}%
-Irregularidad en altura (Tabla N°8)&\textbf{I\raisebox{-0.5ex}{\scriptsize{a}}}&1.00&1.00\\%
-\cline{2%
--%
-4}%
-Irregularidad en planta (Tabla N°9)&\textbf{I\raisebox{-0.5ex}{\scriptsize{p}}}&1.00&1.00\\%
-\cline{2%
--%
-4}%
-Coef. de Reducción (Articulo 22)&\textbf{R}&6.00&8.00\\%
-\cline{2%
--%
-4}%
-&\textbf{ZUSg/R}&0.57&0.43\\%
-\cline{2%
--%
-4}%
-\end{tabular}%
-\end{table}
+\subsubsection{Espectro de respuesta de aceleraciones}%
+\label{ssubsec:Espectroderespuestadeaceleraciones}%
+%insertion
 
 %
-\subsection{Espectro de respuesta de aceleraciones}%
-\label{subsec:Espectroderespuestadeaceleraciones}%
-
-%
-\subsection{Peso sísmico}%
-\label{subsec:Pesossmico}%
+\subsubsection{Peso sísmico}%
+\label{ssubsec:Pesossmico}%
 \begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 26]%
 \textit{El peso (P), se calcula adicionando a la carga permanente y total de la edificación un porcentaje de la carga viva o sobrecarga. En edificaciones de categoría C, se toma el 25\% de la carga viva.}%
 \end{tcolorbox}%
+%insertion
 
 %
-\subsection{Excentricidad accidental}%
-\label{subsec:Excentricidadaccidental}%
+\subsubsection{Excentricidad accidental}%
+\label{ssubsec:Excentricidadaccidental}%
 \begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 28.5]%
 \textit{La incertidumbre en la localización de los centros de masa en cada nivel, se considera mediante una excentricidad accidental perpendicular a la dirección del sismo igual a 0,05 veces la dimensión del edificio en la dirección perpendicular a la dirección de análisis. En cada caso se considera el signo más desfavorable.}%
 \end{tcolorbox}%
-Para determinar el sentido mas desfavorable de la excentricidad accidental se calculó el centro de masa y centro de rigidez del edificio, resultando negativo en ambos casos.%
+Para determinar el sentido mas desfavorable de la excentricidad accidental se calculó el centro de masa y centro de rigidez del edificio, resultando negativo en ambos casos.\\%
+%insertion%
 
 
 \begin{figure}[ht!]%
@@ -304,15 +245,15 @@ Para determinar el sentido mas desfavorable de la excentricidad accidental se ca
 \end{figure}
 
 %
-\subsection{Análisis modal Art. 29.1 E{-}030}%
-\label{subsec:AnlisismodalArt.29.1E{-}030}%
-\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 29.1.1]%
+\subsection{Análisis modal Art. 26.1 E-030}%
+\label{subsec:AnlisismodalArt.26.1E{-}030}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 26.1.1]%
 \textit{Los modos de vibración pueden determinarse por un procedimiento de análisis que considere apropiadamente las características de rigidez y la distribución de las masas.}%
 \end{tcolorbox}%
 \begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 29.1.2]%
 \textit{En cada dirección se consideran aquellos modos de vibración cuya suma de masas efectivas sea por lo menos el 90\% de la masa total, pero se toma en cuenta por lo menos los tres primeros modos predominantes en la dirección de análisis.}%
 \end{tcolorbox}%
-%
+%insertion%
 
 
 \begin{table}[h!]%
@@ -341,9 +282,10 @@ Mode & Period & UX & UY & RZ & SumUX & SumUY & SumRZ \\
 %
 \subsection{Análisis de Irregularidades}%
 \label{subsec:AnlisisdeIrregularidades}%
+%insertion
 
 %
-\subsubsection{Irregularidad de Rigidez{-}Piso Blando}%
+\subsubsection{Irregularidad de Rigidez-Piso Blando}%
 \label{ssubsec:IrregularidaddeRigidez{-}PisoBlando}%
 \begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Tabla N°9 E-030]%
 Existe irregularidad de rigidez cuando, en cualquiera de las direcciondes de análisis, en un entrepiso la rigidez lateral es menor que 70\% de la rigidez lateral del entrepiso inmediato superior, o es menor que 80\% de la rigidez lateral promedio de los tres niveles superiores adyacentes. 
@@ -354,8 +296,9 @@ Existe irregularidad de rigidez cuando, en cualquiera de las direcciondes de an�
 Existe irregularidad extrema de rigidez cuando, en cualquiera de las direcciones de análisis, en un entrepiso la rigidez lateral es menor que 60\% de la rigidez lateral del entrepiso inmediato superior, o es menor que 70\% de la rigidez lateral promedio de los tres niveles superiores adyacentes.
 Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga.%
 \end{tcolorbox}%
-Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \newline%
-%
+Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. 
+\\%
+%insertion%
 
 
 \begin{table}[h!]%
@@ -397,7 +340,7 @@ Story1 & SDy Max & 28.563 & 82.237 & 35708.771 & 19909.452 &  & Regular \\
 \begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Tabla N°9 E-030]%
 Se tiene irregularidad de masa (o peso) cuando el peso de un piso determinado según el artículo 26, es nayor que 1,5 veces el peso de un piso adyascente. Este criterio no se aplica en azoteas ni en sótanos%
 \end{tcolorbox}%
-%
+%insertion%
 
 
 \begin{table}[h!]%
@@ -408,7 +351,7 @@ Se tiene irregularidad de masa (o peso) cuando el peso de un piso determinado se
 Story & Masa & 1.5 Masa & Tipo de Piso & is\_reg \\
 \midrule
 Story3 & 9.191 &  & Azotea & Regular \\
-Story2 & 13.850 &  & Azotea & Regular \\
+Story2 & 13.850 & 20.774 & Piso & Regular \\
 Story1 & 14.612 & 21.918 & Piso & Regular \\
 Base & 2.723 &  & Sotano & Regular \\
 \bottomrule
@@ -417,7 +360,6 @@ Base & 2.723 &  & Sotano & Regular \\
 \end{table}
 
 %
-\newpage%
 \subsubsection{Irregularidad Torsional}%
 \label{ssubsec:IrregularidadTorsional}%
 \begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Tabla N°9 E-030]%
@@ -428,7 +370,7 @@ Existe irregularidad torsional cuando, en cualquiera de las direcciones de anál
 Existe irregularidad torsional cuando, en cualquiera de las direcciones de análisis el desplazamiento relativo de entrepiso en un edificion ($\Delta_{max}$) en esa dirección, calculado incluyendo excentricidad accidental, es mayor que 1,3 veces el desplazamineto relativo promedio de los extremos del mismo entrepiso para la condicion de carga ($\Delta_{prom}$). 
  Este crriterio sólo se aplica en edificios con diafragmas rígidos y sólo si el máximo desplazamiento relativo de entrepiso es mayor que 50\% del desplazamiento permisible indicado en la Tabla N° 11%
 \end{tcolorbox}%
-%
+%insertion%
 
 
 \begin{table}[ht!]%
@@ -478,6 +420,7 @@ Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.012717 & False & Regu
 \begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Tabla N°9 E-030]%
 \textit{La estructura se califica como irregular cuando los diafragmas tienen discontinuidades abruptas o variaciones importantes en rigidez, incluyendo aberturas mayores que 50\% del área bruta del diafragma.} \\ \textit{También  existe  irregularidad  cuando,  en  cualquiera de  los pisos y para cualquiera de las direcciones de análisis, se tiene alguna sección transversal del diafragma con un área neta resistente menor que 25\% del área de la sección transversal total de la misma dirección calculada con las dimensiones totales de la planta.}%
 \end{tcolorbox}%
+%insertion%
 
 
 \begin{figure}[ht!]%
@@ -501,11 +444,11 @@ Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.012717 & False & Regu
 \cline{1-3}%
 \multicolumn{2}{|l|}{Area del aligerado A1=L1$\cdot$ e1} & 0.38 & \multicolumn{1}{l}{$m^2$} \\%
 \cline{1-3}%
-\multicolumn{2}{|l|}{Longitud de la losa maciza (L2)} & 2.25 & \multicolumn{1}{l}{m} \\%
+\multicolumn{2}{|l|}{Longitud de la losa macisa (L2)} & 2.25 & \multicolumn{1}{l}{m} \\%
 \cline{1-3}%
-\multicolumn{2}{|l|}{Espesor de la losa maciza (e2)} & 0.2 & \multicolumn{1}{l}{m} \\%
+\multicolumn{2}{|l|}{Espesor de la losa macisa (e2)} & 0.2 & \multicolumn{1}{l}{m} \\%
 \cline{1-3}%
-\multicolumn{2}{|l|}{Area de la losa maciza A1=L1$\cdot$ e1} & 0.45 & \multicolumn{1}{l}{$m^2$} \\%
+\multicolumn{2}{|l|}{Area de la losa macisa A1=L1$\cdot$ e1} & 0.45 & \multicolumn{1}{l}{$m^2$} \\%
 \cline{1-3}%
 \multicolumn{2}{|l|}{Ratio} & 118.42 & \multicolumn{1}{l}{\%} \\%
 \cline{1-3}%
