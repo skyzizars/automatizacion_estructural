@@ -1,4 +1,4 @@
-from mem import latex_utils as ltx
+from lib import latex_utils as ltx
 from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure, Tabularx
 from pylatex.utils import NoEscape, bold
 from pylatex.package import Package
