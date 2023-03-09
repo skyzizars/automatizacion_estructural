@@ -13,19 +13,24 @@
 \usepackage{caption}%
 \usepackage{ragged2e}%
 \usepackage{slashbox}%
+\usepackage{float}%
 \usepackage{amsmath}%
 \usepackage{xcolor}%
 \usepackage{multirow}%
 \usepackage{tcolorbox}%
 \usepackage{booktabs}%
-\usepackage{float}%
 %
-\graphicspath{ {D:/programas/automatizacion_estructural/} }%
+\graphicspath{ {D:/CIVIL ENGINEER/PROYECTO LATEX-PYTHON-ETABS/GITHUB/automatizacion_estructural/} }%
 %
 \begin{document}%
 \normalsize%
 \section{Análisis Sísmico}%
 \label{sec:AnlisisSsmico}%
+\subsection{Parámetros de sitio}%
+\label{subsec:Parmetrosdesitio}%
+%insertion
+
+%
 \subsubsection{Factor zona}%
 \label{ssubsec:Factorzona}%
 Este factor se interpreta como la aceleración máxima horizontal en el suelo rígido con una probabilidad de 10 \% de ser excedida en 50 años\\%
@@ -41,11 +46,11 @@ Este factor se interpreta como la aceleración máxima horizontal en el suelo r�
 \hline%
 \textbf{ZONA}&\textbf{Z}\\%
 \hline%
-4&0.45\\%
+4\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{0.45}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
 \hline%
 3&0.35\\%
 \hline%
-2\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{0.25}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
+2&0.25\\%
 \hline%
 1&0.10\\%
 \hline%
@@ -56,7 +61,7 @@ Este factor se interpreta como la aceleración máxima horizontal en el suelo r�
 \includegraphics[width=4cm]{images/mapa_zona}%
 \end{center}%
 \end{minipage}%
-\caption*{Fuente: E-30 (2018)}%
+\caption*{Fuente: E-030 (2018)}%
 \end{table}
 
 %
@@ -75,13 +80,13 @@ Este factor se interpreta como  un factor de modificación de la aceleración pi
 \hline%
 \backslashbox{\textit{\textbf{ZONA}}}{\textit{\textbf{SUELO}}}&\textbf{S0}&\textbf{S1}&\textbf{S2}&\textbf{S3}\\%
 \hline%
-4&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.05&1.10\\%
+4\cellcolor[rgb]{ .949,  .949,  .949} &0.80\cellcolor[rgb]{ .949,  .949,  .949} &1.00\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{1.05}}\cellcolor[rgb]{ .949,  .949,  .949} \cellcolor[rgb]{ .949,  .949,  .949} &1.10\cellcolor[rgb]{ .949,  .949,  .949} \\%
 \hline%
-3&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.15&1.20\\%
+3&0.80&1.00&1.15\cellcolor[rgb]{ .949,  .949,  .949} &1.20\\%
 \hline%
-2\cellcolor[rgb]{ .949,  .949,  .949} &0.80\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{1.00}}\cellcolor[rgb]{ .949,  .949,  .949} \cellcolor[rgb]{ .949,  .949,  .949} &1.20\cellcolor[rgb]{ .949,  .949,  .949} &1.40\cellcolor[rgb]{ .949,  .949,  .949} \\%
+2&0.80&1.00&1.20\cellcolor[rgb]{ .949,  .949,  .949} &1.40\\%
 \hline%
-1&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.60&2.00\\%
+1&0.80&1.00&1.60\cellcolor[rgb]{ .949,  .949,  .949} &2.00\\%
 \hline%
 \end{tabular}%
 \caption*{Fuente: E-030 (2018)}%
@@ -93,7 +98,7 @@ Este factor se interpreta como  un factor de modificación de la aceleración pi
 %insertion%
 
 
-\begin{table}[ht!]%
+\begin{table}[H]%
 \centering%
 \caption{Periodos de suelo}%
 \begin{tabular}{|>{\centering\arraybackslash} m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|}%
@@ -104,9 +109,9 @@ Este factor se interpreta como  un factor de modificación de la aceleración pi
 \cline{2-5}%
 \multicolumn{1}{r|}{}&\textbf{S0}&\textbf{S1}&\textbf{S2}&\textbf{S3}\\%
 \hline%
-Tp&0.30&\textcolor[rgb]{ 1,  0,  0}{\textbf{0.40}}\cellcolor[rgb]{ .949,  .949,  .949} &0.60&1.00\\%
+Tp&0.30&0.40&\textcolor[rgb]{ 1,  0,  0}{\textbf{0.60}}\cellcolor[rgb]{ .949,  .949,  .949} &1.00\\%
 \hline%
-Tl&3.00&\textcolor[rgb]{ 1,  0,  0}{\textbf{2.50}}\cellcolor[rgb]{ .949,  .949,  .949} &2.00&1.60\\%
+Tl&3.00&2.50&\textcolor[rgb]{ 1,  0,  0}{\textbf{2.00}}\cellcolor[rgb]{ .949,  .949,  .949} &1.60\\%
 \hline%
 \end{tabular}%
 \caption*{Fuente: E-030 (2018)}%
@@ -116,12 +121,13 @@ Tl&3.00&\textcolor[rgb]{ 1,  0,  0}{\textbf{2.50}}\cellcolor[rgb]{ .949,  .949, 
 \subsubsection{Sistema Estructural}%
 \label{ssubsec:SistemaEstructural}%
 Después de realizar el análisis sísmico se determino que los sistemas estructurales en X, Y son %
-De muros estructurales y Dual respectivamente.\\%
+De muros estructurales y Dual respectivamente%
 %insertion%
 
 
 \begin{table}[ht!]%
 \caption{Coeficiente básico de reducción}%
+\caption*{Fuente: E-030 (2018)}%
 \begin{tabular}{|>{\arraybackslash}m{10cm}| >{\centering\arraybackslash}m{4cm}|}%
 \hline%
 \multicolumn{2}{|c|}{\textbf{SISTEMAS ESTRUCTURALES}}\\%
@@ -136,7 +142,7 @@ Porticos Intermedios Resistentes a Momento (IMF)&5\\%
 \hline%
 Porticos Ordinarios Resistentes a Momento (OMF)&4\\%
 \hline%
-Porticos Ordinarios Resistentes a Momento (OMF)&7\\%
+Porticos Especiales Concentricamente Arrriostrados (SCBF)&7\\%
 \hline%
 Porticos Ordinarios Concentricamente Arrriostrados (OCBF)&4\\%
 \hline%
@@ -157,7 +163,6 @@ Muros de ductilidad limitada&4\\%
 \textbf{Madera}&7\\%
 \hline%
 \end{tabular}%
-\caption*{Fuente: E-030 (2018)}%
 \end{table}
 
 %
@@ -191,7 +196,7 @@ Se determina según el artículo 14 de la E{-}030%
 %insertion%
 
 
-\begin{table}[ht!]%
+\begin{table}[H]%
 \centering%
 \caption{Factor de Uso o Importancia}%
 \begin{tabular}{|>{\arraybackslash}m{3cm}|m{8cm}|>{\arraybackslash}m{2.8cm}|}%
@@ -215,9 +220,80 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 \end{table}
 
 %
+\subsubsection{Tabla resumen de parámetros sísmicos}%
+\label{ssubsec:Tablaresumendeparmetrosssmicos}%
+%insertion%
+
+
+\begin{table}[H]%
+\centering%
+\caption{Resumen de parámetros sísmicos}%
+\extrarowheight = -0.3ex%
+\renewcommand{\arraystretch}{1.5}%
+\begin{tabular}{m{5cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|}%
+\cline{2%
+-%
+4}%
+&\multicolumn{3}{c|}{\textbf{PARÁMETROS SÍSMICOS}}\\%
+\cline{2%
+-%
+4}%
+&&\textit{\textbf{X}}&\textit{\textbf{Y}}\\%
+\cline{2%
+-%
+4}%
+\textit{Factor de Zona (Tabla N° 1)}&\textbf{Z}&\multicolumn{2}{c|}{0.45}\\%
+\cline{2%
+-%
+4}%
+\textit{Factor de Uso (Tabla N° 5)}&\textbf{U}&\multicolumn{2}{c|}{1.50}\\%
+\cline{2%
+-%
+4}%
+\textit{Factor de Suelo (Tabla N° 3)}&\textbf{S}&\multicolumn{2}{c|}{1.05}\\%
+\cline{2%
+-%
+4}%
+\multirow{2}{*}{\textit{Periodos(Tabla N° 4)}}&\textbf{T\raisebox{-0.5ex}{\scriptsize{P}}}&\multicolumn{2}{c|}{0.60}\\%
+\cline{2%
+-%
+4}%
+&\textbf{T\raisebox{-0.5ex}{\scriptsize{L}}}&\multicolumn{2}{c|}{2.00}\\%
+\cline{2%
+-%
+4}%
+\textit{Coef. Básico de Reducción (Tabla N°7)}&\textbf{R\raisebox{-0.5ex}{\scriptsize{o}}}&6.00&7.00\\%
+\cline{2%
+-%
+4}%
+\textit{Irregularidad en altura (Tabla N°8)}&\textbf{I\raisebox{-0.5ex}{\scriptsize{a}}}&1.00&1.00\\%
+\cline{2%
+-%
+4}%
+\textit{Irregularidad en planta (Tabla N°9)}&\textbf{I\raisebox{-0.5ex}{\scriptsize{p}}}&1.00&1.00\\%
+\cline{2%
+-%
+4}%
+\textit{Coef. de Reducción (Articulo 22)}&\textbf{R}&6.00&7.00\\%
+\cline{2%
+-%
+4}%
+&\textbf{ZUSg/R}&1.16&0.99\\%
+\cline{2%
+-%
+4}%
+\end{tabular}%
+\end{table}
+
+%
 \subsubsection{Espectro de respuesta de aceleraciones}%
 \label{ssubsec:Espectroderespuestadeaceleraciones}%
-%insertion
+%insertion%
+
+
+\begin{figure}[H]%
+\caption{Espectro de aceleraciones}%
+\end{figure}
 
 %
 \subsubsection{Peso sísmico}%
@@ -233,7 +309,7 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 \begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 28.5]%
 \textit{La incertidumbre en la localización de los centros de masa en cada nivel, se considera mediante una excentricidad accidental perpendicular a la dirección del sismo igual a 0,05 veces la dimensión del edificio en la dirección perpendicular a la dirección de análisis. En cada caso se considera el signo más desfavorable.}%
 \end{tcolorbox}%
-Para determinar el sentido mas desfavorable de la excentricidad accidental se calculó el centro de masa y centro de rigidez del edificio, resultando negativo en ambos casos.\\%
+Para determinar el sentido mas desfavorable de la excentricidad accidental se calculó el centro de masa y centro de rigidez del edificio.\\%
 %insertion%
 
 
@@ -381,12 +457,12 @@ Existe irregularidad torsional cuando, en cualquiera de las direcciones de anál
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story3 & SDx Max & X & 0.004028 & 0.003867 & 1.042 & 3.6 & 0.021751 & False & Regular \\
-Story3 & SDx Max & Y & 0.000643 & 0.000622 & 1.034 & 3.6 & 0.003472 & True & Regular \\
-Story2 & SDx Max & X & 0.004952 & 0.004773 & 1.037 & 3.6 & 0.026741 & False & Regular \\
-Story2 & SDx Max & Y & 0.000826 & 0.000802 & 1.03 & 3.6 & 0.004460 & False & Regular \\
-Story1 & SDx Max & X & 0.004885 & 0.004718 & 1.036 & 5 & 0.026379 & False & Regular \\
-Story1 & SDx Max & Y & 0.00083 & 0.000808 & 1.028 & 5 & 0.004482 & False & Regular \\
+Story3 & SDx Max & X & 0.004028 & 0.003867 & 1.042 & 3.6 & 0.024168 & False & Regular \\
+Story3 & SDx Max & Y & 0.000643 & 0.000622 & 1.034 & 3.6 & 0.003858 & False & Regular \\
+Story2 & SDx Max & X & 0.004952 & 0.004773 & 1.037 & 3.6 & 0.029712 & False & Regular \\
+Story2 & SDx Max & Y & 0.000826 & 0.000802 & 1.03 & 3.6 & 0.004956 & False & Regular \\
+Story1 & SDx Max & X & 0.004885 & 0.004718 & 1.036 & 5 & 0.029310 & False & Regular \\
+Story1 & SDx Max & Y & 0.00083 & 0.000808 & 1.028 & 5 & 0.004980 & False & Regular \\
 \bottomrule
 \end{tabular}
 }%
@@ -403,12 +479,12 @@ Story1 & SDx Max & Y & 0.00083 & 0.000808 & 1.028 & 5 & 0.004482 & False & Regul
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story3 & SDy Max & X & 0.001227 & 0.00117 & 1.049 & 3.6 & 0.006626 & False & Regular \\
-Story3 & SDy Max & Y & 0.00176 & 0.001751 & 1.005 & 3.6 & 0.009504 & False & Regular \\
-Story2 & SDy Max & X & 0.001508 & 0.001443 & 1.045 & 3.6 & 0.008143 & False & Regular \\
-Story2 & SDy Max & Y & 0.002307 & 0.002297 & 1.004 & 3.6 & 0.012458 & False & Regular \\
-Story1 & SDy Max & X & 0.001486 & 0.001426 & 1.042 & 5 & 0.008024 & False & Regular \\
-Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.012717 & False & Regular \\
+Story3 & SDy Max & X & 0.001227 & 0.00117 & 1.049 & 3.6 & 0.007362 & False & Regular \\
+Story3 & SDy Max & Y & 0.00176 & 0.001751 & 1.005 & 3.6 & 0.010560 & False & Regular \\
+Story2 & SDy Max & X & 0.001508 & 0.001443 & 1.045 & 3.6 & 0.009048 & False & Regular \\
+Story2 & SDy Max & Y & 0.002307 & 0.002297 & 1.004 & 3.6 & 0.013842 & False & Regular \\
+Story1 & SDy Max & X & 0.001486 & 0.001426 & 1.042 & 5 & 0.008916 & False & Regular \\
+Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.014130 & False & Regular \\
 \bottomrule
 \end{tabular}
 }%
@@ -444,11 +520,11 @@ Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.012717 & False & Regu
 \cline{1-3}%
 \multicolumn{2}{|l|}{Area del aligerado A1=L1$\cdot$ e1} & 0.38 & \multicolumn{1}{l}{$m^2$} \\%
 \cline{1-3}%
-\multicolumn{2}{|l|}{Longitud de la losa macisa (L2)} & 2.25 & \multicolumn{1}{l}{m} \\%
+\multicolumn{2}{|l|}{Longitud de la losa maciza (L2)} & 2.25 & \multicolumn{1}{l}{m} \\%
 \cline{1-3}%
-\multicolumn{2}{|l|}{Espesor de la losa macisa (e2)} & 0.2 & \multicolumn{1}{l}{m} \\%
+\multicolumn{2}{|l|}{Espesor de la losa maciza (e2)} & 0.2 & \multicolumn{1}{l}{m} \\%
 \cline{1-3}%
-\multicolumn{2}{|l|}{Area de la losa macisa A1=L1$\cdot$ e1} & 0.45 & \multicolumn{1}{l}{$m^2$} \\%
+\multicolumn{2}{|l|}{Area de la losa maciza A1=L1$\cdot$ e1} & 0.45 & \multicolumn{1}{l}{$m^2$} \\%
 \cline{1-3}%
 \multicolumn{2}{|l|}{Ratio} & 118.42 & \multicolumn{1}{l}{\%} \\%
 \cline{1-3}%

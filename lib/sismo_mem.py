@@ -3,7 +3,7 @@ import os
 sys.path.append(os.getcwd())
 
 from lib import latex_utils as ltx
-from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure
+from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure,MultiRow
 from pylatex.utils import NoEscape, bold
 from pylatex.package import Package
 from pylatex.base_classes import Environment
@@ -37,6 +37,11 @@ def mybox2(title):
     mbox.options = NoEscape(r'colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=%s'%title)
     return mbox
 
+def parametros_sitio(o_type=Subsection):
+    obj = def_obj(o_type,NoEscape(r'Parámetros de sitio')) 
+    obj.append(NoEscape('%insertion'))
+
+    return obj
 
 def factor_zona(zona,o_type=Subsubsection):
     obj = def_obj(o_type,'Factor zona')
@@ -64,11 +69,10 @@ def factor_zona(zona,o_type=Subsubsection):
                     for row in df:
                             table.add_row((NoEscape(row[0]), NoEscape(row[1])))
                             table.add_hline()
-                
         with obj.create(MiniPage(width='0.35\\textwidth')):
             with obj.create(Center()):
                 obj.append(NoEscape('\\includegraphics[width=4cm]{images/mapa_zona}'))
-        tab.append(NoEscape(r'\caption*{Fuente: E-30 (2018)}'))
+        tab.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
 
     return obj
         
@@ -122,10 +126,11 @@ def periodos_suelo(suelo,o_type=Subsubsection):
     obj.packages.append(Package('colortbl'))
     obj.packages.append(Package('graphicx'))
     obj.packages.append(Package('caption'))
+    obj.packages.append(Package('float'))
 
     obj.append(NoEscape('%insertion'))
         
-    with obj.create(Table(position='ht!')) as tab:
+    with obj.create(Table(position='H')) as tab:
         tab.append(NoEscape(r'\centering'))
         tab.append(NoEscape(r'\caption{Periodos de suelo}'))
         with obj.create(Tabular(r'|>{\centering\arraybackslash} m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|')) as table:
@@ -145,12 +150,30 @@ def periodos_suelo(suelo,o_type=Subsubsection):
 
 
 def sist_estructural(sist_x,sist_y,o_type=Subsubsection):
-    
+    #Compatibilización de nombres
+    sistemas_utils_to_mem = [['Pórticos de Concreto Armado','Porticos'],
+                ['Dual de Concreto Armado','Dual'],
+                ['De Muros Estructurales de Concreto Armado','De muros estructurales'],
+                ['Pórticos Especiales de Acero Resistentes a Momentos','Porticos Especiales Resistentes a Momento (SMF)'],
+                ['Pórticos Intermedios de Acero Resistentes a Momentos','Porticos Intermedios Resistentes a Momento (IMF)'],
+                ['Pórticos Ordinarios de Acero Resistentes a Momentos','Porticos Ordinarios Resistentes a Momento (OMF)'],
+                ['Pórticos Especiales de Acero Concénticamente Arriostrados','Porticos Especiales Concentricamente Arrriostrados (SCBF)'],
+                ['Pórticos Ordinarios de Acero Concénticamente Arriostrados','Porticos Ordinarios Concentricamente Arrriostrados (OCBF)'],
+                ['Pórticos Acero Excéntricamente Arriostrados','Porticos Excentricamente Arriostrados (EBF)'],
+                ['Muros de Ductilidad Limita de Concreto Armado','Muros de ductilidad limitada'],
+                ['Albañilería Armada o Confinada',r'\textbf{Albañilería Armada o Confinada}'],
+                ['Madera',r'\textbf{Madera}']]
+    for i in sistemas_utils_to_mem:
+        if sist_x in i:
+            sist_x=i[1]
+        if sist_y in i:
+            sist_y=i[1]
+        
     data = [['Acero:',''],
             ['Porticos Especiales Resistentes a Momento (SMF)',8],
             ['Porticos Intermedios Resistentes a Momento (IMF)',5],
             ['Porticos Ordinarios Resistentes a Momento (OMF)',4],
-            ['Porticos Ordinarios Resistentes a Momento (OMF)',7],
+            ['Porticos Especiales Concentricamente Arrriostrados (SCBF)',7],
             ['Porticos Ordinarios Concentricamente Arrriostrados (OCBF)',4],
             ['Porticos Excentricamente Arriostrados (EBF)',8],
             ['Concreto Armado:',''],
@@ -161,8 +184,7 @@ def sist_estructural(sist_x,sist_y,o_type=Subsubsection):
             [r'\textbf{Albañilería Armada o Confinada}',3],
             [r'\textbf{Madera}',7]]
     
-    
-    for i in range(len(data)-1):
+    for i in range(len(data)):
         if sist_x in data[i] or sist_y in data[i]:
             data[i][0] = str(data[i][0])+r'\cellcolor[rgb]{ .949,  .949,  .949} '
             data[i][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+str(data[i][1])+r'}}'+r'\cellcolor[rgb]{ .949,  .949,  .949} '
@@ -175,6 +197,7 @@ def sist_estructural(sist_x,sist_y,o_type=Subsubsection):
     
 
     obj.append('Después de realizar el análisis sísmico se determino que los sistemas estructurales en X, Y son ')
+    obj.append(NoEscape('{} y {} respectivamente'.format(sist_x,sist_y)))
     obj.append(NoEscape('%insertion'))
     
     with obj.create(Table(position='ht!')) as tab:
@@ -192,7 +215,7 @@ def sist_estructural(sist_x,sist_y,o_type=Subsubsection):
                 else:
                     table.add_row((MultiColumn(2,align='|l|',data=bold(row[0])),))
                     table.add_hline()
-        tab.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
+            tab.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
 
     return obj
             
@@ -224,7 +247,6 @@ def factor_amplificacion(o_type=Subsubsection):
             obj.append(NoEscape(r'\centering'))
             obj.append(NoEscape('\\includegraphics[width=6.5cm]{images/Amplificacion}'))
         obj.append(NoEscape(r'\caption*{Fuente: Muñoz (2020)}'))
-
     return obj
 
 
@@ -235,7 +257,7 @@ def factor_importancia(categoria,o_type=Subsubsection):
     obj.packages.append(Package('xcolor'))
     obj.packages.append(Package('array'))
     obj.packages.append(Package('multirow'))
-
+    obj.packages.append(Package('float'))
     
     cat_ind = {'A1':0,'A2':1,'B':2,'C':3,'D':4}
     data = [['A Edificaciones Escenciales','A1: Establecimiento del sector salud (públicos y privados) del segundo y tercer nivel, según lo normado por el ministerio de salud.','Con aislamiento 1.0 y sin aislamiento 1.5.'],
@@ -254,7 +276,7 @@ def factor_importancia(categoria,o_type=Subsubsection):
         
     obj.append(NoEscape('%insertion'))
 
-    with obj.create(Table(position='ht!')):
+    with obj.create(Table(position='H')):
         obj.append(NoEscape('\centering'))
         obj.append(NoEscape('\caption{Factor de Uso o Importancia}'))
         with obj.create(Tabular(NoEscape(r'|>{\arraybackslash}m{3cm}|m{8cm}|>{\arraybackslash}m{2.8cm}|'))) as table:
@@ -272,10 +294,52 @@ def factor_importancia(categoria,o_type=Subsubsection):
 
     return obj
 
+def tabla_resumen(Z,U,S,Tp,Tl,Rox,Roy,Ia,Ip,o_type=Subsubsection):
+    obj = def_obj(o_type,'Tabla resumen de parámetros sísmicos')
+    obj.packages.append(Package('float'))
+    obj.append(NoEscape('%insertion'))
+    Rx=Rox*Ia*Ip
+    Ry=Roy*Ia*Ip
+    ZUSg_Rx=Z*U*S*9.81/Rx
+    ZUSg_Ry=Z*U*S*9.81/Ry
+    with obj.create(Table(position='H')) as table:
+        table.append(NoEscape('\centering'))
+        table.add_caption('Resumen de parámetros sísmicos')
+        table.append(NoEscape(r'\extrarowheight = -0.3ex'))
+        table.append(NoEscape(r'\renewcommand{\arraystretch}{1.5}'))
+        with table.create(Tabular(r'm{5cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|')) as tabular:
+            tabular.add_hline(2,4)
+            tabular.add_row('',MultiColumn(3,align='c|',data=bold("PARÁMETROS SÍSMICOS")))
+            tabular.add_hline(2,4)
+            tabular.add_row('','',NoEscape(r'\textit{\textbf{X}}'),NoEscape(r'\textit{\textbf{Y}}'))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Factor de Zona (Tabla N° 1)}'), NoEscape(r'\textbf{Z}'),MultiColumn(2,align='c|',data='{:.2f}'.format(Z))))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Factor de Uso (Tabla N° 5)}'), NoEscape(r'\textbf{U}'), MultiColumn(2,align='c|',data='{:.2f}'.format(U))))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Factor de Suelo (Tabla N° 3)}'), NoEscape(r'\textbf{S}'), MultiColumn(2,align='c|',data='{:.2f}'.format(S))))
+            tabular.add_hline(2,4)
+            tabular.add_row((MultiRow(2, data=NoEscape(r'\textit{Periodos(Tabla N° 4)}')), NoEscape(r'\textbf{T\raisebox{-0.5ex}{\scriptsize{P}}}'),MultiColumn(2,align='c|',data='{:.2f}'.format(Tp)) ))
+            tabular.add_hline(2, 4)
+            tabular.add_row(('', NoEscape(r'\textbf{T\raisebox{-0.5ex}{\scriptsize{L}}}'),MultiColumn(2,align='c|',data='{:.2f}'.format(Tl)) ))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Coef. Básico de Reducción (Tabla N°7)}'), NoEscape(r'\textbf{R\raisebox{-0.5ex}{\scriptsize{o}}}'),'{:.2f}'.format(Rox),'{:.2f}'.format(Roy)))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Irregularidad en altura (Tabla N°8)}'), NoEscape(r'\textbf{I\raisebox{-0.5ex}{\scriptsize{a}}}'), '{:.2f}'.format(Ia),'{:.2f}'.format(Ia)))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Irregularidad en planta (Tabla N°9)}'), NoEscape(r'\textbf{I\raisebox{-0.5ex}{\scriptsize{p}}}'), '{:.2f}'.format(Ip), '{:.2f}'.format(Ip)))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Coef. de Reducción (Articulo 22)}'), NoEscape(r'\textbf{R}'), '{:.2f}'.format(Rx), '{:.2f}'.format(Ry)))
+            tabular.add_hline(2,4)
+            tabular.add_row(('', NoEscape(r'\textbf{ZUSg/R}'), '{:.2f}'.format(ZUSg_Rx), '{:.2f}'.format(ZUSg_Ry)))
+            tabular.add_hline(2,4)
+    return obj
+
 def espectro_respuesta(o_type=Subsubsection):
     obj = def_obj(o_type,NoEscape('Espectro de respuesta de aceleraciones'))      
     obj.append(NoEscape('%insertion'))
-
+    with obj.create(Figure(position='H')) as fig:
+        fig.add_caption('Espectro de aceleraciones')
     return obj
 
 def peso_sismico(o_type=Subsubsection):
@@ -469,7 +533,7 @@ def irreg_discontinuidad_diaf(sec_change=None,openings=None,o_type=Subsubsection
     recibe el objeto y produce un informe de irregularidad de esquinas entrante
     sintaxis de sec_change (diccionario):
         {aligerdo: (longitud,espesor),
-         macisa: (longitud,esperor)}
+         maciza: (longitud,esperor)}
         tipo de seccion 1: [longitud,espesor]
     sintaxis de openings:
         aberturas : [(largo, ancho),]
@@ -500,15 +564,15 @@ def irreg_discontinuidad_diaf(sec_change=None,openings=None,o_type=Subsubsection
         data = [['Longitud del aligerado (L1)',sec_change['aligerado'][0],'m'],
                 ['Espesor del aligerado (e1)',sec_change['aligerado'][1],'m'],
                 ['Area del aligerado A1=L1$\\cdot$ e1','area1','$m^2$'],
-                ['Longitud de la losa macisa (L2)',sec_change['macisa'][0],'m'],
-                ['Espesor de la losa macisa (e2)',sec_change['macisa'][1],'m'],
-                ['Area de la losa macisa A1=L1$\\cdot$ e1','area2','$m^2$'],
+                ['Longitud de la losa maciza (L2)',sec_change['maciza'][0],'m'],
+                ['Espesor de la losa maciza (e2)',sec_change['maciza'][1],'m'],
+                ['Area de la losa maciza A1=L1$\\cdot$ e1','area2','$m^2$'],
                 ['Ratio','ratio','\%'],
                 ['Ratio límite','25.00','\%'],
                 ['Verificación','','']]
         
         data[2][1] = '%.2f'%(sec_change['aligerado'][0]*sec_change['aligerado'][1])
-        data[5][1] = '%.2f'%(sec_change['macisa'][0]*sec_change['macisa'][1])
+        data[5][1] = '%.2f'%(sec_change['maciza'][0]*sec_change['maciza'][1])
         data[6][1] = '%.2f'%(float(data[5][1])/float(data[2][1])*100)
         data[8][1] = r'\textcolor[rgb]{ .267,  .447,  .769}{\textbf{Regular}}' if float(data[6][1]) > float(data[7][1]) else r'\textcolor[rgb]{ 1,  0,  0}{\textbf{Irregular}}'
         
@@ -594,11 +658,11 @@ if __name__ == '__main__':
                  'Sismo_DinY': 'SDy'}
 
     zona = 4
-    suelo = 'S1'
-    sist_x = sistemas[0]
+    suelo = 'S2'
+    sist_x = sistemas[2]
     sist_y = sistemas[1]
-    categoria = categorias[4]
-    n_pisos = 4
+    categoria = categorias[2]
+    n_pisos = 3
     n_sotanos = 0
     n_azoteas = 0
     story_base = 'Story1'
@@ -610,8 +674,8 @@ if __name__ == '__main__':
     sismo.data.sist_estructural(sist_x,sist_y)
     sismo.data.categoria_edificacion(categoria)
     sismo.data.set_pisos(n_pisos,n_azoteas,n_sotanos)
-    sismo.data.irreg_altura(i_vertical=True)
-    sismo.data.irreg_planta(i_torsional=True)
+    sismo.data.irreg_altura(i_vertical=False)
+    sismo.data.irreg_planta(i_torsional=False)
     sismo.data.factor_R()
     sismo.data.set_pisos(n_pisos, n_azoteas, n_sotanos)
     sismo.data.show_params()
@@ -621,12 +685,6 @@ if __name__ == '__main__':
     
     sismo.analisis_sismo(_SapModel)
     
-    zona = 2
-    suelo = 'S1'
-    categoria = 'A2'
-    sist_estruct_X='De muros estructurales'
-    sist_estruct_Y='Dual'
-
     geometry_options = { "left": "2.5cm", "top": "1.5cm" }
     doc = Document(geometry_options=geometry_options)
     doc.packages.append(Package('xcolor', options=['dvipsnames']))
@@ -634,6 +692,8 @@ if __name__ == '__main__':
     
     
     s1 = Section('Análisis Sísmico')
+    
+    params_sitio=parametros_sitio()
     
     coments_zona1=NoEscape(r'Este factor se interpreta como la aceleración máxima horizontal en el suelo rígido con una probabilidad de 10 \% de ser excedida en 50 años')
     f_zona = factor_zona(zona)
@@ -645,18 +705,18 @@ if __name__ == '__main__':
 
     p_suelo = periodos_suelo(suelo)
     
-    coments_sist_est=sist_estruct_X+' y '+sist_estruct_Y+' respectivamente.'
-    s_est = sist_estructural(sist_estruct_X,sist_estruct_Y)
-    s_est.add(coments_sist_est)
-
+    s_est = sist_estructural(sist_x,sist_y)
+    
     f_amp = factor_amplificacion()
     f_imp = factor_importancia(categoria)
+    
+    resumen_params=tabla_resumen(sismo.data.Z,sismo.data.U,sismo.data.S,sismo.data.Tp,sismo.data.Tl,sismo.data.Rox,sismo.data.Roy,sismo.data.Ia,sismo.data.Ip)
 
     e_resp = espectro_respuesta()
 
     p_sis = peso_sismico()
     
-    coments_excentricidad='Para determinar el sentido mas desfavorable de la excentricidad accidental se calculó el centro de masa y centro de rigidez del edificio, resultando negativo en ambos casos.'
+    coments_excentricidad='Para determinar el sentido mas desfavorable de la excentricidad accidental se calculó el centro de masa y centro de rigidez del edificio.'
     e_accidental = excentricidad_accidental()
     e_accidental.add(coments_excentricidad)
 
@@ -677,12 +737,14 @@ if __name__ == '__main__':
     sis_y = sismo.tables.torsion_table.query('OutputCase == @seism_y')
     i_torsion = irreg_torsion(sis_x, sis_y)
     sec_change = {'aligerado':[7.51,0.05],
-                  'macisa':[2.25,0.20]}
+                  'maciza':[2.25,0.20]}
     openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
                 'area_planta' : 120.41}
     i_dis = irreg_discontinuidad_diaf(sec_change=sec_change, openings=openings)
 
-    for i in [f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,e_resp,p_sis,e_accidental,a_modal,a_irreg,i_rig,i_masa,i_torsion,i_dis]:
+    for i in [params_sitio,f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,resumen_params,
+              e_resp,p_sis,e_accidental,a_modal,
+              a_irreg,i_rig,i_masa,i_torsion,i_dis]:
         s1.append(i)
 
     doc.append(s1)
@@ -692,4 +754,4 @@ if __name__ == '__main__':
     doc.generate_pdf('out/Memoria Sismo2')
     doc.generate_tex('out/Memoria Sismo2')
     print("El documento ha sido generado con éxito")
-            
+    
