@@ -7,6 +7,7 @@ from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEsca
 from pylatex.utils import NoEscape, bold
 from pylatex.package import Package
 from pylatex.base_classes import Environment
+from pylatex.math import Alignat
 import pandas as pd
 import warnings
 warnings.simplefilter('ignore', category=Warning)
@@ -215,7 +216,7 @@ def sist_estructural(sist_x,sist_y,o_type=Subsubsection):
                 else:
                     table.add_row((MultiColumn(2,align='|l|',data=bold(row[0])),))
                     table.add_hline()
-            tab.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
+        tab.append(NoEscape(r'\caption*{Fuente: E-030 (2018)}'))
 
     return obj
             
@@ -530,9 +531,9 @@ def irreg_torsion(sis_x,sis_y,insert='',o_type=Subsubsection):
 
 def irreg_discontinuidad_diaf(sec_change=None,openings=None,o_type=Subsubsection):
     '''
-    recibe el objeto y produce un informe de irregularidad de esquinas entrante
+    recibe el objeto y produce un informe de discontinuidad de diafragma
     sintaxis de sec_change (diccionario):
-        {aligerdo: (longitud,espesor),
+        {aligerado: (longitud,espesor),
          maciza: (longitud,esperor)}
         tipo de seccion 1: [longitud,espesor]
     sintaxis de openings:
@@ -615,7 +616,96 @@ def irreg_discontinuidad_diaf(sec_change=None,openings=None,o_type=Subsubsection
         obj.append(table)
 
     return obj
-         
+
+def irreg_esquinas_entrantes(datos_esquinas=None,o_type=Subsubsection):     
+    '''
+    recibe el objeto y produce un informe de esquinas entrantes
+    sintaxis de datos_esquinas (diccionario):
+        {descripción: Dimensión}
+    '''
+    obj = def_obj(o_type,NoEscape('Irregularidad por Esquinas entrantes'))
+    obj.packages.append(Package('tcolorbox'))
+    obj.packages.append(Package('caption'))
+    obj.packages.append(Package('array'))
+    obj.packages.append(Package('float'))
+
+    mbox = mybox2('Tabla N°9 E-030')
+    mbox.append(NoEscape(r'\textit{La estructura se califica como irregular cuando tiene esquinas entrantes  cuyas  dimensiones  en  ambas  direcciones  son mayores que 20\% de la correspondiente dimensión total en planta}'))
+    obj.append(mbox)
+    
+    obj.append(NoEscape('%insertion'))
+    
+    fig = Figure(position='H')
+    fig.append(NoEscape(r'\centering'))
+    fig.append(NoEscape(r'\caption{Irregularidad por esquinas entrantes}'))
+    fig.append(NoEscape(r'\includegraphics[scale=0.5]{images/i_esquinas.PNG}'))
+    fig.append(NoEscape(r'\caption*{\small Fuente: Muñoz (2020)}'))
+    obj.append(fig)
+    
+    if datos_esquinas:
+        data = [['Esquina entrante en X(a)',datos_esquinas['esq_X'],'m'],
+                ['Esquina entrante en Y(b)',datos_esquinas['esq_Y'],'m'],
+                ['Dimensión total en X(A)',datos_esquinas['dim_X'],'m'],
+                ['Dimensión total en Y(B)',datos_esquinas['dim_Y'],'m'],
+                ['a/A','a/A','\%'],
+                ['b/B','b/B','\%'],
+                ['Limite <','20.0','\%'],
+                ['Verificación','','']]
+        
+        data[4][1] = '%.2f'%(datos_esquinas['esq_X']/datos_esquinas['dim_X']*100)
+        data[5][1] = '%.2f'%(datos_esquinas['esq_Y']/datos_esquinas['dim_Y']*100)
+        data[7][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{Irregular}}' if (float(data[4][1])>20 and float(data[5][1])>20  ) else r'\textcolor[rgb]{ .267,  .447,  .769}{\textbf{Regular}}'
+        
+        table = Table(position='H')
+        table.append(NoEscape(r'\centering'))
+        table.append(NoEscape(r'\caption{Irregularidad por esquinas entrantes}'))
+        tab = Tabular('|ll|c|r')
+        tab.append(NoEscape(r'\cline{1-3}'))
+        for row in data:
+            tab.append(NoEscape(r'\multicolumn{2}{|l|}{%s} & %s & \multicolumn{1}{l}{%s} \\'%(row[0],row[1],row[2])))
+            tab.append(NoEscape(r'\cline{1-3}'))
+        table.append(tab)
+        obj.append(table)
+
+    return obj
+
+def analisis_dinamico(o_type=Subsection):
+    obj = def_obj(o_type,'Análisis Dinámico Espectral Art. 29 E-030') 
+    obj.append(NoEscape('%insertion'))
+
+    return obj
+
+def criterios_combinacion(o_type=Subsubsection):
+    obj = def_obj(o_type,'Criterios de combinación') 
+    obj.append(NoEscape('%insertion'))
+    
+    mbox = mybox3(r'Art. 29.3.1')
+    mbox.append(NoEscape(r'\textit{Mediante los criterios de combinación que se indican, se puede obtener la respuesta máxima elástica esperada (r) tanto para las fuerzas internas en los elementos componentes de la estructura, como para los parámetros globales  del edificio como fuerza cortante en la base, cortantes de entrepiso, momentos  de volteo, desplazamientos totales y relativos de entrepiso.}'))
+    obj.append(mbox)
+
+    mbox = mybox3(r'Art. 29.3.2')
+    mbox.append(NoEscape(r'\textit{La respuesta máxima elástica esperada (r) correspondiente al efecto conjunto  de  los  diferentes  modos  de  vibración  empleados  (ri)  puede determinarse usando la combinación cuadrática completa de los valores calculados para cada modo.}'))
+    obj.append(mbox)
+
+    #Insertar ecuación
+    with obj.create(Alignat(aligns=1,numbering=True,escape=False)) as eq:
+        eq.append(r'r=\sqrt{\sum \sum r_{i}\,\rho _{i}\,r_{i}}')
+
+    mbox = mybox3(r'Art. 29.3.3')
+    mbox.append(NoEscape(r'\textit{Donde r representa las respuestas modales, desplazamientos o fuerzas, los coeficientes de correlación están dados por:}'))
+    obj.append(mbox)
+
+    with obj.create(Alignat(aligns=1,numbering=True,escape=False)) as eq:
+        eq.append(r'\rho_{ij}=\frac{8\beta ^{2}\left ( 1+\lambda  \right )\lambda ^{3/2}}{\left ( 1-\lambda ^{2} \right )+4\beta ^{2}\lambda \left ( 1+\lambda  \right )^{2}}\quad\quad  \lambda =\frac{\omega _{j}}{\omega _{i}}')
+
+    flushleft = Environment() #Creación de entorno flushleft
+    flushleft._latex_name = 'flushleft'
+    flushleft.append(NoEscape(r'Donde:\\'))
+    flushleft.append(NoEscape(r'$\beta$: fracción del amortiguamiento crítico, que se puede suponer constante para todos los modos igual a 0,05.\\'))
+    flushleft.append(NoEscape(r'$\omega _{j}$,$\omega _{i}$: son las frecuencias angulares de los modos i, j\\'))
+    obj.append(flushleft)
+
+    return obj
 
 #Generación del documento
     
@@ -741,10 +831,22 @@ if __name__ == '__main__':
     openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
                 'area_planta' : 120.41}
     i_dis = irreg_discontinuidad_diaf(sec_change=sec_change, openings=openings)
+    datos_esquinas={'esq_X':4.95,
+                  'esq_Y':2.30,
+                  'dim_X':7.51,
+                  'dim_Y':15.28}
+    i_esq=irreg_esquinas_entrantes(datos_esquinas=datos_esquinas)
+
+    analisis_din = analisis_dinamico()
+    coments_analisis_din ='El análisis dinámico modal espectral consiste calcular la respuesta para cada modo ingresando al espectro de pseudo-aceleraciones definido en , para posteriormente combinar los resultados según los criterios que se menciona en la norma E-030:'
+    analisis_din.add(coments_analisis_din)
+
+    criterios_comb=criterios_combinacion()
 
     for i in [params_sitio,f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,resumen_params,
               e_resp,p_sis,e_accidental,a_modal,
-              a_irreg,i_rig,i_masa,i_torsion,i_dis]:
+              a_irreg,i_rig,i_masa,i_torsion,i_dis,i_esq,
+              analisis_din,criterios_comb]:
         s1.append(i)
 
     doc.append(s1)

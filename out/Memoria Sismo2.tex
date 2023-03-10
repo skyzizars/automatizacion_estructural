@@ -127,7 +127,6 @@ De muros estructurales y Dual respectivamente%
 
 \begin{table}[ht!]%
 \caption{Coeficiente básico de reducción}%
-\caption*{Fuente: E-030 (2018)}%
 \begin{tabular}{|>{\arraybackslash}m{10cm}| >{\centering\arraybackslash}m{4cm}|}%
 \hline%
 \multicolumn{2}{|c|}{\textbf{SISTEMAS ESTRUCTURALES}}\\%
@@ -163,6 +162,7 @@ Muros de ductilidad limitada&4\\%
 \textbf{Madera}&7\\%
 \hline%
 \end{tabular}%
+\caption*{Fuente: E-030 (2018)}%
 \end{table}
 
 %
@@ -558,6 +558,80 @@ Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.014130 & False & Regu
 &\multicolumn{2}{r}{Verificación:}&\textcolor[rgb]{ .267,  .447,  .769} {Regular}\\%
 \end{tabular}%
 \end{table}
+
+%
+\subsubsection{Irregularidad por Esquinas entrantes}%
+\label{ssubsec:IrregularidadporEsquinasentrantes}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Tabla N°9 E-030]%
+\textit{La estructura se califica como irregular cuando tiene esquinas entrantes  cuyas  dimensiones  en  ambas  direcciones  son mayores que 20\% de la correspondiente dimensión total en planta}%
+\end{tcolorbox}%
+%insertion%
+
+
+\begin{figure}[H]%
+\centering%
+\caption{Irregularidad por esquinas entrantes}%
+\includegraphics[scale=0.5]{images/i_esquinas.PNG}%
+\caption*{\small Fuente: Muñoz (2020)}%
+\end{figure}
+
+%
+
+
+\begin{table}[H]%
+\centering%
+\caption{Irregularidad por esquinas entrantes}%
+\begin{tabular}{|ll|c|r}%
+\cline{1-3}%
+\multicolumn{2}{|l|}{Esquina entrante en X(a)} & 4.95 & \multicolumn{1}{l}{m} \\%
+\cline{1-3}%
+\multicolumn{2}{|l|}{Esquina entrante en Y(b)} & 2.3 & \multicolumn{1}{l}{m} \\%
+\cline{1-3}%
+\multicolumn{2}{|l|}{Dimensión total en X(A)} & 7.51 & \multicolumn{1}{l}{m} \\%
+\cline{1-3}%
+\multicolumn{2}{|l|}{Dimensión total en Y(B)} & 15.28 & \multicolumn{1}{l}{m} \\%
+\cline{1-3}%
+\multicolumn{2}{|l|}{a/A} & 65.91 & \multicolumn{1}{l}{\%} \\%
+\cline{1-3}%
+\multicolumn{2}{|l|}{b/B} & 15.05 & \multicolumn{1}{l}{\%} \\%
+\cline{1-3}%
+\multicolumn{2}{|l|}{Limite <} & 20.0 & \multicolumn{1}{l}{\%} \\%
+\cline{1-3}%
+\multicolumn{2}{|l|}{Verificación} & \textcolor[rgb]{ .267,  .447,  .769}{\textbf{Regular}} & \multicolumn{1}{l}{} \\%
+\cline{1-3}%
+\end{tabular}%
+\end{table}
+
+%
+\subsection{Análisis Dinámico Espectral Art. 29 E{-}030}%
+\label{subsec:AnlisisDinmicoEspectralArt.29E{-}030}%
+El análisis dinámico modal espectral consiste calcular la respuesta para cada modo ingresando al espectro de pseudo-aceleraciones definido en , para posteriormente combinar los resultados según los criterios que se menciona en la norma E-030:\\%
+%insertion
+
+%
+\subsubsection{Criterios de combinación}%
+\label{ssubsec:Criteriosdecombinacin}%
+%insertion%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 29.3.1]%
+\textit{Mediante los criterios de combinación que se indican, se puede obtener la respuesta máxima elástica esperada (r) tanto para las fuerzas internas en los elementos componentes de la estructura, como para los parámetros globales  del edificio como fuerza cortante en la base, cortantes de entrepiso, momentos  de volteo, desplazamientos totales y relativos de entrepiso.}%
+\end{tcolorbox}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 29.3.2]%
+\textit{La respuesta máxima elástica esperada (r) correspondiente al efecto conjunto  de  los  diferentes  modos  de  vibración  empleados  (ri)  puede determinarse usando la combinación cuadrática completa de los valores calculados para cada modo.}%
+\end{tcolorbox}%
+\begin{alignat}{1}%
+r=\sqrt{\sum \sum r_{i}\,\rho _{i}\,r_{i}}%
+\end{alignat}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 29.3.3]%
+\textit{Donde r representa las respuestas modales, desplazamientos o fuerzas, los coeficientes de correlación están dados por:}%
+\end{tcolorbox}%
+\begin{alignat}{1}%
+\rho_{ij}=\frac{8\beta ^{2}\left ( 1+\lambda  \right )\lambda ^{3/2}}{\left ( 1-\lambda ^{2} \right )+4\beta ^{2}\lambda \left ( 1+\lambda  \right )^{2}}\quad\quad  \lambda =\frac{\omega _{j}}{\omega _{i}}%
+\end{alignat}%
+\begin{flushleft}%
+Donde:\\%
+$\beta$: fracción del amortiguamiento crítico, que se puede suponer constante para todos los modos igual a 0,05.\\%
+$\omega _{j}$,$\omega _{i}$: son las frecuencias angulares de los modos i, j\\%
+\end{flushleft}
 
 %
 \end{document}
