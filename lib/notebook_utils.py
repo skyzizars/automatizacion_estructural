@@ -1,7 +1,6 @@
 from ipywidgets import widgets
 from IPython.display import clear_output, display
 from lib import sismo_utils as sis
-from lib import latex_utils as ltx
 from lib import baseDatos_Zonificacion as BD
 import numpy as np
 
@@ -41,6 +40,51 @@ class Sismo(sis.Sismo_e30):
         self.data.irreg_altura()
         self.data.irreg_planta()
         
+    def ubicacion(self):
+        #Creamos la base de datos de ciudades y su zonificación sismica
+        BD_df= BD.BaseDatos_Zonas_Sismicas().BD_Zonas_Sismicas
+        #Valores Iniciales
+        departamentos = BD_df['DEPARTAMENTO'].unique()
+        self.departamento = departamentos[0]
+        provincias = BD_df.query('DEPARTAMENTO==@self.departamento')['PROVINCIA'].unique()
+        self.provincia = provincias[0]
+        distritos = (BD_df.query('DEPARTAMENTO==@self.departamento')
+                    .query('PROVINCIA==@self.provincia')['DISTRITO'].unique())
+        self.distrito = distritos[0]
+
+        self.departamentos = dropdown(departamentos,'Departamento ',self.departamento)
+        self.provincias = dropdown(provincias,'Provincia ',self.provincia)
+        self.distritos = dropdown(distritos,'Distrito ',self.distrito)
+
+
+        def change_cbx_ubicacion(change,departamento=None,provincia=None,distrito = None):
+            if change['type'] == 'change' and change['name'] == 'value':
+                clear_output(wait=False)
+                self.departamento = departamento if departamento else self.departamento
+                provincias = BD_df.query('DEPARTAMENTO==@self.departamento')['PROVINCIA'].unique()
+                self.provincia = provincia if provincia else self.provincia if distrito else provincias[0]
+                distritos = (BD_df.query('DEPARTAMENTO==@self.departamento')
+                    .query('PROVINCIA==@self.provincia')['DISTRITO'].unique())
+                self.distrito = distrito if distrito else distritos[0]
+
+                self.provincias = dropdown(provincias,'Provincia ',self.provincia)
+                self.distritos = dropdown(distritos,'Distrito ',self.distrito)
+
+                self.provincias.observe(lambda change: change_cbx_ubicacion(change,provincia = self.provincias.value))
+                self.distritos.observe(lambda change: change_cbx_ubicacion(change,distrito = self.distritos.value))
+
+                self.zona = int((BD_df.query('DEPARTAMENTO==@self.departamento')
+                                        .query('PROVINCIA==@self.provincia')
+                                        .query('DISTRITO==@self.distrito')['ZONA(Z)']))
+                return display(widgets.VBox([self.departamentos,self.provincias,self.distritos]))
+
+
+        self.departamentos.observe(lambda change: change_cbx_ubicacion(change,departamento = self.departamentos.value))
+        self.provincias.observe(lambda change: change_cbx_ubicacion(change,provincia = self.provincias.value))
+        self.distritos.observe(lambda change: change_cbx_ubicacion(change,distrito = self.distritos.value))
+
+        return(widgets.VBox([self.departamentos,self.provincias,self.distritos]))
+
 
     def parametros_e30(self):
         categorias= ['A1 aislado','A1 no aislado','A2','B','C']
@@ -58,66 +102,7 @@ class Sismo(sis.Sismo_e30):
                     'Madera']
 
 
-        zona = dropdown([1, 2, 3, 4], 'Factor Zona', val=self.data.zona)
-
-        self.Departamentos = dropdown([''],'Departamento ','')
-        self.Provincias = dropdown([''],'Provincia ','')
-        self.Distritos = dropdown([''],'Distrito ','')
-
-        def cargar_cbx_Departamentos():
-            List_departamentos = BD_df['DEPARTAMENTO'].unique()
-            List_departamentos = np.insert(List_departamentos, 0, 'Seleccione', axis = None)
-            self.Departamentos = dropdown(List_departamentos,'Departamento ',List_departamentos[0])
-            
-        
-        def cargar_cbx_Provincias(Depart = 'Departamento'):
-            self.baseD1 = BD_df.loc[BD_df['DEPARTAMENTO'] == Depart]
-            list_provincias = self.baseD1['PROVINCIA'].unique()
-            list_provincias = np.insert(list_provincias, 0, 'Seleccione', axis = None)
-            self.Provincias = dropdown(list_provincias,'Provincia ',list_provincias[0])
-            
-        def cargar_cbx_Distritos(Prov = 'Provincia'):
-            self.baseD2 =self.baseD1.loc[self.baseD1['PROVINCIA'] == Prov]
-            list_distritos = self.baseD2['DISTRITO'].unique()
-            list_distritos = np.insert(list_distritos, 0, 'Seleccione', axis = None)
-            self.Distritos = dropdown(list_distritos,'Distrito ',list_distritos[0])
-
-        def zonificacion_distrito(Distri = 'Distrito'):
-            try:
-                Zona_Sismica = int(self.baseD2.loc[self.baseD2['DISTRITO']== Distri ]['ZONA(Z)'])
-                zona.value = Zona_Sismica
-                self.Activar_change = False
-                
-            except:
-                None
-
-        def cambiar_cbx_departamento(change):
-            if change['type'] == 'change' and change['name'] == 'value' and self.Activar_change == True:
-                Depart = change['new']
-                cargar_cbx_Provincias(Depart)
-                self.Provincias.observe(cambiar_cbx_provincias)
-                return display(widgets.VBox([self.Provincias]))
-
-
-        
-        def cambiar_cbx_provincias(change):
-            if change['type'] == 'change' and change['name'] == 'value' and self.Activar_change == True:
-                Prov = change['new']
-                cargar_cbx_Distritos(Prov)
-                self.Distritos.observe(cambiar_cbx_distritos)
-                return display(widgets.VBox([self.Distritos]))
-
-        def cambiar_cbx_distritos(change):
-            if change['type'] == 'change' and change['name'] == 'value' and self.Activar_change == True:
-                Distri = change['new']
-                zonificacion_distrito(Distri)
-                return display(widgets.VBox([zona, uso, suelo, sistema_x,sistema_y, pisos, sotanos, azoteas]))
-            
-
-        #Creamos la base de datos de ciudades y su zonificación sismica
-        BD_Peru = BD.baseDatos_Zonas_Sismicas()
-        BD_df = BD_Peru.BD_return()
-
+        zona = dropdown([1, 2, 3, 4], 'Factor Zona', val=self.data.zona)    
         uso = dropdown(categorias, 'Factor de Importancia', val=self.data.categoria)
         suelo = dropdown(['S0', 'S1', 'S2', 'S3'], 'Factor Suelo', val=self.data.suelo)
         sistema_x = dropdown(sistemas, 'Sistema Estructural X', val=self.data.sistema_x)
@@ -134,12 +119,8 @@ class Sismo(sis.Sismo_e30):
         pisos.observe(lambda _: self.data.set_pisos(pisos.value,self.data.n_azoteas,self.data.n_sotanos))
         sotanos.observe(lambda _: self.data.set_pisos(self.data.n_pisos,sotanos.value,self.data.n_sotanos))
         azoteas.observe(lambda _: self.data.set_pisos(self.data.n_pisos,self.data.n_azoteas,azoteas.value))
-
-        self.Activar_change = True
         
-        cargar_cbx_Departamentos()
-        self.Departamentos.observe(cambiar_cbx_departamento)
-        return display(widgets.VBox([self.Departamentos]))
+        return display(widgets.VBox([zona, uso, suelo, sistema_x,sistema_y, pisos, sotanos, azoteas]))
 
     
 
