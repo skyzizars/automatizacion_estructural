@@ -515,26 +515,26 @@ Factor de Reducción:
         doc.packages.append(Package('xcolor', options=['dvipsnames']))
         doc.preamble.append(NoEscape(r'\graphicspath{ {%s/} }'%os.getcwd().replace('\\','/')))
         sec = Section('Análisis Sísmico')
-        f_zona = smem.factor_zona(zona, o_type=Subsection)
-        f_suelo = smem.factor_suelo(zona, suelo)
-        p_suelo = smem.periodos_suelo(suelo)   
-        s_est = smem.sist_estructural()
-        f_amp = smem.factor_amplificacion()
-        f_imp = smem.factor_importancia(categoria)
-        a_modal = smem.ana_modal(self.tables.modal)             
+        f_zona = smem.factor_zona(doc, zona, o_type=Subsection)
+        f_suelo = smem.factor_suelo(doc, zona, suelo)
+        p_suelo = smem.periodos_suelo(doc, suelo)   
+        s_est = smem.sist_estructural(doc)
+        f_amp = smem.factor_amplificacion(doc)
+        f_imp = smem.factor_importancia(doc, categoria)
+        a_modal = smem.ana_modal(doc, self.tables.modal)             
         sis_x = self.tables.piso_blando_table.query('OutputCase == @seism_x')
         sis_y = self.tables.piso_blando_table.query('OutputCase == @seism_y')
-        i_rig = smem.irreg_rigidez(sis_x,sis_y)
-        i_masa = smem.irreg_masa(self.tables.rev_masa_table)
+        i_rig = smem.irreg_rigidez(doc, sis_x,sis_y)
+        # i_masa = smem.irreg_masa(doc,self.tables.rev_masa_table)
         sis_x = self.tables.torsion_table.query('OutputCase == @seism_x')
         sis_y = self.tables.torsion_table.query('OutputCase == @seism_y')
-        i_torsion = smem.irreg_torsion(sis_x, sis_y)
+        i_torsion = smem.irreg_torsion(doc, sis_x, sis_y)
         sec_change = {'aligerado':[7.51,0.05],
                     'macisa':[2.25,0.20]}
         openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
                     'area_planta' : 120.41}
-        i_esquinas = smem.irreg_esquinas(sec_change=sec_change, openings=openings)
-        for i in [f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,a_modal,i_rig,i_masa,i_torsion]:
+        # i_esquinas = smem.irreg_esquinas(doc,sec_change=sec_change, openings=openings)
+        for i in [f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,a_modal,i_rig,i_torsion]:
             sec.append(i)
         
         doc.append(sec)

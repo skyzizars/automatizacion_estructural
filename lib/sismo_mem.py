@@ -173,7 +173,7 @@ def sist_estructural(obj,insert='',o_type=Subsubsection):
 def factor_amplificacion(obj,insert='',o_type=Subsubsection):
     obj.packages.append(Package('graphicx'))
     obj.packages.append(Package('amsmath'))
-    doc.packages.append(Package('caption'))
+    obj.packages.append(Package('caption'))
     
     eq = r'''
     \begin{align*}
@@ -313,12 +313,12 @@ Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante
 
 def irreg_masa(obj,masa,insert='',o_type=Subsubsection):
     def latex_table(table):
-        table.columns = ['Story','Masa','1.5 Masa Piso Inferior','1.5 Masa Piso Superior','Tipo de Piso','is\_reg']
+        table.columns = ['Story','Masa','1.5 Mass','Tipo de Piso','is\_reg']
         table = table.replace('',0.0)
-        for i in  ['Masa','1.5 Masa Piso Inferior','1.5 Masa Piso Superior']:
+        for i in  ['Masa','Masa','1.5 Mass']:
             table.loc[:,i] = table.loc[:,i].astype(float)
         table = table.style.hide(axis='index')
-        table = table.format('{:.3f}',subset=pd.IndexSlice[:,['Masa','1.5 Masa Piso Inferior','1.5 Masa Piso Superior']])
+        table = table.format('{:.3f}',subset=pd.IndexSlice[:,['Story','Masa','1.5 Mass','Tipo de Piso','is\_reg']])
         table = table.to_latex(hrules=True, column_format = 'c'*6).replace('0.000','')
         return table
     

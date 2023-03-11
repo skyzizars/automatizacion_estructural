@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy
 
 
 class baseDatos_Zonas_Sismicas():
