@@ -73,7 +73,7 @@ class Sismo(sis.Sismo_e30):
                 self.provincias.observe(lambda change: change_cbx_ubicacion(change,provincia = self.provincias.value))
                 self.distritos.observe(lambda change: change_cbx_ubicacion(change,distrito = self.distritos.value))
 
-                self.zona = int((BD_df.query('DEPARTAMENTO==@self.departamento')
+                self.data.zona = int((BD_df.query('DEPARTAMENTO==@self.departamento')
                                         .query('PROVINCIA==@self.provincia')
                                         .query('DISTRITO==@self.distrito')['ZONA(Z)']))
                 return display(widgets.VBox([self.departamentos,self.provincias,self.distritos]))
@@ -121,8 +121,6 @@ class Sismo(sis.Sismo_e30):
         azoteas.observe(lambda _: self.data.set_pisos(self.data.n_pisos,self.data.n_azoteas,azoteas.value))
         
         return display(widgets.VBox([zona, uso, suelo, sistema_x,sistema_y, pisos, sotanos, azoteas]))
-
-    
 
         
 
