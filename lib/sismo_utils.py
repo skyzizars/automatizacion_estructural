@@ -515,7 +515,7 @@ Factor de Reducción:
         doc.packages.append(Package('xcolor', options=['dvipsnames']))
         doc.preamble.append(NoEscape(r'\graphicspath{ {%s/} }'%os.getcwd().replace('\\','/')))
         sec = Section('Análisis Sísmico')
-        f_zona = smem.factor_zona(zona, o_type=Subsection)
+        f_zona = smem.factor_zona(zona)
         f_suelo = smem.factor_suelo(zona, suelo)
         p_suelo = smem.periodos_suelo(suelo)   
         s_est = smem.sist_estructural()
