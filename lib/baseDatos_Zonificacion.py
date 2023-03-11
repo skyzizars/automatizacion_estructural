@@ -2,7 +2,7 @@ import pandas as pd
 import numpy
 
 
-class baseDatos_Zonas_Sismicas():
+class BaseDatos_Zonas_Sismicas():
 
     def __init__(self):
         self.BD_Zonas_Sismicas = pd.DataFrame(
@@ -1839,6 +1839,3 @@ class baseDatos_Zonas_Sismicas():
             ['TACNA', 'TACNA', 'SAMA', 4],
             ['TACNA', 'TACNA', 'TACNA', 4],],
             columns=['DEPARTAMENTO', 'PROVINCIA', 'DISTRITO', 'ZONA(Z)'])
-    
-    def BD_return(self):
-        return self.BD_Zonas_Sismicas
