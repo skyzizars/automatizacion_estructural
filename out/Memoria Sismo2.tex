@@ -19,6 +19,7 @@
 \usepackage{multirow}%
 \usepackage{tcolorbox}%
 \usepackage{booktabs}%
+\usepackage{subfigure}%
 %
 \graphicspath{ {D:/CIVIL ENGINEER/PROYECTO LATEX-PYTHON-ETABS/GITHUB/automatizacion_estructural/} }%
 %
@@ -449,6 +450,16 @@ Existe irregularidad torsional cuando, en cualquiera de las direcciones de anál
 %insertion%
 
 
+\begin{figure}[ht!]%
+\centering%
+\caption{Irregularidad torsional}%
+\includegraphics[scale=0.7]{images/i_torsion.PNG}%
+\caption*{\small Fuente: Muñoz (2020)}%
+\end{figure}
+
+%
+
+
 \begin{table}[ht!]%
 \centering%
 \caption{Irregularidad Torsional}%
@@ -605,7 +616,7 @@ Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.014130 & False & Regu
 %
 \subsection{Análisis Dinámico Espectral Art. 29 E{-}030}%
 \label{subsec:AnlisisDinmicoEspectralArt.29E{-}030}%
-El análisis dinámico modal espectral consiste calcular la respuesta para cada modo ingresando al espectro de pseudo-aceleraciones definido en , para posteriormente combinar los resultados según los criterios que se menciona en la norma E-030:\\%
+El análisis dinámico modal espectral consiste calcular la respuesta para cada modo ingresando al espectro de pseudo-aceleraciones definido en \ref{ssubsec:Espectroderespuestadeaceleraciones}, para posteriormente combinar los resultados según los criterios que se menciona en la norma E-030:\\%
 %insertion
 
 %
@@ -632,6 +643,196 @@ Donde:\\%
 $\beta$: fracción del amortiguamiento crítico, que se puede suponer constante para todos los modos igual a 0,05.\\%
 $\omega _{j}$,$\omega _{i}$: son las frecuencias angulares de los modos i, j\\%
 \end{flushleft}
+
+%
+\subsection{Determinación de desplazamientos laterales Art. 31 E{-}030}%
+\label{subsec:DeterminacindedesplazamientoslateralesArt.31E{-}030}%
+%insertion%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 31.3.1]%
+\textit{Para  estructuras  regulares, los  desplazamientos  laterales  se  calculan multiplicando por 0,75 R los resultados obtenidos del análisis lineal y elástico con las solicitaciones sísmicas reducidas. Para estructuras irregulares, los desplazamientos laterales se calculan multiplicando por 0,85 R los resultados obtenidos del análisis lineal elástico.}%
+\end{tcolorbox}%
+
+
+\begin{figure}[H]%
+\caption{Desplazamientos inelásticos}%
+\end{figure}
+
+%
+\subsection{Verificación de derivas máximas Art. 32 E{-}030}%
+\label{subsec:VerificacindederivasmximasArt.32E{-}030}%
+%insertion%
+
+
+\begin{table}[ht!]%
+\centering%
+\caption{Derivas máximas}%
+\begin{tabular}{|m{7cm}|c|}%
+\hline%
+\multicolumn{2}{|c|}{\multirow{2}[1]{*}{\textbf{LIMITES PARA LA DISTORSION DE ENTREPISO}}} \\%
+\multicolumn{2}{|c|}{} \\%
+\hline%
+\textbf{Material predominante:} & $\Delta_{i}/h_{ei}$ \\%
+\hline%
+{Concreto Armado\cellcolor[rgb]{ .949,  .949,  .949} } & \textcolor[rgb]{ 1,  0,  0}{\textbf{0.007}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
+\hline%
+{Acero} & 0.01 \\%
+\hline%
+{Albañilería} & 0.005 \\%
+\hline%
+{Madera} & 0.01 \\%
+\hline%
+{Edificios de concreto armado con muros de ductilidad limitada} & 0.005 \\%
+\hline%
+\end{tabular}%
+\caption*{Fuente: E-030 (2018)}%
+\end{table}
+
+%
+
+
+\begin{figure}[ht!]%
+\caption{Derivas máxima de entrepiso}%
+\end{figure}
+
+%
+\subsection{Verificación del sistema estructural}%
+\label{subsec:Verificacindelsistemaestructural}%
+Se verificará que efectivamente se tiene un sistema estructural de muros en la dirección X, en la dirección Y no se verificara dado que no existen muros estructurales. Como se muestra en la figura \ref{fig:sist_est_etabs} el valor de cortante que absorben los muros es de 64 ton, y la cortante total es aproximadamente 70 ton (ver figura \ref{fig:corte_basal}) por lo que el porcentaje que toman los muros es mayor al 90\%.\\%
+%insertion%
+
+
+\begin{figure}[ht!]%
+\centering%
+\caption{Sistema estructural}%
+\includegraphics[scale=0.7]{images/sist_estructural.PNG}%
+\caption*{\small Fuente: Muñoz (2020)}%
+\label{fig:sist_est}%
+\end{figure}
+
+%
+
+
+\begin{figure}[ht!]%
+\centering%
+\caption{Verificación del sistema estructural en X}%
+\includegraphics[scale=0.7]{images/sist_estructural_etabs.PNG}%
+\caption*{\small Fuente: Muñoz (2020)}%
+\label{fig:sist_est_etabs}%
+\end{figure}
+
+%
+\subsection{Análisis estático o de fuerzas estáticas equivalentes Art. 28 E{-}030}%
+\label{subsec:AnlisisestticoodefuerzasestticasequivalentesArt.28E{-}030}%
+%insertion
+
+%
+\subsubsection{Fuerza cortante en la base Art 28.2 E{-}030}%
+\label{ssubsec:FuerzacortanteenlabaseArt28.2E{-}030}%
+%insertion%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 28.2.1]%
+\textit{La fuerza cortante total en la base de la estructura, correspondiente a la dirección considerada, se determina por la siguiente expresión:}%
+\end{tcolorbox}%
+\begin{alignat}{1}%
+V=\frac{Z\;\cdot U\cdot\;C\cdot\;S}{R}\;P\;\;\;\;\;\;\;\;\;\;\;\frac{C}{R}\geq 0,11%
+\end{alignat}%
+Según el articulo 28.4.2 el periodo fundamental de vibración puede estimarse con la ecuación:%
+\begin{alignat}{1}%
+T=2\pi\cdot \displaystyle\sqrt{\frac{\left (\displaystyle\sum_{i=1}^{n} P_{i}\cdot d_{i}^{2}\right )}{g\cdot\left (\displaystyle\sum_{i=1}^{n}f_{i}\cdot d_{i}  \right ) }}%
+\end{alignat}%
+\begin{flushleft}%
+Donde:\\%
+$P_{i}$: es el peso sísmico en el nivel i.\\%
+$f_{i}$: es la fuerza lateral en el nivel i correspondiente a una distribución en altura semejante a la del primer modo en la dirección de análisis.\\%
+$d_{i}$: es el desplazamiento lateral del centro de masa del nivel  i en traslación pura (restringiendo los giros en planta) debido a las fuerzas $f_{i}$. Los desplazamientos se calculan suponiendo comportamiento lineal elástico de la estructura y, para el caso de estructuras de concreto armado y de albañilería, considerando las secciones sin fisurar.\\%
+\end{flushleft}%
+Lo anterior equivale a calcular los modos de vibrar en el modelo matemático restringiendo el grado de libertad de rotación.Lo anterior equivale a calcular los modos de vibrar en el modelo matemático restringiendo el grado de libertad de rotación.%
+
+
+\begin{figure}[ht!]%
+\centering%
+\subfigure[X]{\includegraphics[height=70mm]{images/TX.PNG}}\hspace{1cm}%
+\subfigure[Y]{\includegraphics[height=70mm]{images/TY.PNG}}%
+\caption{Periodos fundamentales en traslación pura}%
+\label{fig:periodos_fund}%
+\end{figure}
+
+%
+
+
+\begin{table}[ht!]%
+\centering%
+\caption{Análisis sísmico estático}%
+\extrarowheight = -0.3ex%
+\renewcommand{\arraystretch}{1.5}%
+\end{table}
+
+%
+\subsection{Fuerza cortante mínima Art. 29.4 E{-}030}%
+\label{subsec:FuerzacortantemnimaArt.29.4E{-}030}%
+%insertion%
+\begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Art. 29.4.1]%
+\textit{Para cada una de las direcciones consideradas en el análisis, la fuerza cortante en el primer entrepiso del edificio no puede ser menor que el 80\% del valor calculado según el artículo 25 para estructuras regulares, ni menor que el 90\% para estructuras irregulares.}%
+\end{tcolorbox}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Art. 29.4.2]%
+\textit{Si fuera necesario incrementar el cortante para cumplir los mínimos señalados,  se escalan proporcionalmente todos los otros resultados obtenidos, excepto los  desplazamientos.}%
+\end{tcolorbox}%
+
+
+\begin{figure}[ht!]%
+\caption{Cortantes de entrepiso del AME}%
+\label{fig:corte_basal}%
+\end{figure}
+
+%
+
+
+\begin{table}[ht!]%
+\centering%
+\caption{Escalamiento de la cortante dinámica}%
+\extrarowheight = -0.3ex%
+\renewcommand{\arraystretch}{1.5}%
+\end{table}
+
+%
+\subsection{Separación entre edificios Art. 33 E{-}030}%
+\label{subsec:SeparacinentreedificiosArt.33E{-}030}%
+%insertion%
+\begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Art. 33.1]%
+\textit{Toda estructura está separada de las estructuras vecinas, desde el nivel del terreno natural, una distancia mínima s para evitar el contacto durante un movimiento sísmico.}%
+\end{tcolorbox}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Art. 33.2]%
+\textit{Esta distancia no es menor que los 2/3 de la suma de los desplazamientos máximos de los edificios adyacentes ni menor que:}%
+\end{tcolorbox}%
+\begin{alignat}{1}%
+s=0.006\;h\geq0.03\;m%
+\end{alignat}%
+Donde h es la altura medida desde el nivel del terreno natural hasta el nivel considerado para evaluar s%
+\begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Art. 33.3]%
+\textit{El edificio se retira de los límites de propiedad adyacentes a otros lotes edificables,  o  con  edificaciones,  distancias  no  menores  que  2/3  del desplazamiento máximo calculado según el artículo 28 ni menores que s/2 si la edificación existente cuenta con una junta sísmica reglamentaria.}%
+\end{tcolorbox}%
+
+
+\begin{figure}[ht!]%
+\centering%
+\caption{Separación entre edificios}%
+\includegraphics[scale=0.5]{images/sep_edificios.PNG}%
+\label{fig:sep_edificios}%
+\end{figure}
+
+%
+
+
+\begin{table}[ht!]%
+\centering%
+\caption{Cálculo de la junta sísmica}%
+\extrarowheight = -0.3ex%
+\renewcommand{\arraystretch}{1.5}%
+\label{tab:junta_sis}%
+\end{table}
+
+%
+Según lo calculado en la tabla \ref{tab:junta_sis} %
+ el edificio tendrá que ser separado del limite de propiedad 4.50 cm como mínimo en ambas direcciones, en el caso que no exista junta reglamentaria el edificio actual se separa del edificio existente el valor de s/2 que le corresponde, más el valor s/2 de la estructura vecina.
 
 %
 \end{document}
