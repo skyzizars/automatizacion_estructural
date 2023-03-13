@@ -2,6 +2,7 @@ import sys
 import os
 sys.path.append(os.getcwd())
 import pandas as pd
+from IPython.display import display
 from lib import etabs_utils as etb
 
 
@@ -155,6 +156,7 @@ Factor de Reducción:
     Rx={:.2f}
     Ry={:.2f}
 '''.format(self.Z, self.U, self.S, self.Tp, self.Tl, self.Rox, self.Roy, self.Ip, self.Ia, self.Rx, self.Ry))
+            
         
     class Tables():
         def __init__(self):
@@ -198,6 +200,9 @@ Factor de Reducción:
         Ty = float(modal.Period[mode_y[0]])
         Uy = float(modal.UY[mode_y[0]])
 
+        self.tables.modal = modal
+        self.data.Tx = Tx
+        self.data.Ty = Ty
         
         #Reporte
         if report:
@@ -210,10 +215,62 @@ Factor de Reducción:
                 print('---Aumentar Grados de Libertad {0:.2f} < 0.9'.format(MP_y))
             print('Periodo y Masa Participativa X: Tx={0:.3f}'.format(Tx)+', Ux={0:.3f}'.format(Ux))
             print('Periodo y Masa Participativa Y: Ty={0:.3f}'.format(Ty)+', Uy={0:.3f}'.format(Uy))
+
+            display(modal)
         
-        self.tables.modal = modal
-        self.data.Tx = Tx
-        self.data.Ty = Ty
+    #Cálculo del exponente de altura
+    def get_k(self,T):
+        """Devuelve el exponente relacionado con el periodo (T). Revise
+        28.3.2 NTE 030 2020
+        
+        Parámetros
+        ----------
+        T : Periodo fundamental de vibración de la estructura (seg)
+        
+        Returns
+        -------
+        k=1, si T<=0.5 seg.
+        k=0.75+0.5*T, si T>=0.5
+        k=2, si 0.75+0.5*T>2
+        """
+        if T < 0.5:
+            return 1
+        elif 0.75+0.5*T < 2:
+            return 0.75+0.5*T
+        else:
+            return 2
+        
+    #Cálculo del Factor C
+    def get_C(self,T):
+        """Devuelve el factor de amplificacion sismica (C).Revise
+        Articulo 14 NTE 030 2020
+        
+        Parámetros
+        ----------
+        T : Periodo fundamental de vibración de la estructura (seg)
+        Tp: Periodo del suelo
+        Tl: Periodo del suelo
+        
+        Returns
+        -------
+        C=2.5, si T<Tp
+        C=2.5*Tp/T, si Tp<T<Tl
+        C=2.5*(Tp*Tl/T**2), si T>Tl
+        """
+        if T < self.data.Tp:
+            return 2.5
+        elif T < self.data.Tl:
+            return 2.5*self.data.Tp/T
+        else:
+            return 2.5*self.data.Tp*self.data.Tl/T**2
+        
+    def get_ZUCS_R(self,C,R):
+            ZUS = self.data.Z*self.data.U*self.data.S
+            if C/R>0.11:
+                return C/R*ZUS
+            else:
+                return 0.11*ZUS
+    
 
     def sismo_estatico(self,SapModel,report=False):
         '''Registra en un diccionario: el factor de Reduccion total R, los factores de 
@@ -241,67 +298,34 @@ Factor de Reducción:
         k_y, C_x, C_y, ZUCS_Rx y ZUCS_Ry
         '''
 
-        #Cálculo del exponente de altura
-        def get_k(T):
-            """Devuelve el exponente relacionado con el periodo (T). Revise
-            28.3.2 NTE 030 2020
-            
-            Parámetros
-            ----------
-            T : Periodo fundamental de vibración de la estructura (seg)
-            
-            Returns
-            -------
-            k=1, si T<=0.5 seg.
-            k=0.75+0.5*T, si T>=0.5
-            k=2, si 0.75+0.5*T>2
-            """
-            if T < 0.5:
-                return 1
-            elif 0.75+0.5*T < 2:
-                return 0.75+0.5*T
-            else:
-                return 2
-            
-        #Cálculo del Factor C
-        def get_C(T):
-            """Devuelve el factor de amplificacion sismica (C).Revise
-            Articulo 14 NTE 030 2020
-            
-            Parámetros
-            ----------
-            T : Periodo fundamental de vibración de la estructura (seg)
-            Tp: Periodo del suelo
-            Tl: Periodo del suelo
-            
-            Returns
-            -------
-            C=2.5, si T<Tp
-            C=2.5*Tp/T, si Tp<T<Tl
-            C=2.5*(Tp*Tl/T**2), si T>Tl
-            """
-            if T < self.data.Tp:
-                return 2.5
-            elif T < self.data.Tl:
-                return 2.5*self.data.Tp/T
-            else:
-                return 2.5*self.data.Tp*self.data.Tl/T**2
-            
-        def get_ZUCS_R(C,R):
-            ZUS = self.data.Z*self.data.U*self.data.S
-            if C/R>0.11:
-                return C/R*ZUS
-            else:
-                return 0.11*ZUS
-
-
         self.ana_modal(SapModel)
-        self.data.kx = get_k(self.data.Tx)
-        self.data.ky = get_k(self.data.Ty)
-        self.data.Cx = get_C(self.data.Tx)
-        self.data.Cy = get_C(self.data.Ty)
-        self.data.ZUCS_Rx = get_ZUCS_R(self.data.Cx,self.data.Rx)
-        self.data.ZUCS_Ry = get_ZUCS_R(self.data.Cy,self.data.Ry)
+        self.data.kx = self.get_k(self.data.Tx)
+        self.data.ky = self.get_k(self.data.Ty)
+        self.data.Cx = self.get_C(self.data.Tx)
+        self.data.Cy = self.get_C(self.data.Ty)
+        self.data.ZUCS_Rx = self.get_ZUCS_R(self.data.Cx,self.data.Rx)
+        self.data.ZUCS_Ry = self.get_ZUCS_R(self.data.Cy,self.data.Ry)
+
+        #Análisis Sísmico Manual
+        static_seism = etb.get_table(SapModel,'Mass Summary by Story')[1][['Story','UX']]
+        static_seism['UX'] = static_seism['UX'].astype(float)*9.806
+        stories = etb.get_table(SapModel,'Story Definitions')[1][['Story','Height']]
+        static_seism = static_seism.merge(stories,left_on='Story',right_on='Story')
+        static_seism['Height'] = static_seism.loc[::-1,'Height'].astype(float).cumsum()[::-1]
+        static_seism['H^kx'] = static_seism['Height']**self.data.kx
+        static_seism['H^ky'] = static_seism['Height']**self.data.ky
+        static_seism['PxHx'] = static_seism['H^kx'] * static_seism['UX']
+        static_seism['PxHy'] = static_seism['H^ky'] * static_seism['UX']
+        static_seism['ax'] = static_seism['PxHx']/sum(static_seism['PxHx'])
+        static_seism['ay'] = static_seism['PxHx']/sum(static_seism['PxHy'])
+        self.data.Vx = self.data.ZUCS_Rx*sum(static_seism['UX'])
+        self.data.Vy = self.data.ZUCS_Ry*sum(static_seism['UX'])
+        static_seism['vx'] = static_seism['ax']*self.data.Vx
+        static_seism['vy'] = static_seism['ay']*self.data.Vy
+        static_seism = static_seism.rename(columns={'UX':'Weight'})
+        static_seism = static_seism.round({'Weight':3,'Height':2,'H^kx':2,'H^ky':2,'PxHx':3,'PxHy':3,'ax':3,'ay':3,'vx':3,'vy':3})
+
+        self.tables.static_seism = static_seism
 
         if report:
             #Resumen
@@ -311,9 +335,26 @@ Factor de Reducción:
             print('C en Y: {0:.2f}'.format(self.data.Cy))
 
             print('\nCoeficiente de sismo estático X: {0:.3f}'.format(self.data.ZUCS_Rx))
-            print('Coeficiente de sismo estático Y: {0:.3f}'.format(self.data.ZUCS_Rx))
+            print('Coeficiente de sismo estático Y: {0:.3f}'.format(self.data.ZUCS_Ry))
             print('Exponente de altura X: {0:.2f}'.format(self.data.kx))
-            print('Exponente de altura Y: {0:.2f}'.format(self.data.kx))
+            print('Exponente de altura Y: {0:.2f}'.format(self.data.ky))
+            print('Fuerza Cortante en X: {0:.2f}'.format(self.data.Vx))
+            print('Fuerza Cortante en Y: {0:.2f}'.format(self.data.Vy))
+
+            display(self.tables.static_seism)
+            
+    #Espectro Dinamico
+    def dinamic_spectrum(self,report=False):
+        import numpy as np
+        self.T = np.arange(0.1,4.1,0.1)
+        self.Sax = np.round(np.vectorize(self.get_C)(self.T)*self.get_ZUCS_R(1,self.data.Rx),decimals=3)
+        self.Say = np.round(np.vectorize(self.get_C)(self.T)*self.get_ZUCS_R(1,self.data.Ry),decimals=3)
+
+        if report:
+            import matplotlib.pyplot as plt
+            plt.plot(self.T,self.Sax)
+            plt.plot(self.T,self.Say)
+
 
     #Revisión por Torsión      
     def irregularidad_torsion(self,SapModel):
