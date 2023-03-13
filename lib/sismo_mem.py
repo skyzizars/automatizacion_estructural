@@ -829,7 +829,7 @@ def analisis_estatico(o_type=Subsection):
 
     return obj
 
-def cortante_basal(o_type=Subsubsection):
+def cortante_basal(Z,U,Tx,Ty,Cx,Cy,S,Rox,Roy,Ia,Ip,Pd,Pl,Ps,o_type=Subsubsection):
     obj = def_obj(o_type,'Fuerza cortante en la base Art 28.2 E-030') 
     obj.append(NoEscape('%insertion'))
     obj.packages.append(Package('graphicx'))
@@ -864,40 +864,57 @@ def cortante_basal(o_type=Subsubsection):
     fig.append(NoEscape(r'\label{fig:periodos_fund}'))
     obj.append(fig)
 
-    ######################
-    #Falta corregir tabla#
-    ######################
+    Rx=Rox*Ia*Ip
+    Ry=Roy*Ia*Ip
+    ZUSC_Rx=Z*U*S*Cx/Rx
+    ZUSC_Ry=Z*U*S*Cy/Ry
+    Vx=ZUSC_Rx*Ps
+    Vy=ZUSC_Ry*Ps
+    kx=sismo.data.kx
+    ky=sismo.data.ky
     with obj.create(Table(position='ht!')) as table:
         table.append(NoEscape('\centering'))
         table.add_caption('Análisis sísmico estático')
-        table.append(NoEscape(r'\extrarowheight = -0.3ex'))
-        table.append(NoEscape(r'\renewcommand{\arraystretch}{1.5}'))
-        # with table.create(Tabular(r'm{5cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|')) as tabular:
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row('',MultiColumn(3,align='c|',data=bold("PARÁMETROS SÍSMICOS")))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row('','',NoEscape(r'\textit{\textbf{X}}'),NoEscape(r'\textit{\textbf{Y}}'))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row((NoEscape(r'\textit{Factor de Zona (Tabla N° 1)}'), NoEscape(r'\textbf{Z}'),MultiColumn(2,align='c|',data='{:.2f}'.format(Z))))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row((NoEscape(r'\textit{Factor de Uso (Tabla N° 5)}'), NoEscape(r'\textbf{U}'), MultiColumn(2,align='c|',data='{:.2f}'.format(U))))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row((NoEscape(r'\textit{Factor de Suelo (Tabla N° 3)}'), NoEscape(r'\textbf{S}'), MultiColumn(2,align='c|',data='{:.2f}'.format(S))))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row((MultiRow(2, data=NoEscape(r'\textit{Periodos(Tabla N° 4)}')), NoEscape(r'\textbf{T\raisebox{-0.5ex}{\scriptsize{P}}}'),MultiColumn(2,align='c|',data='{:.2f}'.format(Tp)) ))
-        #     tabular.add_hline(2, 4)
-        #     tabular.add_row(('', NoEscape(r'\textbf{T\raisebox{-0.5ex}{\scriptsize{L}}}'),MultiColumn(2,align='c|',data='{:.2f}'.format(Tl)) ))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row((NoEscape(r'\textit{Coef. Básico de Reducción (Tabla N°7)}'), NoEscape(r'\textbf{R\raisebox{-0.5ex}{\scriptsize{o}}}'),'{:.2f}'.format(Rox),'{:.2f}'.format(Roy)))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row((NoEscape(r'\textit{Irregularidad en altura (Tabla N°8)}'), NoEscape(r'\textbf{I\raisebox{-0.5ex}{\scriptsize{a}}}'), '{:.2f}'.format(Ia),'{:.2f}'.format(Ia)))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row((NoEscape(r'\textit{Irregularidad en planta (Tabla N°9)}'), NoEscape(r'\textbf{I\raisebox{-0.5ex}{\scriptsize{p}}}'), '{:.2f}'.format(Ip), '{:.2f}'.format(Ip)))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row((NoEscape(r'\textit{Coef. de Reducción (Articulo 22)}'), NoEscape(r'\textbf{R}'), '{:.2f}'.format(Rx), '{:.2f}'.format(Ry)))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row(('', NoEscape(r'\textbf{ZUSg/R}'), '{:.2f}'.format(ZUSg_Rx), '{:.2f}'.format(ZUSg_Ry)))
-        #     tabular.add_hline(2,4)
+        table.append(NoEscape(r'\extrarowheight = 0ex'))
+        table.append(NoEscape(r'\renewcommand{\arraystretch}{1.2}'))
+        with table.create(Tabular(r'>{\arraybackslash}m{7cm}|>{\centering\arraybackslash}m{2.5cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|')) as tabular:
+            tabular.add_hline(2,4)
+            tabular.add_row('',MultiColumn(3,align='c|',data=bold("PARÁMETROS SÍSMICOS")))
+            tabular.add_hline(2,4)
+            tabular.add_row('','',NoEscape(r'\textit{\textbf{X}}'),NoEscape(r'\textit{\textbf{Y}}'))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Factor de Zona (Tabla N° 1)}'), NoEscape(r'\textbf{Z}'),MultiColumn(2,align='c|',data='{:.2f}'.format(Z))))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Factor de Uso (Tabla N° 5)}'), NoEscape(r'\textbf{U}'), MultiColumn(2,align='c|',data='{:.2f}'.format(U))))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Periodos en traslación pura obtenidos del ETABS (Art. 28.4.2)}'), NoEscape(r'\textbf{T}'),'{:.2f}'.format(Tx),'{:.2f}'.format(Ty)))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Factor de Amplificación (Art. 14)}'), NoEscape(r'\textbf{C}'),'{:.2f}'.format(Cx),'{:.2f}'.format(Cy)))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Factor de Suelo (Tabla N°3)}'), NoEscape(r'\textbf{S}'),MultiColumn(2,align='c|',data='{:.2f}'.format(S))))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Coef. Básico de Reducción (Tabla N°7)}'), NoEscape(r'\textbf{R\raisebox{-0.5ex}{\scriptsize{o}}}'),'{:.2f}'.format(Rox),'{:.2f}'.format(Roy)))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Irregularidad en altura (Tabla N°8)}'), NoEscape(r'\textbf{I\raisebox{-0.5ex}{\scriptsize{a}}}'), '{:.2f}'.format(Ia),'{:.2f}'.format(Ia)))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Irregularidad en planta (Tabla N°9)}'), NoEscape(r'\textbf{I\raisebox{-0.5ex}{\scriptsize{p}}}'), '{:.2f}'.format(Ip), '{:.2f}'.format(Ip)))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Coef. de Reducción (Articulo 22)}'), NoEscape(r'\textbf{R}'), '{:.2f}'.format(Rx), '{:.2f}'.format(Ry)))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Verificación (Articulo 28.2.2)}'), NoEscape(r'\textbf{C/R>0.11}'), '{:.2f}'.format(Cx/Rx), '{:.2f}'.format(Cy/Ry)))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Carga Muerta CM)}'), NoEscape(r'\textbf{PD}'),MultiColumn(2,align='c|',data='{:.2f}'.format(Pd))))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Carga Viva CV)}'), NoEscape(r'\textbf{PL}'), MultiColumn(2,align='c|',data='{:.2f}'.format(Pl))))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Peso sísmico (ETABS)}'), NoEscape(r'\textbf{Ps (Ton)}'), MultiColumn(2,align='c|',data='{:.2f}'.format(Ps))))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Coeficientes}'), NoEscape(r'\textbf{ZUCS/R}'), '{:.2f}'.format(ZUSC_Rx), '{:.2f}'.format(ZUSC_Ry)))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Cortante estática (Art.28.2)}'), NoEscape(r'\textbf{V (ton)}'), NoEscape(r'\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{'+'{:.2f}'.format(Vx)+'}}'), NoEscape(r'\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{'+'{:.2f}'.format(Vy)+'}}')))
+            tabular.add_hline(2,4)
+            tabular.add_row((NoEscape(r'\textit{Coeficiente k (Art.28.3.2)}'), NoEscape(r'\textbf{k}'), '{:.2f}'.format(kx), '{:.2f}'.format(ky)))
+            tabular.add_hline(2,4)
 
     return obj
 
@@ -1089,7 +1106,8 @@ if __name__ == '__main__':
     f_amp = factor_amplificacion()
     f_imp = factor_importancia(categoria)
     
-    resumen_params=tabla_resumen(sismo.data.Z,sismo.data.U,sismo.data.S,sismo.data.Tp,sismo.data.Tl,sismo.data.Rox,sismo.data.Roy,sismo.data.Ia,sismo.data.Ip)
+    data_resumen=[sismo.data.Z,sismo.data.U,sismo.data.S,sismo.data.Tp,sismo.data.Tl,sismo.data.Rox,sismo.data.Roy,sismo.data.Ia,sismo.data.Ip]
+    resumen_params=tabla_resumen(*data_resumen)
 
     e_resp = espectro_respuesta()
 
@@ -1140,8 +1158,12 @@ if __name__ == '__main__':
     verif_sist_est=verificacion_sist_est()
     verif_sist_est.add(coments_verif_sist_est)
 
+    Lista_cargas={'PD':748,'PL':108.84,'Ps':775.63}
     analisis_est=analisis_estatico()
-    corte_basal=cortante_basal()
+    data_analisis_est=[sismo.data.Z,sismo.data.U,sismo.data.Tx,sismo.data.Ty,sismo.data.Cx,sismo.data.Cy,sismo.data.S,sismo.data.Rox,sismo.data.Roy,sismo.data.Ia,sismo.data.Ip,
+                       Lista_cargas['PD'],Lista_cargas['PL'],Lista_cargas['Ps']]
+
+    corte_basal=cortante_basal(*data_analisis_est)
     
     corte_basal_min=fuerza_cortante_min()
     sep_edificios=separacion_edificios()
