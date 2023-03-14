@@ -8,6 +8,7 @@ from pylatex.utils import NoEscape, bold
 from pylatex.package import Package
 from pylatex.base_classes import Environment
 from pylatex.math import Alignat
+from math import ceil
 import pandas as pd
 import warnings
 warnings.simplefilter('ignore', category=Warning)
@@ -918,7 +919,7 @@ def cortante_basal(Z,U,Tx,Ty,Cx,Cy,S,Rox,Roy,Ia,Ip,Pd,Pl,Ps,o_type=Subsubsection
 
     return obj
 
-def fuerza_cortante_min(o_type=Subsection):
+def fuerza_cortante_min(tabla_corte_min,o_type=Subsection):
     obj = def_obj(o_type,'Fuerza cortante mínima Art. 29.4 E-030') 
     obj.append(NoEscape('%insertion'))
     
@@ -937,29 +938,27 @@ def fuerza_cortante_min(o_type=Subsection):
         fig.add_caption('Cortantes de entrepiso del AME')
         fig.append(NoEscape(r'\label{fig:corte_basal}'))
 
-    ######################
-    #Falta corregir tabla#
-    ######################
-    with obj.create(Table(position='ht!')) as table:
+    def latex_table(table):
+        table.columns = table.iloc[0]
+        table=table[1:]
+        for i in  ['X','Y']:
+            table.loc[:,i] = table.loc[:,i].astype(float)
+        table = table.style.hide(axis='index')
+        table = table.format('{:.2f}',subset=pd.IndexSlice[:,['X','Y']])
+        table = table.to_latex(hrules=True, column_format = 'c'*3).replace('%','\%')
+        return table
+    obj.append(NoEscape('%insertion'))
+    
+    with obj.create(Table(position='h!')) as table:
         table.append(NoEscape('\centering'))
-        table.add_caption('Escalamiento de la cortante dinámica')
-        table.append(NoEscape(r'\extrarowheight = -0.3ex'))
-        table.append(NoEscape(r'\renewcommand{\arraystretch}{1.5}'))
-        # with table.create(Tabular(r'm{5cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|')) as tabular:
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row('',MultiColumn(3,align='c|',data=bold("PARÁMETROS SÍSMICOS")))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row('','',NoEscape(r'\textit{\textbf{X}}'),NoEscape(r'\textit{\textbf{Y}}'))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row((NoEscape(r'\textit{Factor de Zona (Tabla N° 1)}'), NoEscape(r'\textbf{Z}'),MultiColumn(2,align='c|',data='{:.2f}'.format(Z))))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row((NoEscape(r'\textit{Factor de Uso (Tabla N° 5)}'), NoEscape(r'\textbf{U}'), MultiColumn(2,align='c|',data='{:.2f}'.format(U))))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row((NoEscape(r'\textit{Factor de Suelo (Tabla N° 3)}'), NoEscape(r'\textbf{S}'), MultiColumn(2,align='c|',data='{:.2f}'.format(S))))
+        table.append(NoEscape('\caption{Escalamiento de la cortante dinámica}'))
+        table.append(NoEscape(r'\extrarowheight = 0ex'))
+        table.append(NoEscape(r'\renewcommand{\arraystretch}{1.2}'))
+        table.append(NoEscape(latex_table(tabla_corte_min)))
 
     return obj
 
-def separacion_edificios(o_type=Subsection):
+def separacion_edificios(datos_sep,o_type=Subsection):
     obj = def_obj(o_type,'Separación entre edificios Art. 33 E-030') 
     obj.append(NoEscape('%insertion'))
 
@@ -987,27 +986,39 @@ def separacion_edificios(o_type=Subsection):
     fig.append(NoEscape(r'\label{fig:sep_edificios}'))
     obj.append(fig)
 
-    ######################
-    #Falta corregir tabla#
-    ######################
-    with obj.create(Table(position='ht!')) as table:
-        table.append(NoEscape('\centering'))
-        table.add_caption('Cálculo de la junta sísmica')
+    if datos_sep:
+        data = [['Altura del edificio','h',datos_sep['altura_edificio'],'cm'],
+                ['Separación mínima entre edificios','s=0.006h',datos_sep['altura_edificio']*0.006,'>3cm'],
+                ['Separación mínima del limite de propiedad','s/2',datos_sep['altura_edificio']*0.006/2,'cm'],
+                ['Desplazamiento máximo en X',r'$\Delta_x$',datos_sep['despl_max_X'],'cm'],
+                ['Desplazamiento máximo en Y',r'$\Delta_y$',datos_sep['despl_max_Y'],'cm'],
+                ['Separación del limite de propiedad X',r'2/3$\Delta_{x}$',datos_sep['despl_max_X']*2/3,'cm'],
+                ['Separación del limite de propiedad Y',r'2/3$\Delta_{y}$',datos_sep['despl_max_Y']*2/3,'cm']]
+        
+        data[1][2] ='%.2f'%(datos_sep['altura_edificio']*0.006)
+        data[2][2] ='%.2f'%(datos_sep['altura_edificio']*0.006/2)
+        data[3][2] ='%.2f'%(datos_sep['despl_max_X'])
+        data[4][2] ='%.2f'%(datos_sep['despl_max_Y'])
+        data[5][2]='%.2f'%(datos_sep['despl_max_X']*2/3)
+        data[6][2]='%.2f'%(datos_sep['despl_max_Y']*2/3)
+
+        table = Table(position='ht!')
+        table.append(NoEscape(r'\centering'))
+        table.append(NoEscape(r'\caption{Cálculo de la junta sísmica}'))
         table.append(NoEscape(r'\extrarowheight = -0.3ex'))
         table.append(NoEscape(r'\renewcommand{\arraystretch}{1.5}'))
-        # with table.create(Tabular(r'm{5cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|')) as tabular:
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row('',MultiColumn(3,align='c|',data=bold("PARÁMETROS SÍSMICOS")))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row('','',NoEscape(r'\textit{\textbf{X}}'),NoEscape(r'\textit{\textbf{Y}}'))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row((NoEscape(r'\textit{Factor de Zona (Tabla N° 1)}'), NoEscape(r'\textbf{Z}'),MultiColumn(2,align='c|',data='{:.2f}'.format(Z))))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row((NoEscape(r'\textit{Factor de Uso (Tabla N° 5)}'), NoEscape(r'\textbf{U}'), MultiColumn(2,align='c|',data='{:.2f}'.format(U))))
-        #     tabular.add_hline(2,4)
-        #     tabular.add_row((NoEscape(r'\textit{Factor de Suelo (Tabla N° 3)}'), NoEscape(r'\textbf{S}'), MultiColumn(2,align='c|',data='{:.2f}'.format(S))))
+        tab = Tabular('l|c|c|l')
+        tab.append(NoEscape(r'\cline{2-3}'))
+        for row in data:
+            tab.append(NoEscape(r'\textit{%s} & \textbf{%s} & {%s} & {%s} \\'%(row[0],row[1],row[2],row[3])))
+            tab.append(NoEscape(r'\cline{2-3}'))
+        table.append(tab)
         table.append(NoEscape(r'\label{tab:junta_sis}'))
-    separacion=4.50 # Pendiente de automatizar
+        obj.append(table)
+
+    separacion=max(datos_sep['altura_edificio']*0.006/2,3/2,datos_sep['despl_max_X']*2/3,datos_sep['despl_max_Y']*2/3)
+    separacion=ceil(separacion / 0.5) * 0.5  #Redondea a múltiplo de 0.5cm mayor que el número inicial
+
     obj.append(NoEscape(r'Según lo calculado en la tabla \ref{tab:junta_sis} '))
     obj.append(NoEscape(r' el edificio tendrá que ser separado del limite de propiedad {:.2f} cm como mínimo en ambas direcciones, en el caso que no exista junta reglamentaria el edificio actual se separa del edificio existente el valor de s/2 que le corresponde, más el valor s/2 de la estructura vecina.'.format(separacion)))         
     
@@ -1158,15 +1169,17 @@ if __name__ == '__main__':
     verif_sist_est=verificacion_sist_est()
     verif_sist_est.add(coments_verif_sist_est)
 
-    Lista_cargas={'PD':748,'PL':108.84,'Ps':775.63}
+    lista_cargas={'PD':748,'PL':108.84,'Ps':775.63} #Falta automatizar
     analisis_est=analisis_estatico()
     data_analisis_est=[sismo.data.Z,sismo.data.U,sismo.data.Tx,sismo.data.Ty,sismo.data.Cx,sismo.data.Cy,sismo.data.S,sismo.data.Rox,sismo.data.Roy,sismo.data.Ia,sismo.data.Ip,
-                       Lista_cargas['PD'],Lista_cargas['PL'],Lista_cargas['Ps']]
+                       lista_cargas['PD'],lista_cargas['PL'],lista_cargas['Ps']]
 
     corte_basal=cortante_basal(*data_analisis_est)
     
-    corte_basal_min=fuerza_cortante_min()
-    sep_edificios=separacion_edificios()
+    corte_basal_min=fuerza_cortante_min(sismo.tables.shear_table)
+
+    datos_sep={'altura_edificio':1410,'despl_max_X':4.81,'despl_max_Y':6.07} #Falta automatizar
+    sep_edificios=separacion_edificios(datos_sep)
 
     for i in [params_sitio,f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,resumen_params,
               e_resp,p_sis,e_accidental,a_modal,

@@ -861,13 +861,26 @@ Lo anterior equivale a calcular los modos de vibrar en el modelo matemático res
 \end{figure}
 
 %
+%insertion%
 
 
-\begin{table}[ht!]%
+\begin{table}[h!]%
 \centering%
 \caption{Escalamiento de la cortante dinámica}%
-\extrarowheight = -0.3ex%
-\renewcommand{\arraystretch}{1.5}%
+\extrarowheight = 0ex%
+\renewcommand{\arraystretch}{1.2}%
+\begin{tabular}{ccc}
+\toprule
+ & X & Y \\
+\midrule
+V din (Ton) & 95.21 & 82.24 \\
+V est (Ton) & -109.04 & -93.45 \\
+\% min & 80.00 & 80.00 \\
+\% & 87.32 & 88.00 \\
+F.E. & 1.00 & 1.00 \\
+\bottomrule
+\end{tabular}
+%
 \end{table}
 
 %
@@ -904,6 +917,23 @@ Donde h es la altura medida desde el nivel del terreno natural hasta el nivel co
 \caption{Cálculo de la junta sísmica}%
 \extrarowheight = -0.3ex%
 \renewcommand{\arraystretch}{1.5}%
+\begin{tabular}{l|c|c|l}%
+\cline{2-3}%
+\textit{Altura del edificio} & \textbf{h} & {1410} & {cm} \\%
+\cline{2-3}%
+\textit{Separación mínima entre edificios} & \textbf{s=0.006h} & {8.46} & {>3cm} \\%
+\cline{2-3}%
+\textit{Separación mínima del limite de propiedad} & \textbf{s/2} & {4.23} & {cm} \\%
+\cline{2-3}%
+\textit{Desplazamiento máximo en X} & \textbf{$\Delta_x$} & {4.81} & {cm} \\%
+\cline{2-3}%
+\textit{Desplazamiento máximo en Y} & \textbf{$\Delta_y$} & {6.07} & {cm} \\%
+\cline{2-3}%
+\textit{Separación del limite de propiedad X} & \textbf{2/3$\Delta_{x}$} & {3.21} & {cm} \\%
+\cline{2-3}%
+\textit{Separación del limite de propiedad Y} & \textbf{2/3$\Delta_{y}$} & {4.05} & {cm} \\%
+\cline{2-3}%
+\end{tabular}%
 \label{tab:junta_sis}%
 \end{table}
 
