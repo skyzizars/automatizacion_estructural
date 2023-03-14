@@ -19,7 +19,10 @@
 \usepackage{multirow}%
 \usepackage{tcolorbox}%
 \usepackage{booktabs}%
+<<<<<<< HEAD
 \usepackage{subfigure}%
+=======
+>>>>>>> dev_josue
 %
 \graphicspath{ {D:/CIVIL ENGINEER/PROYECTO LATEX-PYTHON-ETABS/GITHUB/automatizacion_estructural/} }%
 %
@@ -27,6 +30,7 @@
 \normalsize%
 \section{Análisis Sísmico}%
 \label{sec:AnlisisSsmico}%
+<<<<<<< HEAD
 \subsection{Parámetros de sitio}%
 \label{subsec:Parmetrosdesitio}%
 %insertion
@@ -35,6 +39,10 @@
 \subsubsection{Factor zona}%
 \label{ssubsec:Factorzona}%
 Este factor se interpreta como la aceleración máxima horizontal en el suelo rígido con una probabilidad de 10 \% de ser excedida en 50 años\\%
+=======
+\subsubsection{Factor zona}%
+\label{ssubsec:Factorzona}%
+>>>>>>> dev_josue
 %insertion%
 
 
@@ -385,9 +393,9 @@ Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante
 \toprule
 Story & OutputCase & VX & VY & Rigidez Lateral(k) & 70\%k previo & 80\%Prom(k) & is\_reg \\
 \midrule
-Story3 & SDx Max & 37.537 & 9.565 & 18791.749 &  &  & Regular \\
-Story2 & SDx Max & 74.277 & 19.164 & 28433.680 & 13154.224 &  & Regular \\
-Story1 & SDx Max & 95.209 & 24.671 & 35703.618 & 19903.576 &  & Regular \\
+Story3 & SDx Max & 368116.180 & 93800.160 & 184283.222 &  &  & Regular \\
+Story2 & SDx Max & 728410.240 & 187937.220 & 278838.605 & 128998.255 &  & Regular \\
+Story1 & SDx Max & 933676.570 & 241941.640 & 350132.619 & 195187.024 &  & Regular \\
 \bottomrule
 \end{tabular}
 %
@@ -403,9 +411,9 @@ Story1 & SDx Max & 95.209 & 24.671 & 35703.618 & 19903.576 &  & Regular \\
 \toprule
 Story & OutputCase & VX & VY & Rigidez Lateral(k) & 70\%k previo & 80\%Prom(k) & is\_reg \\
 \midrule
-Story3 & SDy Max & 11.261 & 31.883 & 18765.862 &  &  & Regular \\
-Story2 & SDy Max & 22.283 & 63.881 & 28442.075 & 13136.104 &  & Regular \\
-Story1 & SDy Max & 28.563 & 82.237 & 35708.771 & 19909.452 &  & Regular \\
+Story3 & SDy Max & 110434.850 & 312667.210 & 184030.141 &  &  & Regular \\
+Story2 & SDy Max & 218523.070 & 626457.420 & 278921.380 & 128821.099 &  & Regular \\
+Story1 & SDy Max & 280102.970 & 806472.130 & 350183.296 & 195244.966 &  & Regular \\
 \bottomrule
 \end{tabular}
 %
@@ -427,10 +435,10 @@ Se tiene irregularidad de masa (o peso) cuando el peso de un piso determinado se
 \toprule
 Story & Masa & 1.5 Masa & Tipo de Piso & is\_reg \\
 \midrule
-Story3 & 9.191 &  & Azotea & Regular \\
-Story2 & 13.850 & 20.774 & Piso & Regular \\
-Story1 & 14.612 & 21.918 & Piso & Regular \\
-Base & 2.723 &  & Sotano & Regular \\
+Story3 & 90.128 &  & Azotea & Regular \\
+Story2 & 135.817 & 203.726 & Piso & Regular \\
+Story1 & 143.293 & 214.940 & Piso & Regular \\
+Base & 26.700 &  & Sotano & Regular \\
 \bottomrule
 \end{tabular}
 %
@@ -468,12 +476,21 @@ Existe irregularidad torsional cuando, en cualquiera de las direcciones de anál
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
+<<<<<<< HEAD
 Story3 & SDx Max & X & 0.004028 & 0.003867 & 1.042 & 3.6 & 0.024168 & False & Regular \\
 Story3 & SDx Max & Y & 0.000643 & 0.000622 & 1.034 & 3.6 & 0.003858 & False & Regular \\
 Story2 & SDx Max & X & 0.004952 & 0.004773 & 1.037 & 3.6 & 0.029712 & False & Regular \\
 Story2 & SDx Max & Y & 0.000826 & 0.000802 & 1.03 & 3.6 & 0.004956 & False & Regular \\
 Story1 & SDx Max & X & 0.004885 & 0.004718 & 1.036 & 5 & 0.029310 & False & Regular \\
 Story1 & SDx Max & Y & 0.00083 & 0.000808 & 1.028 & 5 & 0.004980 & False & Regular \\
+=======
+Story3 & SDx Max & X & 4.028 & 3.867 & 1.042 & 3600 & 28.196000 & False & Regular \\
+Story3 & SDx Max & Y & 0.643 & 0.622 & 1.034 & 3600 & 4.501000 & False & Regular \\
+Story2 & SDx Max & X & 4.952 & 4.773 & 1.037 & 3600 & 34.664000 & False & Regular \\
+Story2 & SDx Max & Y & 0.826 & 0.802 & 1.03 & 3600 & 5.782000 & False & Regular \\
+Story1 & SDx Max & X & 4.885 & 4.718 & 1.036 & 5000 & 34.195000 & False & Regular \\
+Story1 & SDx Max & Y & 0.83 & 0.808 & 1.028 & 5000 & 5.810000 & False & Regular \\
+>>>>>>> dev_josue
 \bottomrule
 \end{tabular}
 }%
@@ -490,18 +507,28 @@ Story1 & SDx Max & Y & 0.00083 & 0.000808 & 1.028 & 5 & 0.004980 & False & Regul
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
+<<<<<<< HEAD
 Story3 & SDy Max & X & 0.001227 & 0.00117 & 1.049 & 3.6 & 0.007362 & False & Regular \\
 Story3 & SDy Max & Y & 0.00176 & 0.001751 & 1.005 & 3.6 & 0.010560 & False & Regular \\
 Story2 & SDy Max & X & 0.001508 & 0.001443 & 1.045 & 3.6 & 0.009048 & False & Regular \\
 Story2 & SDy Max & Y & 0.002307 & 0.002297 & 1.004 & 3.6 & 0.013842 & False & Regular \\
 Story1 & SDy Max & X & 0.001486 & 0.001426 & 1.042 & 5 & 0.008916 & False & Regular \\
 Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.014130 & False & Regular \\
+=======
+Story3 & SDy Max & X & 1.227 & 1.17 & 1.049 & 3600 & 8.589000 & False & Regular \\
+Story3 & SDy Max & Y & 1.76 & 1.751 & 1.005 & 3600 & 12.320000 & False & Regular \\
+Story2 & SDy Max & X & 1.508 & 1.443 & 1.045 & 3600 & 10.556000 & False & Regular \\
+Story2 & SDy Max & Y & 2.307 & 2.297 & 1.004 & 3600 & 16.149000 & False & Regular \\
+Story1 & SDy Max & X & 1.486 & 1.426 & 1.042 & 5000 & 10.402000 & False & Regular \\
+Story1 & SDy Max & Y & 2.355 & 2.346 & 1.004 & 5000 & 16.485000 & False & Regular \\
+>>>>>>> dev_josue
 \bottomrule
 \end{tabular}
 }%
 \end{table}
 
 %
+<<<<<<< HEAD
 \subsubsection{Irregularidad por Discontinuidad del Diafragma}%
 \label{ssubsec:IrregularidadporDiscontinuidaddelDiafragma}%
 \begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Tabla N°9 E-030]%
@@ -942,4 +969,6 @@ Según lo calculado en la tabla \ref{tab:junta_sis} %
  el edificio tendrá que ser separado del limite de propiedad 4.50 cm como mínimo en ambas direcciones, en el caso que no exista junta reglamentaria el edificio actual se separa del edificio existente el valor de s/2 que le corresponde, más el valor s/2 de la estructura vecina.
 
 %
+=======
+>>>>>>> dev_josue
 \end{document}
