@@ -13,19 +13,25 @@
 \usepackage{caption}%
 \usepackage{ragged2e}%
 \usepackage{slashbox}%
+\usepackage{float}%
 \usepackage{amsmath}%
 \usepackage{xcolor}%
 \usepackage{multirow}%
 \usepackage{tcolorbox}%
 \usepackage{booktabs}%
-\usepackage{float}%
+\usepackage{subfigure}%
 %
-\graphicspath{ {D:/programas/automatizacion_estructural/} }%
+\graphicspath{ {D:/CIVIL ENGINEER/PROYECTO LATEX-PYTHON-ETABS/GITHUB/automatizacion_estructural/} }%
 %
 \begin{document}%
 \normalsize%
 \section{Análisis Sísmico}%
 \label{sec:AnlisisSsmico}%
+\subsection{Parámetros de sitio}%
+\label{subsec:Parmetrosdesitio}%
+%insertion
+
+%
 \subsubsection{Factor zona}%
 \label{ssubsec:Factorzona}%
 Este factor se interpreta como la aceleración máxima horizontal en el suelo rígido con una probabilidad de 10 \% de ser excedida en 50 años\\%
@@ -41,11 +47,11 @@ Este factor se interpreta como la aceleración máxima horizontal en el suelo r�
 \hline%
 \textbf{ZONA}&\textbf{Z}\\%
 \hline%
-4&0.45\\%
+4\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{0.45}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
 \hline%
 3&0.35\\%
 \hline%
-2\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{0.25}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
+2&0.25\\%
 \hline%
 1&0.10\\%
 \hline%
@@ -56,7 +62,7 @@ Este factor se interpreta como la aceleración máxima horizontal en el suelo r�
 \includegraphics[width=4cm]{images/mapa_zona}%
 \end{center}%
 \end{minipage}%
-\caption*{Fuente: E-30 (2018)}%
+\caption*{Fuente: E-030 (2018)}%
 \end{table}
 
 %
@@ -75,13 +81,13 @@ Este factor se interpreta como  un factor de modificación de la aceleración pi
 \hline%
 \backslashbox{\textit{\textbf{ZONA}}}{\textit{\textbf{SUELO}}}&\textbf{S0}&\textbf{S1}&\textbf{S2}&\textbf{S3}\\%
 \hline%
-4&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.05&1.10\\%
+4\cellcolor[rgb]{ .949,  .949,  .949} &0.80\cellcolor[rgb]{ .949,  .949,  .949} &1.00\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{1.05}}\cellcolor[rgb]{ .949,  .949,  .949} \cellcolor[rgb]{ .949,  .949,  .949} &1.10\cellcolor[rgb]{ .949,  .949,  .949} \\%
 \hline%
-3&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.15&1.20\\%
+3&0.80&1.00&1.15\cellcolor[rgb]{ .949,  .949,  .949} &1.20\\%
 \hline%
-2\cellcolor[rgb]{ .949,  .949,  .949} &0.80\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{1.00}}\cellcolor[rgb]{ .949,  .949,  .949} \cellcolor[rgb]{ .949,  .949,  .949} &1.20\cellcolor[rgb]{ .949,  .949,  .949} &1.40\cellcolor[rgb]{ .949,  .949,  .949} \\%
+2&0.80&1.00&1.20\cellcolor[rgb]{ .949,  .949,  .949} &1.40\\%
 \hline%
-1&0.80&1.00\cellcolor[rgb]{ .949,  .949,  .949} &1.60&2.00\\%
+1&0.80&1.00&1.60\cellcolor[rgb]{ .949,  .949,  .949} &2.00\\%
 \hline%
 \end{tabular}%
 \caption*{Fuente: E-030 (2018)}%
@@ -93,7 +99,7 @@ Este factor se interpreta como  un factor de modificación de la aceleración pi
 %insertion%
 
 
-\begin{table}[ht!]%
+\begin{table}[H]%
 \centering%
 \caption{Periodos de suelo}%
 \begin{tabular}{|>{\centering\arraybackslash} m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|}%
@@ -104,9 +110,9 @@ Este factor se interpreta como  un factor de modificación de la aceleración pi
 \cline{2-5}%
 \multicolumn{1}{r|}{}&\textbf{S0}&\textbf{S1}&\textbf{S2}&\textbf{S3}\\%
 \hline%
-Tp&0.30&\textcolor[rgb]{ 1,  0,  0}{\textbf{0.40}}\cellcolor[rgb]{ .949,  .949,  .949} &0.60&1.00\\%
+Tp&0.30&0.40&\textcolor[rgb]{ 1,  0,  0}{\textbf{0.60}}\cellcolor[rgb]{ .949,  .949,  .949} &1.00\\%
 \hline%
-Tl&3.00&\textcolor[rgb]{ 1,  0,  0}{\textbf{2.50}}\cellcolor[rgb]{ .949,  .949,  .949} &2.00&1.60\\%
+Tl&3.00&2.50&\textcolor[rgb]{ 1,  0,  0}{\textbf{2.00}}\cellcolor[rgb]{ .949,  .949,  .949} &1.60\\%
 \hline%
 \end{tabular}%
 \caption*{Fuente: E-030 (2018)}%
@@ -116,7 +122,7 @@ Tl&3.00&\textcolor[rgb]{ 1,  0,  0}{\textbf{2.50}}\cellcolor[rgb]{ .949,  .949, 
 \subsubsection{Sistema Estructural}%
 \label{ssubsec:SistemaEstructural}%
 Después de realizar el análisis sísmico se determino que los sistemas estructurales en X, Y son %
-De muros estructurales y Dual respectivamente.\\%
+De muros estructurales y Dual respectivamente%
 %insertion%
 
 
@@ -136,7 +142,7 @@ Porticos Intermedios Resistentes a Momento (IMF)&5\\%
 \hline%
 Porticos Ordinarios Resistentes a Momento (OMF)&4\\%
 \hline%
-Porticos Ordinarios Resistentes a Momento (OMF)&7\\%
+Porticos Especiales Concentricamente Arrriostrados (SCBF)&7\\%
 \hline%
 Porticos Ordinarios Concentricamente Arrriostrados (OCBF)&4\\%
 \hline%
@@ -191,7 +197,7 @@ Se determina según el artículo 14 de la E{-}030%
 %insertion%
 
 
-\begin{table}[ht!]%
+\begin{table}[H]%
 \centering%
 \caption{Factor de Uso o Importancia}%
 \begin{tabular}{|>{\arraybackslash}m{3cm}|m{8cm}|>{\arraybackslash}m{2.8cm}|}%
@@ -215,9 +221,80 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 \end{table}
 
 %
+\subsubsection{Tabla resumen de parámetros sísmicos}%
+\label{ssubsec:Tablaresumendeparmetrosssmicos}%
+%insertion%
+
+
+\begin{table}[H]%
+\centering%
+\caption{Resumen de parámetros sísmicos}%
+\extrarowheight = -0.3ex%
+\renewcommand{\arraystretch}{1.5}%
+\begin{tabular}{m{5cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|}%
+\cline{2%
+-%
+4}%
+&\multicolumn{3}{c|}{\textbf{PARÁMETROS SÍSMICOS}}\\%
+\cline{2%
+-%
+4}%
+&&\textit{\textbf{X}}&\textit{\textbf{Y}}\\%
+\cline{2%
+-%
+4}%
+\textit{Factor de Zona (Tabla N° 1)}&\textbf{Z}&\multicolumn{2}{c|}{0.45}\\%
+\cline{2%
+-%
+4}%
+\textit{Factor de Uso (Tabla N° 5)}&\textbf{U}&\multicolumn{2}{c|}{1.50}\\%
+\cline{2%
+-%
+4}%
+\textit{Factor de Suelo (Tabla N° 3)}&\textbf{S}&\multicolumn{2}{c|}{1.05}\\%
+\cline{2%
+-%
+4}%
+\multirow{2}{*}{\textit{Periodos(Tabla N° 4)}}&\textbf{T\raisebox{-0.5ex}{\scriptsize{P}}}&\multicolumn{2}{c|}{0.60}\\%
+\cline{2%
+-%
+4}%
+&\textbf{T\raisebox{-0.5ex}{\scriptsize{L}}}&\multicolumn{2}{c|}{2.00}\\%
+\cline{2%
+-%
+4}%
+\textit{Coef. Básico de Reducción (Tabla N°7)}&\textbf{R\raisebox{-0.5ex}{\scriptsize{o}}}&6.00&7.00\\%
+\cline{2%
+-%
+4}%
+\textit{Irregularidad en altura (Tabla N°8)}&\textbf{I\raisebox{-0.5ex}{\scriptsize{a}}}&1.00&1.00\\%
+\cline{2%
+-%
+4}%
+\textit{Irregularidad en planta (Tabla N°9)}&\textbf{I\raisebox{-0.5ex}{\scriptsize{p}}}&1.00&1.00\\%
+\cline{2%
+-%
+4}%
+\textit{Coef. de Reducción (Articulo 22)}&\textbf{R}&6.00&7.00\\%
+\cline{2%
+-%
+4}%
+&\textbf{ZUSg/R}&1.16&0.99\\%
+\cline{2%
+-%
+4}%
+\end{tabular}%
+\end{table}
+
+%
 \subsubsection{Espectro de respuesta de aceleraciones}%
 \label{ssubsec:Espectroderespuestadeaceleraciones}%
-%insertion
+%insertion%
+
+
+\begin{figure}[H]%
+\caption{Espectro de aceleraciones}%
+\end{figure}
 
 %
 \subsubsection{Peso sísmico}%
@@ -233,7 +310,7 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 \begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 28.5]%
 \textit{La incertidumbre en la localización de los centros de masa en cada nivel, se considera mediante una excentricidad accidental perpendicular a la dirección del sismo igual a 0,05 veces la dimensión del edificio en la dirección perpendicular a la dirección de análisis. En cada caso se considera el signo más desfavorable.}%
 \end{tcolorbox}%
-Para determinar el sentido mas desfavorable de la excentricidad accidental se calculó el centro de masa y centro de rigidez del edificio, resultando negativo en ambos casos.\\%
+Para determinar el sentido mas desfavorable de la excentricidad accidental se calculó el centro de masa y centro de rigidez del edificio.\\%
 %insertion%
 
 
@@ -373,6 +450,16 @@ Existe irregularidad torsional cuando, en cualquiera de las direcciones de anál
 %insertion%
 
 
+\begin{figure}[ht!]%
+\centering%
+\caption{Irregularidad torsional}%
+\includegraphics[scale=0.7]{images/i_torsion.PNG}%
+\caption*{\small Fuente: Muñoz (2020)}%
+\end{figure}
+
+%
+
+
 \begin{table}[ht!]%
 \centering%
 \caption{Irregularidad Torsional}%
@@ -381,12 +468,12 @@ Existe irregularidad torsional cuando, en cualquiera de las direcciones de anál
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story3 & SDx Max & X & 0.004028 & 0.003867 & 1.042 & 3.6 & 0.021751 & False & Regular \\
-Story3 & SDx Max & Y & 0.000643 & 0.000622 & 1.034 & 3.6 & 0.003472 & True & Regular \\
-Story2 & SDx Max & X & 0.004952 & 0.004773 & 1.037 & 3.6 & 0.026741 & False & Regular \\
-Story2 & SDx Max & Y & 0.000826 & 0.000802 & 1.03 & 3.6 & 0.004460 & False & Regular \\
-Story1 & SDx Max & X & 0.004885 & 0.004718 & 1.036 & 5 & 0.026379 & False & Regular \\
-Story1 & SDx Max & Y & 0.00083 & 0.000808 & 1.028 & 5 & 0.004482 & False & Regular \\
+Story3 & SDx Max & X & 0.004028 & 0.003867 & 1.042 & 3.6 & 0.024168 & False & Regular \\
+Story3 & SDx Max & Y & 0.000643 & 0.000622 & 1.034 & 3.6 & 0.003858 & False & Regular \\
+Story2 & SDx Max & X & 0.004952 & 0.004773 & 1.037 & 3.6 & 0.029712 & False & Regular \\
+Story2 & SDx Max & Y & 0.000826 & 0.000802 & 1.03 & 3.6 & 0.004956 & False & Regular \\
+Story1 & SDx Max & X & 0.004885 & 0.004718 & 1.036 & 5 & 0.029310 & False & Regular \\
+Story1 & SDx Max & Y & 0.00083 & 0.000808 & 1.028 & 5 & 0.004980 & False & Regular \\
 \bottomrule
 \end{tabular}
 }%
@@ -403,12 +490,12 @@ Story1 & SDx Max & Y & 0.00083 & 0.000808 & 1.028 & 5 & 0.004482 & False & Regul
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story3 & SDy Max & X & 0.001227 & 0.00117 & 1.049 & 3.6 & 0.006626 & False & Regular \\
-Story3 & SDy Max & Y & 0.00176 & 0.001751 & 1.005 & 3.6 & 0.009504 & False & Regular \\
-Story2 & SDy Max & X & 0.001508 & 0.001443 & 1.045 & 3.6 & 0.008143 & False & Regular \\
-Story2 & SDy Max & Y & 0.002307 & 0.002297 & 1.004 & 3.6 & 0.012458 & False & Regular \\
-Story1 & SDy Max & X & 0.001486 & 0.001426 & 1.042 & 5 & 0.008024 & False & Regular \\
-Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.012717 & False & Regular \\
+Story3 & SDy Max & X & 0.001227 & 0.00117 & 1.049 & 3.6 & 0.007362 & False & Regular \\
+Story3 & SDy Max & Y & 0.00176 & 0.001751 & 1.005 & 3.6 & 0.010560 & False & Regular \\
+Story2 & SDy Max & X & 0.001508 & 0.001443 & 1.045 & 3.6 & 0.009048 & False & Regular \\
+Story2 & SDy Max & Y & 0.002307 & 0.002297 & 1.004 & 3.6 & 0.013842 & False & Regular \\
+Story1 & SDy Max & X & 0.001486 & 0.001426 & 1.042 & 5 & 0.008916 & False & Regular \\
+Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.014130 & False & Regular \\
 \bottomrule
 \end{tabular}
 }%
@@ -444,11 +531,11 @@ Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.012717 & False & Regu
 \cline{1-3}%
 \multicolumn{2}{|l|}{Area del aligerado A1=L1$\cdot$ e1} & 0.38 & \multicolumn{1}{l}{$m^2$} \\%
 \cline{1-3}%
-\multicolumn{2}{|l|}{Longitud de la losa macisa (L2)} & 2.25 & \multicolumn{1}{l}{m} \\%
+\multicolumn{2}{|l|}{Longitud de la losa maciza (L2)} & 2.25 & \multicolumn{1}{l}{m} \\%
 \cline{1-3}%
-\multicolumn{2}{|l|}{Espesor de la losa macisa (e2)} & 0.2 & \multicolumn{1}{l}{m} \\%
+\multicolumn{2}{|l|}{Espesor de la losa maciza (e2)} & 0.2 & \multicolumn{1}{l}{m} \\%
 \cline{1-3}%
-\multicolumn{2}{|l|}{Area de la losa macisa A1=L1$\cdot$ e1} & 0.45 & \multicolumn{1}{l}{$m^2$} \\%
+\multicolumn{2}{|l|}{Area de la losa maciza A1=L1$\cdot$ e1} & 0.45 & \multicolumn{1}{l}{$m^2$} \\%
 \cline{1-3}%
 \multicolumn{2}{|l|}{Ratio} & 118.42 & \multicolumn{1}{l}{\%} \\%
 \cline{1-3}%
@@ -482,6 +569,377 @@ Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.012717 & False & Regu
 &\multicolumn{2}{r}{Verificación:}&\textcolor[rgb]{ .267,  .447,  .769} {Regular}\\%
 \end{tabular}%
 \end{table}
+
+%
+\subsubsection{Irregularidad por Esquinas entrantes}%
+\label{ssubsec:IrregularidadporEsquinasentrantes}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Tabla N°9 E-030]%
+\textit{La estructura se califica como irregular cuando tiene esquinas entrantes  cuyas  dimensiones  en  ambas  direcciones  son mayores que 20\% de la correspondiente dimensión total en planta}%
+\end{tcolorbox}%
+%insertion%
+
+
+\begin{figure}[H]%
+\centering%
+\caption{Irregularidad por esquinas entrantes}%
+\includegraphics[scale=0.5]{images/i_esquinas.PNG}%
+\caption*{\small Fuente: Muñoz (2020)}%
+\end{figure}
+
+%
+
+
+\begin{table}[H]%
+\centering%
+\caption{Irregularidad por esquinas entrantes}%
+\begin{tabular}{|ll|c|r}%
+\cline{1-3}%
+\multicolumn{2}{|l|}{Esquina entrante en X(a)} & 4.95 & \multicolumn{1}{l}{m} \\%
+\cline{1-3}%
+\multicolumn{2}{|l|}{Esquina entrante en Y(b)} & 2.3 & \multicolumn{1}{l}{m} \\%
+\cline{1-3}%
+\multicolumn{2}{|l|}{Dimensión total en X(A)} & 7.51 & \multicolumn{1}{l}{m} \\%
+\cline{1-3}%
+\multicolumn{2}{|l|}{Dimensión total en Y(B)} & 15.28 & \multicolumn{1}{l}{m} \\%
+\cline{1-3}%
+\multicolumn{2}{|l|}{a/A} & 65.91 & \multicolumn{1}{l}{\%} \\%
+\cline{1-3}%
+\multicolumn{2}{|l|}{b/B} & 15.05 & \multicolumn{1}{l}{\%} \\%
+\cline{1-3}%
+\multicolumn{2}{|l|}{Limite <} & 20.0 & \multicolumn{1}{l}{\%} \\%
+\cline{1-3}%
+\multicolumn{2}{|l|}{Verificación} & \textcolor[rgb]{ .267,  .447,  .769}{\textbf{Regular}} & \multicolumn{1}{l}{} \\%
+\cline{1-3}%
+\end{tabular}%
+\end{table}
+
+%
+\subsection{Análisis Dinámico Espectral Art. 29 E{-}030}%
+\label{subsec:AnlisisDinmicoEspectralArt.29E{-}030}%
+El análisis dinámico modal espectral consiste calcular la respuesta para cada modo ingresando al espectro de pseudo-aceleraciones definido en \ref{ssubsec:Espectroderespuestadeaceleraciones}, para posteriormente combinar los resultados según los criterios que se menciona en la norma E-030:\\%
+%insertion
+
+%
+\subsubsection{Criterios de combinación}%
+\label{ssubsec:Criteriosdecombinacin}%
+%insertion%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 29.3.1]%
+\textit{Mediante los criterios de combinación que se indican, se puede obtener la respuesta máxima elástica esperada (r) tanto para las fuerzas internas en los elementos componentes de la estructura, como para los parámetros globales  del edificio como fuerza cortante en la base, cortantes de entrepiso, momentos  de volteo, desplazamientos totales y relativos de entrepiso.}%
+\end{tcolorbox}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 29.3.2]%
+\textit{La respuesta máxima elástica esperada (r) correspondiente al efecto conjunto  de  los  diferentes  modos  de  vibración  empleados  (ri)  puede determinarse usando la combinación cuadrática completa de los valores calculados para cada modo.}%
+\end{tcolorbox}%
+\begin{alignat}{1}%
+r=\sqrt{\sum \sum r_{i}\,\rho _{i}\,r_{i}}%
+\end{alignat}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 29.3.3]%
+\textit{Donde r representa las respuestas modales, desplazamientos o fuerzas, los coeficientes de correlación están dados por:}%
+\end{tcolorbox}%
+\begin{alignat}{1}%
+\rho_{ij}=\frac{8\beta ^{2}\left ( 1+\lambda  \right )\lambda ^{3/2}}{\left ( 1-\lambda ^{2} \right )+4\beta ^{2}\lambda \left ( 1+\lambda  \right )^{2}}\quad\quad  \lambda =\frac{\omega _{j}}{\omega _{i}}%
+\end{alignat}%
+\begin{flushleft}%
+Donde:\\%
+$\beta$: fracción del amortiguamiento crítico, que se puede suponer constante para todos los modos igual a 0,05.\\%
+$\omega _{j}$,$\omega _{i}$: son las frecuencias angulares de los modos i, j\\%
+\end{flushleft}
+
+%
+\subsection{Determinación de desplazamientos laterales Art. 31 E{-}030}%
+\label{subsec:DeterminacindedesplazamientoslateralesArt.31E{-}030}%
+%insertion%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 31.3.1]%
+\textit{Para  estructuras  regulares, los  desplazamientos  laterales  se  calculan multiplicando por 0,75 R los resultados obtenidos del análisis lineal y elástico con las solicitaciones sísmicas reducidas. Para estructuras irregulares, los desplazamientos laterales se calculan multiplicando por 0,85 R los resultados obtenidos del análisis lineal elástico.}%
+\end{tcolorbox}%
+
+
+\begin{figure}[H]%
+\caption{Desplazamientos inelásticos}%
+\end{figure}
+
+%
+\subsection{Verificación de derivas máximas Art. 32 E{-}030}%
+\label{subsec:VerificacindederivasmximasArt.32E{-}030}%
+%insertion%
+
+
+\begin{table}[ht!]%
+\centering%
+\caption{Derivas máximas}%
+\begin{tabular}{|m{7cm}|c|}%
+\hline%
+\multicolumn{2}{|c|}{\multirow{2}[1]{*}{\textbf{LIMITES PARA LA DISTORSION DE ENTREPISO}}} \\%
+\multicolumn{2}{|c|}{} \\%
+\hline%
+\textbf{Material predominante:} & $\Delta_{i}/h_{ei}$ \\%
+\hline%
+{Concreto Armado\cellcolor[rgb]{ .949,  .949,  .949} } & \textcolor[rgb]{ 1,  0,  0}{\textbf{0.007}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
+\hline%
+{Acero} & 0.01 \\%
+\hline%
+{Albañilería} & 0.005 \\%
+\hline%
+{Madera} & 0.01 \\%
+\hline%
+{Edificios de concreto armado con muros de ductilidad limitada} & 0.005 \\%
+\hline%
+\end{tabular}%
+\caption*{Fuente: E-030 (2018)}%
+\end{table}
+
+%
+
+
+\begin{figure}[ht!]%
+\caption{Derivas máxima de entrepiso}%
+\end{figure}
+
+%
+\subsection{Verificación del sistema estructural}%
+\label{subsec:Verificacindelsistemaestructural}%
+Se verificará que efectivamente se tiene un sistema estructural de muros en la dirección X, en la dirección Y no se verificara dado que no existen muros estructurales. Como se muestra en la figura \ref{fig:sist_est_etabs} el valor de cortante que absorben los muros es de 64 ton, y la cortante total es aproximadamente 70 ton (ver figura \ref{fig:corte_basal}) por lo que el porcentaje que toman los muros es mayor al 90\%.\\%
+%insertion%
+
+
+\begin{figure}[ht!]%
+\centering%
+\caption{Sistema estructural}%
+\includegraphics[scale=0.7]{images/sist_estructural.PNG}%
+\caption*{\small Fuente: Muñoz (2020)}%
+\label{fig:sist_est}%
+\end{figure}
+
+%
+
+
+\begin{figure}[ht!]%
+\centering%
+\caption{Verificación del sistema estructural en X}%
+\includegraphics[scale=0.7]{images/sist_estructural_etabs.PNG}%
+\caption*{\small Fuente: Muñoz (2020)}%
+\label{fig:sist_est_etabs}%
+\end{figure}
+
+%
+\subsection{Análisis estático o de fuerzas estáticas equivalentes Art. 28 E{-}030}%
+\label{subsec:AnlisisestticoodefuerzasestticasequivalentesArt.28E{-}030}%
+%insertion
+
+%
+\subsubsection{Fuerza cortante en la base Art 28.2 E{-}030}%
+\label{ssubsec:FuerzacortanteenlabaseArt28.2E{-}030}%
+%insertion%
+\begin{tcolorbox}[colback=gray!5!white,colframe=Maroon!75!black,fonttitle=\bfseries,title=Art. 28.2.1]%
+\textit{La fuerza cortante total en la base de la estructura, correspondiente a la dirección considerada, se determina por la siguiente expresión:}%
+\end{tcolorbox}%
+\begin{alignat}{1}%
+V=\frac{Z\;\cdot U\cdot\;C\cdot\;S}{R}\;P\;\;\;\;\;\;\;\;\;\;\;\frac{C}{R}\geq 0,11%
+\end{alignat}%
+Según el articulo 28.4.2 el periodo fundamental de vibración puede estimarse con la ecuación:%
+\begin{alignat}{1}%
+T=2\pi\cdot \displaystyle\sqrt{\frac{\left (\displaystyle\sum_{i=1}^{n} P_{i}\cdot d_{i}^{2}\right )}{g\cdot\left (\displaystyle\sum_{i=1}^{n}f_{i}\cdot d_{i}  \right ) }}%
+\end{alignat}%
+\begin{flushleft}%
+Donde:\\%
+$P_{i}$: es el peso sísmico en el nivel i.\\%
+$f_{i}$: es la fuerza lateral en el nivel i correspondiente a una distribución en altura semejante a la del primer modo en la dirección de análisis.\\%
+$d_{i}$: es el desplazamiento lateral del centro de masa del nivel  i en traslación pura (restringiendo los giros en planta) debido a las fuerzas $f_{i}$. Los desplazamientos se calculan suponiendo comportamiento lineal elástico de la estructura y, para el caso de estructuras de concreto armado y de albañilería, considerando las secciones sin fisurar.\\%
+\end{flushleft}%
+Lo anterior equivale a calcular los modos de vibrar en el modelo matemático restringiendo el grado de libertad de rotación.Lo anterior equivale a calcular los modos de vibrar en el modelo matemático restringiendo el grado de libertad de rotación.%
+
+
+\begin{figure}[ht!]%
+\centering%
+\subfigure[X]{\includegraphics[height=70mm]{images/TX.PNG}}\hspace{1cm}%
+\subfigure[Y]{\includegraphics[height=70mm]{images/TY.PNG}}%
+\caption{Periodos fundamentales en traslación pura}%
+\label{fig:periodos_fund}%
+\end{figure}
+
+%
+
+
+\begin{table}[ht!]%
+\centering%
+\caption{Análisis sísmico estático}%
+\extrarowheight = 0ex%
+\renewcommand{\arraystretch}{1.2}%
+\begin{tabular}{>{\arraybackslash}m{7cm}|>{\centering\arraybackslash}m{2.5cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|}%
+\cline{2%
+-%
+4}%
+&\multicolumn{3}{c|}{\textbf{PARÁMETROS SÍSMICOS}}\\%
+\cline{2%
+-%
+4}%
+&&\textit{\textbf{X}}&\textit{\textbf{Y}}\\%
+\cline{2%
+-%
+4}%
+\textit{Factor de Zona (Tabla N° 1)}&\textbf{Z}&\multicolumn{2}{c|}{0.45}\\%
+\cline{2%
+-%
+4}%
+\textit{Factor de Uso (Tabla N° 5)}&\textbf{U}&\multicolumn{2}{c|}{1.50}\\%
+\cline{2%
+-%
+4}%
+\textit{Periodos en traslación pura obtenidos del ETABS (Art. 28.4.2)}&\textbf{T}&0.36&0.27\\%
+\cline{2%
+-%
+4}%
+\textit{Factor de Amplificación (Art. 14)}&\textbf{C}&2.50&2.50\\%
+\cline{2%
+-%
+4}%
+\textit{Factor de Suelo (Tabla N°3)}&\textbf{S}&\multicolumn{2}{c|}{1.05}\\%
+\cline{2%
+-%
+4}%
+\textit{Coef. Básico de Reducción (Tabla N°7)}&\textbf{R\raisebox{-0.5ex}{\scriptsize{o}}}&6.00&7.00\\%
+\cline{2%
+-%
+4}%
+\textit{Irregularidad en altura (Tabla N°8)}&\textbf{I\raisebox{-0.5ex}{\scriptsize{a}}}&1.00&1.00\\%
+\cline{2%
+-%
+4}%
+\textit{Irregularidad en planta (Tabla N°9)}&\textbf{I\raisebox{-0.5ex}{\scriptsize{p}}}&1.00&1.00\\%
+\cline{2%
+-%
+4}%
+\textit{Coef. de Reducción (Articulo 22)}&\textbf{R}&6.00&7.00\\%
+\cline{2%
+-%
+4}%
+\textit{Verificación (Articulo 28.2.2)}&\textbf{C/R>0.11}&0.42&0.36\\%
+\cline{2%
+-%
+4}%
+\textit{Carga Muerta CM)}&\textbf{PD}&\multicolumn{2}{c|}{748.00}\\%
+\cline{2%
+-%
+4}%
+\textit{Carga Viva CV)}&\textbf{PL}&\multicolumn{2}{c|}{108.84}\\%
+\cline{2%
+-%
+4}%
+\textit{Peso sísmico (ETABS)}&\textbf{Ps (Ton)}&\multicolumn{2}{c|}{775.63}\\%
+\cline{2%
+-%
+4}%
+\textit{Coeficientes}&\textbf{ZUCS/R}&0.30&0.25\\%
+\cline{2%
+-%
+4}%
+\textit{Cortante estática (Art.28.2)}&\textbf{V (ton)}&\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{229.05}}&\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{196.33}}\\%
+\cline{2%
+-%
+4}%
+\textit{Coeficiente k (Art.28.3.2)}&\textbf{k}&1.00&1.00\\%
+\cline{2%
+-%
+4}%
+\end{tabular}%
+\end{table}
+
+%
+\subsection{Fuerza cortante mínima Art. 29.4 E{-}030}%
+\label{subsec:FuerzacortantemnimaArt.29.4E{-}030}%
+%insertion%
+\begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Art. 29.4.1]%
+\textit{Para cada una de las direcciones consideradas en el análisis, la fuerza cortante en el primer entrepiso del edificio no puede ser menor que el 80\% del valor calculado según el artículo 25 para estructuras regulares, ni menor que el 90\% para estructuras irregulares.}%
+\end{tcolorbox}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Art. 29.4.2]%
+\textit{Si fuera necesario incrementar el cortante para cumplir los mínimos señalados,  se escalan proporcionalmente todos los otros resultados obtenidos, excepto los  desplazamientos.}%
+\end{tcolorbox}%
+
+
+\begin{figure}[ht!]%
+\caption{Cortantes de entrepiso del AME}%
+\label{fig:corte_basal}%
+\end{figure}
+
+%
+%insertion%
+
+
+\begin{table}[h!]%
+\centering%
+\caption{Escalamiento de la cortante dinámica}%
+\extrarowheight = 0ex%
+\renewcommand{\arraystretch}{1.2}%
+\begin{tabular}{ccc}
+\toprule
+ & X & Y \\
+\midrule
+V din (Ton) & 95.21 & 82.24 \\
+V est (Ton) & -109.04 & -93.45 \\
+\% min & 80.00 & 80.00 \\
+\% & 87.32 & 88.00 \\
+F.E. & 1.00 & 1.00 \\
+\bottomrule
+\end{tabular}
+%
+\end{table}
+
+%
+\subsection{Separación entre edificios Art. 33 E{-}030}%
+\label{subsec:SeparacinentreedificiosArt.33E{-}030}%
+%insertion%
+\begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Art. 33.1]%
+\textit{Toda estructura está separada de las estructuras vecinas, desde el nivel del terreno natural, una distancia mínima s para evitar el contacto durante un movimiento sísmico.}%
+\end{tcolorbox}%
+\begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Art. 33.2]%
+\textit{Esta distancia no es menor que los 2/3 de la suma de los desplazamientos máximos de los edificios adyacentes ni menor que:}%
+\end{tcolorbox}%
+\begin{alignat}{1}%
+s=0.006\;h\geq0.03\;m%
+\end{alignat}%
+Donde h es la altura medida desde el nivel del terreno natural hasta el nivel considerado para evaluar s%
+\begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Art. 33.3]%
+\textit{El edificio se retira de los límites de propiedad adyacentes a otros lotes edificables,  o  con  edificaciones,  distancias  no  menores  que  2/3  del desplazamiento máximo calculado según el artículo 28 ni menores que s/2 si la edificación existente cuenta con una junta sísmica reglamentaria.}%
+\end{tcolorbox}%
+
+
+\begin{figure}[ht!]%
+\centering%
+\caption{Separación entre edificios}%
+\includegraphics[scale=0.5]{images/sep_edificios.PNG}%
+\label{fig:sep_edificios}%
+\end{figure}
+
+%
+
+
+\begin{table}[ht!]%
+\centering%
+\caption{Cálculo de la junta sísmica}%
+\extrarowheight = -0.3ex%
+\renewcommand{\arraystretch}{1.5}%
+\begin{tabular}{l|c|c|l}%
+\cline{2-3}%
+\textit{Altura del edificio} & \textbf{h} & {1410} & {cm} \\%
+\cline{2-3}%
+\textit{Separación mínima entre edificios} & \textbf{s=0.006h} & {8.46} & {>3cm} \\%
+\cline{2-3}%
+\textit{Separación mínima del limite de propiedad} & \textbf{s/2} & {4.23} & {cm} \\%
+\cline{2-3}%
+\textit{Desplazamiento máximo en X} & \textbf{$\Delta_x$} & {4.81} & {cm} \\%
+\cline{2-3}%
+\textit{Desplazamiento máximo en Y} & \textbf{$\Delta_y$} & {6.07} & {cm} \\%
+\cline{2-3}%
+\textit{Separación del limite de propiedad X} & \textbf{2/3$\Delta_{x}$} & {3.21} & {cm} \\%
+\cline{2-3}%
+\textit{Separación del limite de propiedad Y} & \textbf{2/3$\Delta_{y}$} & {4.05} & {cm} \\%
+\cline{2-3}%
+\end{tabular}%
+\label{tab:junta_sis}%
+\end{table}
+
+%
+Según lo calculado en la tabla \ref{tab:junta_sis} %
+ el edificio tendrá que ser separado del limite de propiedad 4.50 cm como mínimo en ambas direcciones, en el caso que no exista junta reglamentaria el edificio actual se separa del edificio existente el valor de s/2 que le corresponde, más el valor s/2 de la estructura vecina.
 
 %
 \end{document}
