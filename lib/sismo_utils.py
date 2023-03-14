@@ -532,7 +532,7 @@ Factor de Reducción:
         if report:
             self.show_table(rev_drift)
 
-            plt.ylim(0,max(self.heights)+0.50)
+            plt.ylim(0,max(self.heights)*1.05)
             plt.xlim(0,max(max_drift_x,max_drift_y,self.data.max_drift_x)+0.003)
             plt.plot(self.drifts_x,self.heights,'r',label='X (R=%.2f)'%self.data.Rx)
             plt.plot(self.drifts_y,self.heights,'b',label='Y (R=%.2f)'%self.data.Rx)
@@ -579,7 +579,7 @@ Factor de Reducción:
         if report:
             self.show_table(table)
 
-            plt.ylim(0,max(self.heights)+0.50)
+            plt.ylim(0,max(self.heights)*1.05)
             plt.xlim(0,float(max(max_disp_x,max_disp_y))+0.003)
             plt.plot(self.disp_x,self.heights,'r',label='X (R=%.2f)'%self.data.Rx)
             plt.plot(self.disp_y,self.heights,'b',label='Y (R=%.2f)'%self.data.Rx)
