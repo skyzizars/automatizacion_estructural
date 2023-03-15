@@ -1,7 +1,8 @@
 from ipywidgets import widgets
 from IPython.display import clear_output, display
 from lib import sismo_utils as sis
-from lib import latex_utils as ltx
+from lib import baseDatos_Zonificacion as BD
+import numpy as np
 
 #widgets
 def dropdown(op, desc, val=''):
@@ -39,6 +40,51 @@ class Sismo(sis.Sismo_e30):
         self.data.irreg_altura()
         self.data.irreg_planta()
         
+    def ubicacion(self):
+        #Creamos la base de datos de ciudades y su zonificación sismica
+        BD_df= BD.BaseDatos_Zonas_Sismicas().BD_Zonas_Sismicas
+        #Valores Iniciales
+        departamentos = BD_df['DEPARTAMENTO'].unique()
+        self.departamento = departamentos[0]
+        provincias = BD_df.query('DEPARTAMENTO==@self.departamento')['PROVINCIA'].unique()
+        self.provincia = provincias[0]
+        distritos = (BD_df.query('DEPARTAMENTO==@self.departamento')
+                    .query('PROVINCIA==@self.provincia')['DISTRITO'].unique())
+        self.distrito = distritos[0]
+
+        self.departamentos = dropdown(departamentos,'Departamento ',self.departamento)
+        self.provincias = dropdown(provincias,'Provincia ',self.provincia)
+        self.distritos = dropdown(distritos,'Distrito ',self.distrito)
+
+
+        def change_cbx_ubicacion(change,departamento=None,provincia=None,distrito = None):
+            if change['type'] == 'change' and change['name'] == 'value':
+                clear_output(wait=False)
+                self.departamento = departamento if departamento else self.departamento
+                provincias = BD_df.query('DEPARTAMENTO==@self.departamento')['PROVINCIA'].unique()
+                self.provincia = provincia if provincia else self.provincia if distrito else provincias[0]
+                distritos = (BD_df.query('DEPARTAMENTO==@self.departamento')
+                    .query('PROVINCIA==@self.provincia')['DISTRITO'].unique())
+                self.distrito = distrito if distrito else distritos[0]
+
+                self.provincias = dropdown(provincias,'Provincia ',self.provincia)
+                self.distritos = dropdown(distritos,'Distrito ',self.distrito)
+
+                self.provincias.observe(lambda change: change_cbx_ubicacion(change,provincia = self.provincias.value))
+                self.distritos.observe(lambda change: change_cbx_ubicacion(change,distrito = self.distritos.value))
+
+                self.data.zona = int((BD_df.query('DEPARTAMENTO==@self.departamento')
+                                        .query('PROVINCIA==@self.provincia')
+                                        .query('DISTRITO==@self.distrito')['ZONA(Z)']))
+                return display(widgets.VBox([self.departamentos,self.provincias,self.distritos]))
+
+
+        self.departamentos.observe(lambda change: change_cbx_ubicacion(change,departamento = self.departamentos.value))
+        self.provincias.observe(lambda change: change_cbx_ubicacion(change,provincia = self.provincias.value))
+        self.distritos.observe(lambda change: change_cbx_ubicacion(change,distrito = self.distritos.value))
+
+        return(widgets.VBox([self.departamentos,self.provincias,self.distritos]))
+
 
     def parametros_e30(self):
         categorias= ['A1 aislado','A1 no aislado','A2','B','C']
@@ -55,7 +101,8 @@ class Sismo(sis.Sismo_e30):
                     'Albañilería Armada o Confinada',
                     'Madera']
 
-        zona = dropdown([1, 2, 3, 4], 'Factor Zona', val=self.data.zona)
+
+        zona = dropdown([1, 2, 3, 4], 'Factor Zona', val=self.data.zona)    
         uso = dropdown(categorias, 'Factor de Importancia', val=self.data.categoria)
         suelo = dropdown(['S0', 'S1', 'S2', 'S3'], 'Factor Suelo', val=self.data.suelo)
         sistema_x = dropdown(sistemas, 'Sistema Estructural X', val=self.data.sistema_x)
@@ -72,8 +119,11 @@ class Sismo(sis.Sismo_e30):
         pisos.observe(lambda _: self.data.set_pisos(pisos.value,self.data.n_azoteas,self.data.n_sotanos))
         sotanos.observe(lambda _: self.data.set_pisos(self.data.n_pisos,sotanos.value,self.data.n_sotanos))
         azoteas.observe(lambda _: self.data.set_pisos(self.data.n_pisos,self.data.n_azoteas,azoteas.value))
+        
         return display(widgets.VBox([zona, uso, suelo, sistema_x,sistema_y, pisos, sotanos, azoteas]))
-    
+
+        
+
     def irregularidades_e30(self):
         i_piso_b = check_box('Piso Blando', self.data.i_piso_blando)
         i_piso_b.observe(lambda _: self.data.irreg_altura(i_piso_blando=i_piso_b.value))

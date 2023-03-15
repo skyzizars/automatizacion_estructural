@@ -8,13 +8,5 @@
 *.synctex.gz
 *.aux
 *.chm
-<<<<<<<<< Temporary merge branch 1
-concreto
 *.ipynb
-=========
-<<<<<<< HEAD
-*.ipynb
-=======
 concreto
->>>>>>> 672eb16c617c439d6b69e88d235893f4e30dd4e5
->>>>>>>>> Temporary merge branch 2
