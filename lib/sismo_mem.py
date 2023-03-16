@@ -323,6 +323,7 @@ def tabla_resumen(Z,U,S,Tp,Tl,Rox,Roy,Ia,Ip,o_type=Subsubsection):
 
 def espectro_respuesta(T,Sax,Say,Tp,Tl,Rx,Ry,o_type=Subsubsection):
     y_max = max(max(Sax),max(Say))
+    plt.clf()
     plt.ylim(0,y_max+0.02)
     plt.xlim(0,4)
     plt.plot(T,Sax,'r',label='X (R=%.2f)'%Rx)
@@ -392,6 +393,7 @@ def ana_modal(table,o_type=Subsection):
     obj.packages.append(Package('tcolorbox'))
     obj.packages.append(Package('booktabs'))
     obj.packages.append(Package('array'))
+    obj.packages.append(Package('float'))
         
     mbox = mybox3(r'Art. 26.1.1')
     mbox.append(NoEscape(r'\textit{Los modos de vibración pueden determinarse por un procedimiento de análisis que considere apropiadamente las características de rigidez y la distribución de las masas.}'))
@@ -407,7 +409,7 @@ def ana_modal(table,o_type=Subsection):
     table.format('{:.0f}',subset= pd.IndexSlice[:,'Mode'])
     table = table.to_latex(hrules=True,column_format = 'c'*8,)
     
-    with obj.create(Table(position='h!')):
+    with obj.create(Table(position='H')):
         obj.append(NoEscape(r'\extrarowheight = -0.3ex'))
         obj.append(NoEscape(r'\renewcommand{\arraystretch}{1.3}'))
         obj.append(NoEscape('\centering'))
@@ -594,11 +596,11 @@ def irreg_discontinuidad_diaf(sec_change=None,openings=None,o_type=Subsubsection
         table = Table(position='H')
         table.append(NoEscape(r'\centering'))
         table.append(NoEscape(r'\caption{Irregularidad por discontinuidad del diafragma (a)}'))
-        tab = Tabular('|ll|c|r')
+        tab = Tabular('llcr')
         tab.append(NoEscape(r'\cline{1-3}'))
         for row in data:
-            tab.append(NoEscape(r'\multicolumn{2}{|l|}{%s} & %s & \multicolumn{1}{l}{%s} \\'%(row[0],row[1],row[2])))
-            tab.append(NoEscape(r'\cline{1-3}'))
+            tab.append(NoEscape(r'\multicolumn{2}{r}{%s} & %s & \multicolumn{1}{l}{%s} \\'%(row[0],row[1],row[2])))
+        tab.append(NoEscape(r'\cline{1-3}'))
         table.append(tab)
         obj.append(table)
 
@@ -674,11 +676,11 @@ def irreg_esquinas_entrantes(datos_esquinas=None,o_type=Subsubsection):
         table = Table(position='H')
         table.append(NoEscape(r'\centering'))
         table.append(NoEscape(r'\caption{Irregularidad por esquinas entrantes}'))
-        tab = Tabular('|ll|c|r')
+        tab = Tabular('llcr')
         tab.append(NoEscape(r'\cline{1-3}'))
         for row in data:
-            tab.append(NoEscape(r'\multicolumn{2}{|l|}{%s} & %s & \multicolumn{1}{l}{%s} \\'%(row[0],row[1],row[2])))
-            tab.append(NoEscape(r'\cline{1-3}'))
+            tab.append(NoEscape(r'\multicolumn{2}{l}{%s} & %s & \multicolumn{1}{l}{%s} \\'%(row[0],row[1],row[2])))
+        tab.append(NoEscape(r'\cline{1-3}'))
         table.append(tab)
         obj.append(table)
 
@@ -693,6 +695,7 @@ def analisis_dinamico(o_type=Subsection):
 
 def criterios_combinacion(o_type=Subsubsection):
     obj = def_obj(o_type,'Criterios de combinación') 
+    obj.packages.append(Package('tcolorbox'))
     obj.append(NoEscape('%insertion'))
     
     mbox = mybox3(r'Art. 29.3.1')
@@ -722,8 +725,28 @@ def criterios_combinacion(o_type=Subsubsection):
 
     return obj
 
-def desplazamientos_laterales(o_type=Subsection):
-    obj = def_obj(o_type,'Determinación de desplazamientos laterales Art. 31 E-030') 
+def desplazamientos_laterales(heights,disp_x,disp_y,Rx,Ry,o_type=Subsection):
+    max_disp_x = max(disp_x)
+    max_disp_y = max(disp_y)
+    plt.clf()
+    plt.ylim(0,max(heights)*1.05)
+    plt.xlim(0,float(max(max_disp_x,max_disp_y))+0.003)
+    plt.plot(disp_x,heights,'r',label='X (R=%.2f)'%Rx)
+    plt.plot(disp_y,heights,'b',label='Y (R=%.2f)'%Ry)
+    plt.scatter(disp_x,heights,color='r',marker='x')
+    plt.scatter(disp_y,heights,color='b',marker='x')
+    plt.xlabel('Desplazamientos (m)')
+    plt.ylabel('h (m)')
+    plt.grid(linestyle='dotted', linewidth=1)
+    plt.legend()
+    fig = plt.gcf()
+    fig.set_size_inches(8, 6)
+    fig.set_frameon(False)
+    plt.savefig("images/desplazamientos_laterales.pdf",dpi=300,pad_inches=0,bbox_inches='tight')
+
+    obj = def_obj(o_type,'Determinación de desplazamientos laterales Art. 31 E-030')
+    obj.packages.append(Package('tcolorbox'))
+    obj.packages.append(Package('float'))
     obj.append(NoEscape('%insertion'))
     
     mbox = mybox3(r'Art. 31.3.1')
@@ -731,29 +754,52 @@ def desplazamientos_laterales(o_type=Subsection):
     obj.append(mbox)
 
     with obj.create(Figure(position='H')) as fig:
-        ######################
-        #Falta incluir figura#
-        ######################
+        fig.append(NoEscape('\\includegraphics[width=\\textwidth]{images/desplazamientos_laterales}'))
         fig.add_caption('Desplazamientos inelásticos')
     
     return obj
 
-def verificacion_derivas(sist_x,sist_y,o_type=Subsection):
+def verificacion_derivas(sist_x,sist_y,heights,drifts_x,drifts_y,max_drift,Rx,Ry,o_type=Subsection):
+    max_drift_x = max(drifts_x)
+    max_drift_y = max(drifts_y)
+    plt.clf()
+    plt.ylim(0,max(heights)*1.05)
+    plt.xlim(0,max(max_drift_x,max_drift_y,max_drift)*1.02)
+    plt.plot(drifts_x,heights,'r',label='X (R=%.2f)'%Rx)
+    plt.plot(drifts_y,heights,'b',label='Y (R=%.2f)'%Ry)
+    plt.scatter(drifts_x,heights,color='r',marker='x')
+    plt.scatter(drifts_y,heights,color='b',marker='x')
+    plt.axvline(x = max_drift, color = 'c',linestyle='dotted')
+    plt.axvline(x = max_drift/2, color = 'g',linestyle='dotted')
+    plt.text(max_drift-0.001,max(heights),round(max_drift,4), fontsize=10, color='k')
+    plt.text(max_drift/2-0.001,max(heights),round(max_drift/2,4), fontsize=10, color='k')
+    plt.xlabel('Derivas')
+    plt.ylabel('h (m)')
+    plt.grid(linestyle='dotted', linewidth=1)
+    plt.legend(loc='lower right')
+    fig = plt.gcf()
+    fig.set_frameon(False)
+    plt.savefig("images/derivas.pdf",dpi=300,pad_inches=0,bbox_inches='tight')
+
     obj=def_obj(o_type,'Verificación de derivas máximas Art. 32 E-030')
+    obj.packages.append(Package('array'))
+    obj.packages.append(Package('colortbl'))
+    obj.packages.append(Package('multirow'))
+    obj.packages.append(Package('caption'))
     obj.append(NoEscape('%insertion'))
 
-    sistemas = ['Pórticos de Concreto Armado',
-                'Dual de Concreto Armado',
-                'De Muros Estructurales de Concreto Armado',
-                'Pórticos Especiales de Acero Resistentes a Momentos',
-                'Pórticos Intermedios de Acero Resistentes a Momentos',
-                'Pórticos Ordinarios de Acero Resistentes a Momentos',
-                'Pórticos Especiales de Acero Concénticamente Arriostrados',
-                'Pórticos Ordinarios de Acero Concénticamente Arriostrados',
-                'Pórticos Acero Excéntricamente Arriostrados',
-                'Muros de Ductilidad Limita de Concreto Armado',
-                'Albañilería Armada o Confinada',
-                'Madera']
+    sistemas = {'Pórticos de Concreto Armado':'Concreto Armado',
+                'Dual de Concreto Armado':'Concreto Armado',
+                'De Muros Estructurales de Concreto Armado':'Concreto Armado',
+                'Pórticos Especiales de Acero Resistentes a Momentos':'Acero',
+                'Pórticos Intermedios de Acero Resistentes a Momentos':'Acero',
+                'Pórticos Ordinarios de Acero Resistentes a Momentos':'Acero',
+                'Pórticos Especiales de Acero Concénticamente Arriostrados':'Acero',
+                'Pórticos Ordinarios de Acero Concénticamente Arriostrados':'Acero',
+                'Pórticos Acero Excéntricamente Arriostrados':'Acero',
+                'Muros de Ductilidad Limita de Concreto Armado':'Edificios de concreto armado con muros de ductilidad limitada',
+                'Albañilería Armada o Confinada':'Albañilería',
+                'Madera':'Madera'}
 
     data = [['Concreto Armado',0.007],
                 ['Acero',0.010],
@@ -761,47 +807,18 @@ def verificacion_derivas(sist_x,sist_y,o_type=Subsection):
                 ['Madera',0.010],
                 ['Edificios de concreto armado con muros de ductilidad limitada',0.005]]
     
-    if   sist_x in sistemas[0:3]:
-        material_predom1='Concreto Armado'
-    elif sist_x in sistemas[3:9]:
-        material_predom1='Acero'
-    elif sist_x in sistemas[9:10]:
-        material_predom1='Edificios de concreto armado con muros de ductilidad limitada'
-    elif sist_x=='Albañilería Armada o Confinada':
-        material_predom1='Albañilería'
-    elif sist_x=='Madera':
-        material_predom1='Madera'
-    else:
-        print("Error con la definición de material predominante")
-        
-    if sist_y in sistemas[0:3]:
-        material_predom2='Concreto Armado'
-    elif sist_y in sistemas[3:9]:
-        material_predom2='Acero'
-    elif sist_y in sistemas[9:10]:
-        material_predom2='Edificios de concreto armado con muros de ductilidad limitada'
-    elif sist_y=='Albañilería Armada o Confinada':
-        material_predom2='Albañilería'
-    elif sist_y=='Madera':
-        material_predom2='Madera'
-    else:
-        print("Error con la definición de material predominante")
-
-    for i in range(len(data)):
-        if material_predom1 in data[i]:
-            data[i][0] = data[i][0]+r'\cellcolor[rgb]{ .949,  .949,  .949} '
-            data[i][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+str(data[i][1])+r'}}'+r'\cellcolor[rgb]{ .949,  .949,  .949}'
-        if material_predom2 in data[i] and material_predom2!=material_predom1 :
+    for i,j in enumerate(data):
+        if j[0] in (sistemas[sist_x],sistemas[sist_y]):
             data[i][0] = data[i][0]+r'\cellcolor[rgb]{ .949,  .949,  .949} '
             data[i][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+str(data[i][1])+r'}}'+r'\cellcolor[rgb]{ .949,  .949,  .949}'
     
     table = Table(position='ht!')
     table.append(NoEscape(r'\centering'))
     table.append(NoEscape(r'\caption{Derivas máximas}'))
-    tab = Tabular(NoEscape(r'|m{7cm}|c|'))
+    tab = Tabular(NoEscape(r'>{\raggedright\arraybackslash}p{9.8cm} >{\raggedleft\arraybackslash}p{1cm}'))
     tab.append(NoEscape(r'\hline'))
-    tab.append(NoEscape(r'\multicolumn{2}{|c|}{\multirow{2}[1]{*}{\textbf{LIMITES PARA LA DISTORSION DE ENTREPISO}}} \\'))
-    tab.append(NoEscape(r'\multicolumn{2}{|c|}{} \\'))
+    tab.append(NoEscape(r'\multicolumn{2}{c}{\multirow{2}[1]{*}{\textbf{LIMITES PARA LA DISTORSION DE ENTREPISO}}} \\'))
+    tab.append(NoEscape(r'\multicolumn{2}{c}{} \\'))
     tab.append(NoEscape(r'\hline'))
     tab.append(NoEscape(r'\textbf{Material predominante:} & $\Delta_{i}/h_{ei}$ \\'))
     tab.append(NoEscape(r'\hline'))
@@ -813,16 +830,15 @@ def verificacion_derivas(sist_x,sist_y,o_type=Subsection):
     obj.append(table)
     
     with obj.create(Figure(position='ht!')) as fig:
-        ######################
-        #Falta incluir figura#
-        ######################
+        fig.append(NoEscape('\\includegraphics[width=\\textwidth]{images/derivas}'))
         fig.add_caption('Derivas máxima de entrepiso')
     
     return obj
 
 def verificacion_sist_est(o_type=Subsection):
     obj=def_obj(o_type,'Verificación del sistema estructural')
-    obj.append(r'Se verificará que efectivamente se tiene un sistema estructural de muros en la dirección X, en la dirección Y no se verificara dado que no existen muros estructurales. Como se muestra en la figura \ref{fig:sist_est_etabs} el valor de cortante que absorben los muros es de 64 ton, y la cortante total es aproximadamente 70 ton (ver figura \ref{fig:corte_basal}) por lo que el porcentaje que toman los muros es mayor al 90\%.')
+    obj.packages.append(Package('caption')) 
+    obj.append(r'Se verificará que efectivamente se tiene un sistema estructural de muros en la dirección X, en la dirección Y no se verificara dado que no existen muros estructurales. Como se muestra en la figura \ref{fig:sist_est_etabs} el valor de cortante que absorben los muros es de 64 ton, y la cortante total es aproximadamente 70 ton (ver figura \ref{fig:corte_basal}) por lo que el porcentaje que toman los muros es mayor al 90%.')
     obj.append(NoEscape('%insertion'))
     
     fig = Figure(position='ht!')
@@ -849,11 +865,15 @@ def analisis_estatico(o_type=Subsection):
 
     return obj
 
-def cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,Pd,Pl,Ps,o_type=Subsubsection):
+def cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,sis_estatico,o_type=Subsubsection):
     obj = def_obj(o_type,'Fuerza cortante en la base Art 28.2 E-030') 
     obj.append(NoEscape('%insertion'))
     obj.packages.append(Package('graphicx'))
     obj.packages.append(Package('subfigure'))
+    obj.packages.append(Package('tcolorbox'))
+    obj.packages.append(Package('colortbl'))
+    obj.packages.append(Package('float'))
+    obj.packages.append(Package('booktabs'))
     
     mbox = mybox3(r'Art. 28.2.1')
     mbox.append(NoEscape(r'\textit{La fuerza cortante total en la base de la estructura, correspondiente a la dirección considerada, se determina por la siguiente expresión:}'))
@@ -883,7 +903,7 @@ def cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,Pd,Pl,Ps,o_type=Subsubs
     fig.append(NoEscape(r'\caption{Periodos fundamentales en traslación pura}'))
     fig.append(NoEscape(r'\label{fig:periodos_fund}'))
     obj.append(fig)
-
+    Ps = sum(sis_estatico['Weight'])
     Rx=Rox*Ia*Ip
     Ry=Roy*Ia*Ip
     ZUSC_Rx=Z*U*S*Cx/Rx
@@ -891,7 +911,7 @@ def cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,Pd,Pl,Ps,o_type=Subsubs
     Vx=ZUSC_Rx*Ps
     Vy=ZUSC_Ry*Ps
 
-    with obj.create(Table(position='ht!')) as table:
+    with obj.create(Table(position='H')) as table:
         table.append(NoEscape('\centering'))
         table.add_caption('Análisis sísmico estático')
         table.append(NoEscape(r'\extrarowheight = 0ex'))
@@ -922,10 +942,6 @@ def cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,Pd,Pl,Ps,o_type=Subsubs
             tabular.add_hline(2,4)
             tabular.add_row((NoEscape(r'\textit{Verificación (Articulo 28.2.2)}'), NoEscape(r'\textbf{C/R>0.11}'), '{:.2f}'.format(Cx/Rx), '{:.2f}'.format(Cy/Ry)))
             tabular.add_hline(2,4)
-            tabular.add_row((NoEscape(r'\textit{Carga Muerta CM)}'), NoEscape(r'\textbf{PD}'),MultiColumn(2,align='c|',data='{:.2f}'.format(Pd))))
-            tabular.add_hline(2,4)
-            tabular.add_row((NoEscape(r'\textit{Carga Viva CV)}'), NoEscape(r'\textbf{PL}'), MultiColumn(2,align='c|',data='{:.2f}'.format(Pl))))
-            tabular.add_hline(2,4)
             tabular.add_row((NoEscape(r'\textit{Peso sísmico (ETABS)}'), NoEscape(r'\textbf{Ps (Ton)}'), MultiColumn(2,align='c|',data='{:.2f}'.format(Ps))))
             tabular.add_hline(2,4)
             tabular.add_row((NoEscape(r'\textit{Coeficientes}'), NoEscape(r'\textbf{ZUCS/R}'), '{:.2f}'.format(ZUSC_Rx), '{:.2f}'.format(ZUSC_Ry)))
@@ -935,10 +951,28 @@ def cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,Pd,Pl,Ps,o_type=Subsubs
             tabular.add_row((NoEscape(r'\textit{Coeficiente k (Art.28.3.2)}'), NoEscape(r'\textbf{k}'), '{:.2f}'.format(kx), '{:.2f}'.format(ky)))
             tabular.add_hline(2,4)
 
+    def latex_table(table):
+        table.columns = ['Piso','Peso','Altura',r'$H^{kx}$',r'$H^{ky}$','PxHx','PxHy','ax','ay','Vx','Vy']
+        for i in  ['Peso','Altura',r'$H^{kx}$',r'$H^{ky}$','PxHx','PxHy','ax','ay','Vx','Vy']:
+            table.loc[:,i] = table.loc[:,i].astype(float)
+        table = table.style.hide(axis='index')
+        table = table.format('{:.3f}',subset=pd.IndexSlice[:,['Peso','Altura',r'$H^{kx}$',r'$H^{ky}$','PxHx','PxHy','ax','ay','Vx','Vy']])
+        table = table.to_latex(hrules=True, column_format = 'c'*11)
+        return table
+
+
+    with obj.create(Table(position='H')) as table:
+        table.append(NoEscape('\centering'))
+        table.add_caption('Análisis sísmico estático por pisos')
+        table.append(NoEscape(latex_table(sis_estatico)))
+
     return obj
 
 def fuerza_cortante_min(tabla_corte_min,o_type=Subsection):
-    obj = def_obj(o_type,'Fuerza cortante mínima Art. 29.4 E-030') 
+    obj = def_obj(o_type,'Fuerza cortante mínima Art. 29.4 E-030')
+    obj.packages.append(Package('tcolorbox'))
+    obj.packages.append(Package('array'))
+    obj.packages.append(Package('booktabs'))
     obj.append(NoEscape('%insertion'))
     
     mbox = mybox2(r'Art. 29.4.1')
@@ -948,13 +982,6 @@ def fuerza_cortante_min(tabla_corte_min,o_type=Subsection):
     mbox = mybox2(r'Art. 29.4.2')
     mbox.append(NoEscape(r'\textit{Si fuera necesario incrementar el cortante para cumplir los mínimos señalados,  se escalan proporcionalmente todos los otros resultados obtenidos, excepto los  desplazamientos.}'))
     obj.append(mbox)
-
-    with obj.create(Figure(position='ht!')) as fig:
-        ######################
-        #Falta incluir figura#
-        ######################
-        fig.add_caption('Cortantes de entrepiso del AME')
-        fig.append(NoEscape(r'\label{fig:corte_basal}'))
 
     def latex_table(table):
         table.columns = table.iloc[0]
@@ -970,8 +997,6 @@ def fuerza_cortante_min(tabla_corte_min,o_type=Subsection):
     with obj.create(Table(position='h!')) as table:
         table.append(NoEscape('\centering'))
         table.append(NoEscape('\caption{Escalamiento de la cortante dinámica}'))
-        table.append(NoEscape(r'\extrarowheight = 0ex'))
-        table.append(NoEscape(r'\renewcommand{\arraystretch}{1.2}'))
         table.append(NoEscape(latex_table(tabla_corte_min)))
 
     return obj
@@ -979,6 +1004,9 @@ def fuerza_cortante_min(tabla_corte_min,o_type=Subsection):
 def separacion_edificios(datos_sep,o_type=Subsection):
     obj = def_obj(o_type,'Separación entre edificios Art. 33 E-030')
     obj.packages.append(Package('subfigure')) 
+    obj.packages.append(Package('tcolorbox')) 
+    obj.packages.append(Package('float')) 
+    obj.packages.append(Package('array')) 
     obj.append(NoEscape('%insertion'))
 
     mbox = mybox2(r'Art. 33.1')
@@ -1063,11 +1091,23 @@ if __name__ == '__main__':
     torsion_x = sismo.tables.torsion_table.query('OutputCase == @seism_x')
     torsion_y = sismo.tables.torsion_table.query('OutputCase == @seism_y')
 
+    #Espectro de Respuestas
     T = sismo.T
     Sax = sismo.Sax
     Say = sismo.Say
     Rx = sismo.data.Rx
     Ry = sismo.data.Ry
+
+    #Desplazamientos
+    disp_x = sismo.disp_x
+    disp_y = sismo.disp_y
+    heights = sismo.heights
+
+    #Derivas
+    drifts_x = sismo.drifts_x
+    drifts_y = sismo.drifts_y
+    max_drift =sismo.data.max_drift_x
+    heights_drifts = sismo.heights_drifts
 
     #datos discontinuidad de diafragma
     sec_change = {'aligerado':[7.51,0.05],
@@ -1082,10 +1122,12 @@ if __name__ == '__main__':
                 'dim_Y':15.28}
     
     #Cargas sismicas
-    lista_cargas={'PD':748,'PL':108.84,'Ps':775.63}
+    sis_estatico = sismo.tables.static_seism
 
     # Datos separacion
-    datos_sep={'altura_edificio':1410,'despl_max_X':4.81,'despl_max_Y':6.07}
+    datos_sep={'altura_edificio':max(heights)*100,
+               'despl_max_X':max(disp_x)*100,
+               'despl_max_Y':max(disp_y)*100}
 
     geometry_options = { "left": "2.5cm", "top": "1.5cm" }
     doc = Document(geometry_options=geometry_options)
@@ -1115,11 +1157,11 @@ if __name__ == '__main__':
     i_esquinas = irreg_esquinas_entrantes(datos_esquinas)
     analisis_din = analisis_dinamico()
     criterios_comb= criterios_combinacion()
-    desplaz_lat= desplazamientos_laterales()
-    verif_derivas= verificacion_derivas(sist_x,sist_y)
+    desplaz_lat= desplazamientos_laterales(heights,disp_x,disp_y,Rx,Ry)
+    verif_derivas= verificacion_derivas(sist_x,sist_y,heights_drifts,drifts_x,drifts_y,max_drift,Rx,Ry)
     verif_sist_est = verificacion_sist_est()
     analisis_est = analisis_estatico()
-    corte_basal= cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,lista_cargas['PD'],lista_cargas['PL'],lista_cargas['Ps'])
+    corte_basal= cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,sis_estatico)
     corte_basal_min = fuerza_cortante_min(sismo.tables.shear_table)
     sep_edificios= separacion_edificios(datos_sep)
     
@@ -1129,8 +1171,6 @@ if __name__ == '__main__':
             analisis_din,criterios_comb,
             desplaz_lat,verif_derivas,verif_sist_est,
             analisis_est,corte_basal,corte_basal_min,sep_edificios]
-    
-    #obj_list = [a_irreg,i_discontinuidad]
 
     for i in obj_list:
         sec.append(i)

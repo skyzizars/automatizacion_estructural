@@ -520,8 +520,8 @@ Factor de Reducción:
         force_x = list(rev_drift.query('Direction=="X"').query('Drifts==@max_drift_x')['OutputCase'])[0]
         self.drifts_x = np.array(rev_drift.query('Direction=="X"').query('OutputCase==@force_x')['Drifts'])[::-1]
         self.drifts_x  = np.append([0.],self.drifts_x)
-        self.heights = np.array(rev_drift.query('Direction=="X"').query('OutputCase==@force_x')['Height']).astype(float)[::-1].cumsum()
-        self.heights  = np.append([0.],self.heights)
+        self.heights_drifts = np.array(rev_drift.query('Direction=="X"').query('OutputCase==@force_x')['Height']).astype(float)[::-1].cumsum()
+        self.heights_drifts  = np.append([0.],self.heights_drifts)
 
         cases_y = list(rev_drift.query('Direction=="Y"')['OutputCase'].unique())
         max_drift_y = rev_drift[rev_drift['OutputCase'].isin(cases_y)].query('Direction=="Y"')['Drifts'].max()
