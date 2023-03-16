@@ -402,7 +402,7 @@ Factor de Reducción:
         else:
             table['Drifts']=table['Max Drift'].apply(lambda x:float(x))/table['Height'].apply(lambda x:float(x))*0.85
 
-        table['Drifts'] = table.apply((lambda row: float(row['Max Drift'])*self.data.Rx if 'x' in row['OutputCase'] else float(row['Max Drift'])*self.data.Ry),axis=1)
+        table['Drifts'] = table.apply((lambda row: float(row['Drifts'])*self.data.Rx if 'x' in row['OutputCase'] else float(row['Drifts'])*self.data.Ry),axis=1)
 
         table['Drift < Dmax/2'] = table['Drifts'] < self.data.max_drift_x/2
         tor_reg = (table['Drift < Dmax/2']) | (table['Ratio'].apply(lambda x: float(x)) < 1.3)
@@ -468,7 +468,7 @@ Factor de Reducción:
 
     # Masa
 
-    def irregularidad_masa(self,SapModel,report=True):
+    def irregularidad_masa(self,SapModel,report=False):
         _,masa = etb.get_table(SapModel,'Mass Summary by Story')
         masa['Mass'] = masa.UX
         masa = masa[['Story','Mass']]
@@ -535,7 +535,7 @@ Factor de Reducción:
             plt.ylim(0,max(self.heights)*1.05)
             plt.xlim(0,max(max_drift_x,max_drift_y,self.data.max_drift_x)+0.003)
             plt.plot(self.drifts_x,self.heights,'r',label='X (R=%.2f)'%self.data.Rx)
-            plt.plot(self.drifts_y,self.heights,'b',label='Y (R=%.2f)'%self.data.Rx)
+            plt.plot(self.drifts_y,self.heights,'b',label='Y (R=%.2f)'%self.data.Ry)
             plt.scatter(self.drifts_x,self.heights,color='r',marker='x')
             plt.scatter(self.drifts_y,self.heights,color='b',marker='x')
             plt.axvline(x = self.data.max_drift_x/2, color = 'c',linestyle='dotted')
@@ -562,6 +562,8 @@ Factor de Reducción:
         
         self.tables.displacements = table
 
+        table['Maximum'] = table['Maximum'].astype(float)
+
         cases_x = list(table.query('Direction=="X"')['OutputCase'].unique())
         max_disp_x = table[table['OutputCase'].isin(cases_x)].query('Direction=="X"')['Maximum'].max()
         force_x = list(table.query('Direction=="X"').query('Maximum==@max_disp_x')['OutputCase'])[0]
@@ -582,7 +584,7 @@ Factor de Reducción:
             plt.ylim(0,max(self.heights)*1.05)
             plt.xlim(0,float(max(max_disp_x,max_disp_y))+0.003)
             plt.plot(self.disp_x,self.heights,'r',label='X (R=%.2f)'%self.data.Rx)
-            plt.plot(self.disp_y,self.heights,'b',label='Y (R=%.2f)'%self.data.Rx)
+            plt.plot(self.disp_y,self.heights,'b',label='Y (R=%.2f)'%self.data.Ry)
             plt.scatter(self.disp_x,self.heights,color='r',marker='x')
             plt.scatter(self.disp_y,self.heights,color='b',marker='x')
             plt.xlabel('Desplazamientos (m)')
@@ -647,7 +649,7 @@ Factor de Reducción:
         self.irregularidad_masa(SapModel)
         #self.centro_masa_inercia(SapModel)
         self.irregularidad_torsion(SapModel)
-        self.derivas()
+        self.derivas(SapModel)
         self.min_shear(SapModel,self.base_story)
 
     def generate_memoria(self):
@@ -660,37 +662,84 @@ Factor de Reducción:
         zona = self.data.zona
         suelo = self.data.suelo
         categoria = self.data.categoria
+        Z,U,S,Tp,Tl = self.data.Z,self.data.U,self.data.S,self.data.Tp,self.data.Tl
+        Rox,Roy,Ia,Ip = self.data.Rox,self.data.Roy,self.data.Ia,self.data.Ip
+        Tx,Ty,Cx,Cy = self.data.Tx,self.data.Ty,self.data.Cx,self.data.Cy
+        kx,ky = self.data.kx,self.data.ky
+
+        p_blando_x = self.tables.piso_blando_table.query('OutputCase == @seism_x')
+        p_blando_y = self.tables.piso_blando_table.query('OutputCase == @seism_y')
+        torsion_x = self.tables.torsion_table.query('OutputCase == @seism_x')
+        torsion_y = self.tables.torsion_table.query('OutputCase == @seism_y')
+
+        #datos discontinuidad de diafragma
+        sec_change = {'aligerado':[7.51,0.05],
+                    'maciza':[2.25,0.20]}
+        openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
+                    'area_planta' : 120.41}
+        
+        #datos de esquinas entrantes
+        datos_esquinas={'esq_X':4.95,
+                  'esq_Y':2.30,
+                  'dim_X':7.51,
+                  'dim_Y':15.28}
+        
+        #Cargas sismicas
+        lista_cargas={'PD':748,'PL':108.84,'Ps':775.63}
+
+        # Datos separacion
+        datos_sep={'altura_edificio':1410,'despl_max_X':4.81,'despl_max_Y':6.07}
+
         geometry_options = { "left": "2.5cm", "top": "1.5cm" }
         doc = Document(geometry_options=geometry_options)
         doc.packages.append(Package('xcolor', options=['dvipsnames']))
         doc.preamble.append(NoEscape(r'\graphicspath{ {%s/} }'%os.getcwd().replace('\\','/')))
+
         sec = Section('Análisis Sísmico')
+        p_sitio = smem.parametros_sitio()
         f_zona = smem.factor_zona(zona)
         f_suelo = smem.factor_suelo(zona, suelo)
         p_suelo = smem.periodos_suelo(suelo)   
-        s_est = smem.sist_estructural()
+        s_est = smem.sist_estructural(sist_x,sist_y)
         f_amp = smem.factor_amplificacion()
         f_imp = smem.factor_importancia(categoria)
-        a_modal = smem.ana_modal(self.tables.modal)             
-        sis_x = self.tables.piso_blando_table.query('OutputCase == @seism_x')
-        sis_y = self.tables.piso_blando_table.query('OutputCase == @seism_y')
-        i_rig = smem.irreg_rigidez(sis_x,sis_y)
-        i_masa = smem.irreg_masa(self.tables.rev_masa_table)
-        sis_x = self.tables.torsion_table.query('OutputCase == @seism_x')
-        sis_y = self.tables.torsion_table.query('OutputCase == @seism_y')
-        i_torsion = smem.irreg_torsion(sis_x, sis_y)
-        sec_change = {'aligerado':[7.51,0.05],
-                    'macisa':[2.25,0.20]}
-        openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
-                    'area_planta' : 120.41}
-        i_esquinas = smem.irreg_esquinas(sec_change=sec_change, openings=openings)
-        for i in [f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,a_modal,i_rig,i_masa,i_torsion]:
+        t_resumen = smem.tabla_resumen(Z,U,S,Tp,Tl,Rox,Roy,Ia,Ip)
+        e_resp = smem.espectro_respuesta()
+        p_sis = smem.peso_sismico()
+        e_accidental = smem.excentricidad_accidental()
+        a_modal = smem.ana_modal(self.tables.modal)
+        a_irreg = smem.analisis_irregularidades()          
+        i_rig = smem.irreg_rigidez(p_blando_x,p_blando_y)
+        i_masa = smem.irreg_masa(self.tables.rev_masa_table)        
+        i_torsion = smem.irreg_torsion(torsion_x,torsion_y)
+        i_discontinuidad = smem.irreg_discontinuidad_diaf(sec_change=sec_change, openings=openings)
+        i_esquinas = smem.irreg_esquinas_entrantes(datos_esquinas)
+        analisis_din = smem.analisis_dinamico()
+        criterios_comb= smem.criterios_combinacion()
+        desplaz_lat= smem.desplazamientos_laterales()
+        verif_derivas= smem.verificacion_derivas(sist_x,sist_y)
+        verif_sist_est = smem.verificacion_sist_est()
+        analisis_est = smem.analisis_estatico()
+        corte_basal= smem.cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,lista_cargas['PD'],lista_cargas['PL'],lista_cargas['Ps'])
+        corte_basal_min = smem.fuerza_cortante_min(self.tables.shear_table)
+        sep_edificios= smem.separacion_edificios(datos_sep)
+
+
+        for i in [p_sitio,f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,t_resumen,
+            e_resp,p_sis,e_accidental,a_modal,
+            a_irreg,i_rig,i_masa,i_torsion,i_discontinuidad,i_esquinas,
+            analisis_din,criterios_comb,
+            desplaz_lat,verif_derivas,verif_sist_est,
+            analisis_est,corte_basal,corte_basal_min,sep_edificios]:
             sec.append(i)
         
         doc.append(sec)
+        print("\n")
+        print("Iniciando la generación del documento en formato .pdf y .tex...")
         doc.generate_pdf('out/Memoria Sismo2')
         doc.generate_tex('out/Memoria Sismo2')
-    
+        print("El documento ha sido generado con éxito")
+        
 
 
 if __name__ == '__main__':

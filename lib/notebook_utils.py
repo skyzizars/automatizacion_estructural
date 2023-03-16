@@ -39,6 +39,8 @@ class Sismo(sis.Sismo_e30):
         self.data.set_pisos(4,0,0)
         self.data.irreg_altura()
         self.data.irreg_planta()
+        self.sec_change = {}
+        self.openings = {}
         
     def ubicacion(self):
         #Creamos la base de datos de ciudades y su zonificación sismica
@@ -208,6 +210,78 @@ class Sismo(sis.Sismo_e30):
         self.stories_dropdown.observe(lambda change: change_base_load(change))
                 
         return self.stories_dropdown
+    
+    def discontinuidad_diafragma(self,sec_c=False,op=False,ap='1',sec_chang={},opns={}):
+        clear_output(wait=False)
+        d_diaf = []
+        sec_change = check_box('cambios de sección',val=sec_c)
+        openings = check_box('aperturas',val=op)
+        sec_change.observe(lambda _:self.discontinuidad_diafragma(sec_change.value,openings.value,ap,self.sec_change,self.openings))
+        openings.observe(lambda _:self.discontinuidad_diafragma(sec_change.value,openings.value,ap,self.sec_change,self.openings))
+        d_diaf.append(sec_change)        
+        
+        if sec_change.value:
+            des_change = widgets.HTML(value='<b>Cambios de Sección:</b>')
+            val_l_a,val_e_a  = sec_chang.get('aligerado',('10','0.05'))
+            val_l_m,val_e_m  = sec_chang.get('macisa',('1','0.2'))
+            long_aligerado = input_box('Longitud del aligerado (m)',val=val_l_a)
+            e_aligerado = input_box('Espesor del aligerado (m)',val=val_e_a)
+            long_macisa = input_box('Longitud de la losa macisa (m)',val=val_l_m)
+            e_macisa = input_box('Espesor de la losa macisa (m)',val=val_e_m)
+            def assign_sec_change(change):
+                # if change['type'] == 'change' and change['name'] == 'value':
+                #     if type(change['new']) == str:
+                #         try:
+                #             float(change['new'])
+                #         except:
+                #             clear_output(wait=False)
+                #             self.discontinuidad_diafragma(sec_change.value,openings.value)
+                #             print('Ingrese datos numéricos')
+                self.sec_change['aligerado'] = [long_aligerado.value,e_aligerado.value]
+                self.sec_change['macisa'] = [long_macisa.value,e_macisa.value]
+            long_aligerado.observe(lambda change:assign_sec_change(change))
+            e_aligerado.observe(lambda change:assign_sec_change(change))
+            long_macisa.observe(lambda change:assign_sec_change(change))
+            e_macisa.observe(lambda change:assign_sec_change(change))
+            assign_sec_change('')
+
+            for i in [des_change,long_aligerado,e_aligerado,long_macisa,e_macisa]:
+                d_diaf.append(i)
+
+        d_diaf.append(openings)
+
+        if openings.value:
+            desc_openings = widgets.HTML(value='<b>Aperturas en losa:</b>')
+            ap = ap if ap else '0'
+            n_aperturas = input_box('Nro de aperturas (m)',val=ap)
+            n_aperturas.observe(lambda _:self.discontinuidad_diafragma(sec_change.value,openings.value,n_aperturas.value,self.sec_change,self.openings))
+            for i in [desc_openings,n_aperturas]:
+                d_diaf.append(i)
+            aperturas = []
+            for i in range(int(n_aperturas.value)):
+                try:
+                    val_l_a,val_e_a  = opns['aperturas'][i]
+                except:
+                    val_l_a,val_e_a  = ['10','0.05']
+                aperturas.append(input_box('Largo de apertura %i (m)'%(i+1),val=val_l_a))
+                aperturas.append(input_box('Ancho de apertura %i (m)'%(i+1),val=val_e_a))
+            val_a_p = opns.get('area_planta','12.5')
+            area_planta = input_box('Area de la planta (m2)',val=val_a_p)
+            def assign_openings():
+                self.openings['area_planta'] = []
+                self.openings['aperturas'] = []
+                for i in range(int(n_aperturas.value)):
+                    self.openings['aperturas'].append((aperturas[2*i].value,aperturas[2*i+1].value))
+                self.openings['area_planta'] = area_planta.value
+            
+            for i in aperturas:
+                i.observe(lambda _: assign_openings())
+                d_diaf.append(i)
+            area_planta.observe(lambda _: assign_openings())
+            d_diaf.append(area_planta)
+            assign_openings()
+        
+        display(widgets.VBox(d_diaf))
 
     def show_table(self,table, column='OutputCase'):
         list_columns = tuple(table[column].unique())

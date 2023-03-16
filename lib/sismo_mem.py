@@ -10,6 +10,7 @@ from pylatex.base_classes import Environment
 from pylatex.math import Alignat
 from math import ceil
 import pandas as pd
+import matplotlib.pyplot as plt
 import warnings
 warnings.simplefilter('ignore', category=Warning)
 
@@ -57,6 +58,7 @@ def factor_zona(zona,o_type=Subsubsection):
     df[4-zona][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+df[4-zona][1]+r'}}'
     df[4-zona] = [i+r'\cellcolor[rgb]{ .949,  .949,  .949} ' for i in df[4-zona]]
 
+    obj.append(NoEscape(r'Este factor se interpreta como la aceleración máxima horizontal en el suelo rígido con una probabilidad de 10 \% de ser excedida en 50 años'))
     obj.append(NoEscape('%insertion'))
 
     with obj.create(Table(position='ht!')) as tab:
@@ -96,6 +98,7 @@ def factor_suelo(zona,suelo,o_type=Subsubsection):
     data[4-zona] = [i+r'\cellcolor[rgb]{ .949,  .949,  .949} ' for i in data[4-zona]]
     data = [[j+r'\cellcolor[rgb]{ .949,  .949,  .949} ' if i ==suelo_ind[suelo] else j for i,j in enumerate(row)]  for row in data]
     
+    obj.append(NoEscape(r'Este factor se interpreta como  un factor de modificación de la aceleración pico del suelo para un perfil determinado respecto al pefil tipo S1'))
     obj.append(NoEscape('%insertion'))
 
     with obj.create(Table(position='ht!')) as tab:
@@ -151,52 +154,31 @@ def periodos_suelo(suelo,o_type=Subsubsection):
     return obj
 
 
-def sist_estructural(sist_x,sist_y,o_type=Subsubsection):
-    #Compatibilización de nombres
-    sistemas_utils_to_mem = [['Pórticos de Concreto Armado','Porticos'],
-                ['Dual de Concreto Armado','Dual'],
-                ['De Muros Estructurales de Concreto Armado','De muros estructurales'],
-                ['Pórticos Especiales de Acero Resistentes a Momentos','Porticos Especiales Resistentes a Momento (SMF)'],
-                ['Pórticos Intermedios de Acero Resistentes a Momentos','Porticos Intermedios Resistentes a Momento (IMF)'],
-                ['Pórticos Ordinarios de Acero Resistentes a Momentos','Porticos Ordinarios Resistentes a Momento (OMF)'],
-                ['Pórticos Especiales de Acero Concénticamente Arriostrados','Porticos Especiales Concentricamente Arrriostrados (SCBF)'],
-                ['Pórticos Ordinarios de Acero Concénticamente Arriostrados','Porticos Ordinarios Concentricamente Arrriostrados (OCBF)'],
-                ['Pórticos Acero Excéntricamente Arriostrados','Porticos Excentricamente Arriostrados (EBF)'],
-                ['Muros de Ductilidad Limita de Concreto Armado','Muros de ductilidad limitada'],
-                ['Albañilería Armada o Confinada',r'\textbf{Albañilería Armada o Confinada}'],
-                ['Madera',r'\textbf{Madera}']]
-    for i in sistemas_utils_to_mem:
-        if sist_x in i:
-            sist_x=i[1]
-        if sist_y in i:
-            sist_y=i[1]
-        
-    data = [['Acero:',''],
-            ['Porticos Especiales Resistentes a Momento (SMF)',8],
-            ['Porticos Intermedios Resistentes a Momento (IMF)',5],
-            ['Porticos Ordinarios Resistentes a Momento (OMF)',4],
-            ['Porticos Especiales Concentricamente Arrriostrados (SCBF)',7],
-            ['Porticos Ordinarios Concentricamente Arrriostrados (OCBF)',4],
-            ['Porticos Excentricamente Arriostrados (EBF)',8],
-            ['Concreto Armado:',''],
-            ['Porticos',8],
-            ['Dual',7],
-            ['De muros estructurales',6],
-            ['Muros de ductilidad limitada',4],
-            [r'\textbf{Albañilería Armada o Confinada}',3],
-            [r'\textbf{Madera}',7]]
-    
-    for i in range(len(data)):
-        if sist_x in data[i] or sist_y in data[i]:
-            data[i][0] = str(data[i][0])+r'\cellcolor[rgb]{ .949,  .949,  .949} '
-            data[i][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+str(data[i][1])+r'}}'+r'\cellcolor[rgb]{ .949,  .949,  .949} '
+def sist_estructural(sist_x,sist_y,o_type=Subsubsection):       
+    data = {'Acero':['Acero:',''],
+            'Pórticos Especiales de Acero Resistentes a Momentos':['Porticos Especiales Resistentes a Momento (SMF)',8],
+            'Pórticos Intermedios de Acero Resistentes a Momentos':['Porticos Intermedios Resistentes a Momento (IMF)',5],
+            'Pórticos Ordinarios de Acero Resistentes a Momentos':['Porticos Ordinarios Resistentes a Momento (OMF)',4],
+            'Pórticos Especiales de Acero Concénticamente Arriostrados':['Porticos Especiales Concentricamente Arrriostrados (SCBF)',7],
+            'Pórticos Ordinarios de Acero Concénticamente Arriostrados':['Porticos Ordinarios Concentricamente Arrriostrados (OCBF)',4],
+            'Pórticos Acero Excéntricamente Arriostrados':['Porticos Excentricamente Arriostrados (EBF)',8],
+            'Concreto':['Concreto Armado:',''],
+            'Pórticos de Concreto Armado':['Porticos',8],
+            'Dual de Concreto Armado':['Dual',7],
+            'De Muros Estructurales de Concreto Armado':['De muros estructurales',6],
+            'Muros de Ductilidad Limita de Concreto Armado':['Muros de ductilidad limitada',4],
+            'Albañilería Armada o Confinada':[r'\textbf{Albañilería Armada o Confinada}',3],
+            'Madera':[r'\textbf{Madera}',7]}
+    for sist in [sist_x,sist_y]:
+        data[sist][0] = str(data[sist][0])+r'\cellcolor[rgb]{ .949,  .949,  .949} '
+        data[sist][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{'+str(data[sist][1])+r'}}'+r'\cellcolor[rgb]{ .949,  .949,  .949} '
+   
 
     obj = def_obj(o_type,'Sistema Estructural')
     obj.packages.append(Package('array'))
     obj.packages.append(Package('colortbl'))
     obj.packages.append(Package('graphicx'))
     obj.packages.append(Package('caption'))
-    
 
     obj.append('Después de realizar el análisis sísmico se determino que los sistemas estructurales en X, Y son ')
     obj.append(NoEscape('{} y {} respectivamente'.format(sist_x,sist_y)))
@@ -210,7 +192,7 @@ def sist_estructural(sist_x,sist_y,o_type=Subsubsection):
             table.add_hline()
             table.add_row((bold('Sistema Estructural'),MultiColumn(1,align=NoEscape('m{4cm}|'),data=bold('Coeficiente Básico de Reducción Ro'))))
             table.add_hline()
-            for row in data:
+            for row in data.values():
                 if row[1]:
                     table.add_row([NoEscape(i) for i in row])
                     table.add_hline()
@@ -260,6 +242,7 @@ def factor_importancia(categoria,o_type=Subsubsection):
     obj.packages.append(Package('array'))
     obj.packages.append(Package('multirow'))
     obj.packages.append(Package('float'))
+    obj.packages.append(Package('graphicx'))
     
     cat_ind = {'A1':0,'A2':1,'B':2,'C':3,'D':4}
     data = [['A Edificaciones Escenciales','A1: Establecimiento del sector salud (públicos y privados) del segundo y tercer nivel, según lo normado por el ministerio de salud.','Con aislamiento 1.0 y sin aislamiento 1.5.'],
@@ -299,6 +282,7 @@ def factor_importancia(categoria,o_type=Subsubsection):
 def tabla_resumen(Z,U,S,Tp,Tl,Rox,Roy,Ia,Ip,o_type=Subsubsection):
     obj = def_obj(o_type,'Tabla resumen de parámetros sísmicos')
     obj.packages.append(Package('float'))
+    obj.packages.append(Package('array'))
     obj.append(NoEscape('%insertion'))
     Rx=Rox*Ia*Ip
     Ry=Roy*Ia*Ip
@@ -337,13 +321,30 @@ def tabla_resumen(Z,U,S,Tp,Tl,Rox,Roy,Ia,Ip,o_type=Subsubsection):
             tabular.add_hline(2,4)
     return obj
 
-def espectro_respuesta(o_type=Subsubsection):
-    obj = def_obj(o_type,NoEscape('Espectro de respuesta de aceleraciones'))      
+def espectro_respuesta(T,Sax,Say,Tp,Tl,Rx,Ry,o_type=Subsubsection):
+    y_max = max(max(Sax),max(Say))
+    plt.ylim(0,y_max+0.02)
+    plt.xlim(0,4)
+    plt.plot(T,Sax,'r',label='X (R=%.2f)'%Rx)
+    plt.plot(T,Say,'b',label='Y (R=%.2f)'%Ry)
+    plt.axvline(x = Tl, color = 'g',linestyle='dotted')
+    plt.text(Tp,y_max+0.005, 'Tp', fontsize=12, color='k')
+    plt.text(Tl,y_max+0.005, 'Tl', fontsize=12, color='k')
+    plt.axvline(x = Tp, color = 'g',linestyle='dotted')
+    plt.xlabel('T (s)')
+    plt.ylabel('Sa $(m/s^2)$')
+    plt.grid(linestyle='dotted', linewidth=1)
+    plt.legend()
+    fig = plt.gcf()
+    fig.set_frameon(False)
+    plt.savefig("images/espectro_respuestas.pdf",dpi=300,pad_inches=0,bbox_inches='tight')
+
+    obj = def_obj(o_type,NoEscape('Espectro de respuesta de aceleraciones'))
+    obj.packages.append(Package('float'))
+
     obj.append(NoEscape('%insertion'))
     with obj.create(Figure(position='H')) as fig:
-        ######################
-        #Falta incluir figura#
-        ######################
+        fig.append(NoEscape('\\includegraphics[width=\\textwidth]{images/espectro_respuestas}'))
         fig.add_caption('Espectro de aceleraciones')
     return obj
 
@@ -446,6 +447,7 @@ Existe irregularidad extrema de rigidez cuando, en cualquiera de las direcciones
 Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga.'''))
     obj.append(mbox2)
     
+    obj.append('Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \n')
     obj.append(NoEscape('%insertion'))
     
     sis_x = latex_table(sis_x)
@@ -506,6 +508,7 @@ def irreg_torsion(sis_x,sis_y,insert='',o_type=Subsubsection):
     obj.packages.append(Package('tcolorbox'))
     obj.packages.append(Package('booktabs'))
     obj.packages.append(Package('graphicx'))
+    obj.packages.append(Package('float'))
     
     mbox = mybox2('Tabla N°9 E-030')
     mbox.append(NoEscape('Existe irregularidad torsional cuando, en cualquiera de las direcciones de análisis el desplazamiento relativo de entrepiso en un edificion ($\\Delta_{max}$) en esa dirección, calculado incluyendo excentricidad accidental, es mayor que 1,3 veces el desplazamineto relativo promedio de los extremos del mismo entrepiso para la condicion de carga ($\Delta_{prom}$). \n Este crriterio sólo se aplica en edificios con diafragmas rígidos y sólo si el máximo desplazamiento relativo de entrepiso es mayor que 50\\% del desplazamiento permisible indicado en la Tabla N° 11'))
@@ -516,14 +519,14 @@ def irreg_torsion(sis_x,sis_y,insert='',o_type=Subsubsection):
 
     obj.append(NoEscape('%insertion'))
     
-    fig = Figure(position='ht!')
+    fig = Figure(position='H')
     fig.append(NoEscape(r'\centering'))
     fig.append(NoEscape(r'\caption{Irregularidad torsional}'))
     fig.append(NoEscape(r'\includegraphics[scale=0.7]{images/i_torsion.PNG}'))
     fig.append(NoEscape(r'\caption*{\small Fuente: Muñoz (2020)}'))
     obj.append(fig)
     
-    table = Table(position='ht!')
+    table = Table(position='H')
     table.append(NoEscape('\centering'))
     table.append(NoEscape('\caption{Irregularidad Torsional}'))
     table.append(NoEscape('\\resizebox{\\textwidth}{!}{'))
@@ -564,7 +567,7 @@ def irreg_discontinuidad_diaf(sec_change=None,openings=None,o_type=Subsubsection
     obj.append(mbox)
 
     obj.append(NoEscape('%insertion'))
-    
+    obj.append(NoEscape(r'\vspace{-10pt}'))
     fig = Figure(position='ht!')
     fig.append(NoEscape(r'\centering'))
     fig.append(NoEscape(r'\caption{Irregularidad por discontinuidad del diafragma}'))
@@ -587,7 +590,7 @@ def irreg_discontinuidad_diaf(sec_change=None,openings=None,o_type=Subsubsection
         data[5][1] = '%.2f'%(sec_change['maciza'][0]*sec_change['maciza'][1])
         data[6][1] = '%.2f'%(float(data[5][1])/float(data[2][1])*100)
         data[8][1] = r'\textcolor[rgb]{ .267,  .447,  .769}{\textbf{Regular}}' if float(data[6][1]) > float(data[7][1]) else r'\textcolor[rgb]{ 1,  0,  0}{\textbf{Irregular}}'
-        
+        obj.append(NoEscape(r'\vspace{-30pt}'))
         table = Table(position='H')
         table.append(NoEscape(r'\centering'))
         table.append(NoEscape(r'\caption{Irregularidad por discontinuidad del diafragma (a)}'))
@@ -610,6 +613,7 @@ def irreg_discontinuidad_diaf(sec_change=None,openings=None,o_type=Subsubsection
         ratio = a_total/a_planta*100
         verif = r'\textcolor[rgb]{ .267,  .447,  .769} {Regular}' if ratio < 50 else r'\textcolor[rgb]{ 1,  0,  0}{Irregular}'
 
+        obj.append(NoEscape(r'\vspace{-15pt}'))
         table = Table(position='H')
         table.append(NoEscape(r'\centering'))
         table.append(NoEscape(r'\caption{Irregularidad por discontinuidad del diafragma (b)}'))
@@ -682,6 +686,7 @@ def irreg_esquinas_entrantes(datos_esquinas=None,o_type=Subsubsection):
 
 def analisis_dinamico(o_type=Subsection):
     obj = def_obj(o_type,'Análisis Dinámico Espectral Art. 29 E-030') 
+    obj.append(r'El análisis dinámico modal espectral consiste calcular la respuesta para cada modo ingresando al espectro de pseudo-aceleraciones definido en \ref{ssubsec:Espectroderespuestadeaceleraciones}, para posteriormente combinar los resultados según los criterios que se menciona en la norma E-030:')
     obj.append(NoEscape('%insertion'))
 
     return obj
@@ -736,6 +741,19 @@ def desplazamientos_laterales(o_type=Subsection):
 def verificacion_derivas(sist_x,sist_y,o_type=Subsection):
     obj=def_obj(o_type,'Verificación de derivas máximas Art. 32 E-030')
     obj.append(NoEscape('%insertion'))
+
+    sistemas = ['Pórticos de Concreto Armado',
+                'Dual de Concreto Armado',
+                'De Muros Estructurales de Concreto Armado',
+                'Pórticos Especiales de Acero Resistentes a Momentos',
+                'Pórticos Intermedios de Acero Resistentes a Momentos',
+                'Pórticos Ordinarios de Acero Resistentes a Momentos',
+                'Pórticos Especiales de Acero Concénticamente Arriostrados',
+                'Pórticos Ordinarios de Acero Concénticamente Arriostrados',
+                'Pórticos Acero Excéntricamente Arriostrados',
+                'Muros de Ductilidad Limita de Concreto Armado',
+                'Albañilería Armada o Confinada',
+                'Madera']
 
     data = [['Concreto Armado',0.007],
                 ['Acero',0.010],
@@ -804,6 +822,7 @@ def verificacion_derivas(sist_x,sist_y,o_type=Subsection):
 
 def verificacion_sist_est(o_type=Subsection):
     obj=def_obj(o_type,'Verificación del sistema estructural')
+    obj.append(r'Se verificará que efectivamente se tiene un sistema estructural de muros en la dirección X, en la dirección Y no se verificara dado que no existen muros estructurales. Como se muestra en la figura \ref{fig:sist_est_etabs} el valor de cortante que absorben los muros es de 64 ton, y la cortante total es aproximadamente 70 ton (ver figura \ref{fig:corte_basal}) por lo que el porcentaje que toman los muros es mayor al 90\%.')
     obj.append(NoEscape('%insertion'))
     
     fig = Figure(position='ht!')
@@ -830,7 +849,7 @@ def analisis_estatico(o_type=Subsection):
 
     return obj
 
-def cortante_basal(Z,U,Tx,Ty,Cx,Cy,S,Rox,Roy,Ia,Ip,Pd,Pl,Ps,o_type=Subsubsection):
+def cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,Pd,Pl,Ps,o_type=Subsubsection):
     obj = def_obj(o_type,'Fuerza cortante en la base Art 28.2 E-030') 
     obj.append(NoEscape('%insertion'))
     obj.packages.append(Package('graphicx'))
@@ -871,8 +890,7 @@ def cortante_basal(Z,U,Tx,Ty,Cx,Cy,S,Rox,Roy,Ia,Ip,Pd,Pl,Ps,o_type=Subsubsection
     ZUSC_Ry=Z*U*S*Cy/Ry
     Vx=ZUSC_Rx*Ps
     Vy=ZUSC_Ry*Ps
-    kx=sismo.data.kx
-    ky=sismo.data.ky
+
     with obj.create(Table(position='ht!')) as table:
         table.append(NoEscape('\centering'))
         table.add_caption('Análisis sísmico estático')
@@ -959,7 +977,8 @@ def fuerza_cortante_min(tabla_corte_min,o_type=Subsection):
     return obj
 
 def separacion_edificios(datos_sep,o_type=Subsection):
-    obj = def_obj(o_type,'Separación entre edificios Art. 33 E-030') 
+    obj = def_obj(o_type,'Separación entre edificios Art. 33 E-030')
+    obj.packages.append(Package('subfigure')) 
     obj.append(NoEscape('%insertion'))
 
     mbox = mybox2(r'Art. 33.1')
@@ -1002,7 +1021,7 @@ def separacion_edificios(datos_sep,o_type=Subsection):
         data[5][2]='%.2f'%(datos_sep['despl_max_X']*2/3)
         data[6][2]='%.2f'%(datos_sep['despl_max_Y']*2/3)
 
-        table = Table(position='ht!')
+        table = Table(position='H')
         table.append(NoEscape(r'\centering'))
         table.append(NoEscape(r'\caption{Cálculo de la junta sísmica}'))
         table.append(NoEscape(r'\extrarowheight = -0.3ex'))
@@ -1027,170 +1046,96 @@ def separacion_edificios(datos_sep,o_type=Subsection):
 #Generación del documento
     
 if __name__ == '__main__':
-    import os
-    import sys
-    sys.path.append(os.getcwd()+'\\..')
-    from lib import etabs_utils as etb
-    from lib import sismo_utils as sis
-    import comtypes.client
-    
-   
-    _, _SapModel = etb.connect_to_etabs()
-    #Definir variables de salida 'Ton_m_C' o 'kgf_cm_C'
-    etb.set_units(_SapModel,'Ton_m_C')
+    from analisis_sismico_etabs import sismo, sist_x, sist_y
 
+    seism_x = sismo.loads.seism_loads['Sismo_DinX'] + ' Max'
+    seism_y = sismo.loads.seism_loads['Sismo_DinY'] + ' Max'
+    zona = sismo.data.zona
+    suelo = sismo.data.suelo
+    categoria = sismo.data.categoria
+    Z,U,S,Tp,Tl = sismo.data.Z,sismo.data.U,sismo.data.S,sismo.data.Tp,sismo.data.Tl
+    Rox,Roy,Ia,Ip = sismo.data.Rox,sismo.data.Roy,sismo.data.Ia,sismo.data.Ip
+    Tx,Ty,Cx,Cy = sismo.data.Tx,sismo.data.Ty,sismo.data.Cx,sismo.data.Cy
+    kx,ky = sismo.data.kx,sismo.data.ky
 
-    sistemas = ['Pórticos de Concreto Armado',
-                'Dual de Concreto Armado',
-                'De Muros Estructurales de Concreto Armado',
-                'Pórticos Especiales de Acero Resistentes a Momentos',
-                'Pórticos Intermedios de Acero Resistentes a Momentos',
-                'Pórticos Ordinarios de Acero Resistentes a Momentos',
-                'Pórticos Especiales de Acero Concénticamente Arriostrados',
-                'Pórticos Ordinarios de Acero Concénticamente Arriostrados',
-                'Pórticos Acero Excéntricamente Arriostrados',
-                'Muros de Ductilidad Limita de Concreto Armado',
-                'Albañilería Armada o Confinada',
-                'Madera']
+    p_blando_x = sismo.tables.piso_blando_table.query('OutputCase == @seism_x')
+    p_blando_y = sismo.tables.piso_blando_table.query('OutputCase == @seism_y')
+    torsion_x = sismo.tables.torsion_table.query('OutputCase == @seism_x')
+    torsion_y = sismo.tables.torsion_table.query('OutputCase == @seism_y')
 
-    categorias = ['A1 aislado',
-                  'A1 no aislado',
-                  'A2',
-                  'B',
-                  'C']
-    
-    sis_loads = {'Sismo_EstX': 'Sx',
-                 'Sismo_EstY': 'Sy',
-                 'Sismo_DinX': 'SDx',
-                 'Sismo_DinY': 'SDy'}
+    T = sismo.T
+    Sax = sismo.Sax
+    Say = sismo.Say
+    Rx = sismo.data.Rx
+    Ry = sismo.data.Ry
 
-    zona = 4
-    suelo = 'S2'
-    sist_x = sistemas[2]
-    sist_y = sistemas[1]
-    categoria = categorias[2]
-    n_pisos = 3
-    n_sotanos = 0
-    n_azoteas = 0
-    story_base = 'Story1'
+    #datos discontinuidad de diafragma
+    sec_change = {'aligerado':[7.51,0.05],
+                'maciza':[2.25,0.20]}
+    openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
+                'area_planta' : 120.41}
+    
+    #datos de esquinas entrantes
+    datos_esquinas={'esq_X':4.95,
+                'esq_Y':2.30,
+                'dim_X':7.51,
+                'dim_Y':15.28}
+    
+    #Cargas sismicas
+    lista_cargas={'PD':748,'PL':108.84,'Ps':775.63}
 
-    sismo = sis.Sismo_e30()
-    sismo.data.factor_zona(zona)
-    sismo.data.factor_suelo(suelo)
-    sismo.data.periodos_suelo()
-    sismo.data.sist_estructural(sist_x,sist_y)
-    sismo.data.categoria_edificacion(categoria)
-    sismo.data.set_pisos(n_pisos,n_azoteas,n_sotanos)
-    sismo.data.irreg_altura(i_vertical=False)
-    sismo.data.irreg_planta(i_torsional=False)
-    sismo.data.factor_R()
-    sismo.data.set_pisos(n_pisos, n_azoteas, n_sotanos)
-    sismo.data.show_params()
-    
-    sismo.loads.set_seism_loads(sis_loads)
-    sismo.set_base_story(story_base)
-    
-    sismo.analisis_sismo(_SapModel)
-    
+    # Datos separacion
+    datos_sep={'altura_edificio':1410,'despl_max_X':4.81,'despl_max_Y':6.07}
+
     geometry_options = { "left": "2.5cm", "top": "1.5cm" }
     doc = Document(geometry_options=geometry_options)
     doc.packages.append(Package('xcolor', options=['dvipsnames']))
+    doc.packages.append(Package('graphicx'))
     doc.preamble.append(NoEscape(r'\graphicspath{ {%s/} }'%os.getcwd().replace('\\','/')))
     
+    sec = Section('Análisis Sísmico')
     
-    s1 = Section('Análisis Sísmico')
-    
-    params_sitio=parametros_sitio()
-    
-    coments_zona1=NoEscape(r'Este factor se interpreta como la aceleración máxima horizontal en el suelo rígido con una probabilidad de 10 \% de ser excedida en 50 años')
+    p_sitio = parametros_sitio()
     f_zona = factor_zona(zona)
-    f_zona.add(coments_zona1)
- 
-    coments_suelo='Este factor se interpreta como  un factor de modificación de la aceleración pico del suelo para un perfil determinado respecto al pefil tipo S1'
     f_suelo = factor_suelo(zona, suelo)
-    f_suelo.add(coments_suelo)
-
-    p_suelo = periodos_suelo(suelo)
-    
+    p_suelo = periodos_suelo(suelo)   
     s_est = sist_estructural(sist_x,sist_y)
-    
     f_amp = factor_amplificacion()
     f_imp = factor_importancia(categoria)
-    
-    data_resumen=[sismo.data.Z,sismo.data.U,sismo.data.S,sismo.data.Tp,sismo.data.Tl,sismo.data.Rox,sismo.data.Roy,sismo.data.Ia,sismo.data.Ip]
-    resumen_params=tabla_resumen(*data_resumen)
-
-    e_resp = espectro_respuesta()
-
+    t_resumen = tabla_resumen(Z,U,S,Tp,Tl,Rox,Roy,Ia,Ip)
+    e_resp = espectro_respuesta(T,Sax,Say,Tp,Tl,Rx,Ry)
     p_sis = peso_sismico()
-    
-    coments_excentricidad='Para determinar el sentido mas desfavorable de la excentricidad accidental se calculó el centro de masa y centro de rigidez del edificio.'
     e_accidental = excentricidad_accidental()
-    e_accidental.add(coments_excentricidad)
-
     a_modal = ana_modal(sismo.tables.modal)
-    seism_x = sismo.loads.seism_loads['Sismo_DinX'] + ' Max'
-    seism_y = sismo.loads.seism_loads['Sismo_DinY'] + ' Max'
-    sis_x = sismo.tables.piso_blando_table.query('OutputCase == @seism_x')
-    sis_y = sismo.tables.piso_blando_table.query('OutputCase == @seism_y')
-    
-
-    a_irreg = analisis_irregularidades()
-
-    coments_rigidez = 'Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante del entrepiso y el correspondiente desplazamiento relativo en el centro de masas, ambos evaluados para la misma condición de carga. \n'
-    i_rig = irreg_rigidez(sis_x,sis_y)
-    i_rig.add(coments_rigidez)
-    i_masa = irreg_masa(sismo.tables.rev_masa_table)
-    sis_x = sismo.tables.torsion_table.query('OutputCase == @seism_x')
-    sis_y = sismo.tables.torsion_table.query('OutputCase == @seism_y')
-    i_torsion = irreg_torsion(sis_x, sis_y)
-    sec_change = {'aligerado':[7.51,0.05],
-                  'maciza':[2.25,0.20]}
-    openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
-                'area_planta' : 120.41}
-    i_dis = irreg_discontinuidad_diaf(sec_change=sec_change, openings=openings)
-    datos_esquinas={'esq_X':4.95,
-                  'esq_Y':2.30,
-                  'dim_X':7.51,
-                  'dim_Y':15.28}
-    i_esq=irreg_esquinas_entrantes(datos_esquinas=datos_esquinas)
-
+    a_irreg = analisis_irregularidades()          
+    i_rig = irreg_rigidez(p_blando_x,p_blando_y)
+    i_masa = irreg_masa(sismo.tables.rev_masa_table)        
+    i_torsion = irreg_torsion(torsion_x,torsion_y)
+    i_discontinuidad = irreg_discontinuidad_diaf(sec_change=sec_change, openings=openings)
+    i_esquinas = irreg_esquinas_entrantes(datos_esquinas)
     analisis_din = analisis_dinamico()
-    coments_analisis_din =r'El análisis dinámico modal espectral consiste calcular la respuesta para cada modo ingresando al espectro de pseudo-aceleraciones definido en \ref{ssubsec:Espectroderespuestadeaceleraciones}, para posteriormente combinar los resultados según los criterios que se menciona en la norma E-030:'
-    analisis_din.add(coments_analisis_din)
-
-    criterios_comb=criterios_combinacion()
-
-    desplaz_lat=desplazamientos_laterales()
-
-    verif_derivas=verificacion_derivas(sist_x,sist_y)
+    criterios_comb= criterios_combinacion()
+    desplaz_lat= desplazamientos_laterales()
+    verif_derivas= verificacion_derivas(sist_x,sist_y)
+    verif_sist_est = verificacion_sist_est()
+    analisis_est = analisis_estatico()
+    corte_basal= cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,lista_cargas['PD'],lista_cargas['PL'],lista_cargas['Ps'])
+    corte_basal_min = fuerza_cortante_min(sismo.tables.shear_table)
+    sep_edificios= separacion_edificios(datos_sep)
     
-    coments_verif_sist_est=r'Se verificará que efectivamente se tiene un sistema estructural de muros en la dirección X, en la dirección Y no se verificara dado que no existen muros estructurales. Como se muestra en la figura \ref{fig:sist_est_etabs} el valor de cortante que absorben los muros es de 64 ton, y la cortante total es aproximadamente 70 ton (ver figura \ref{fig:corte_basal}) por lo que el porcentaje que toman los muros es mayor al 90\%.'
-    verif_sist_est=verificacion_sist_est()
-    verif_sist_est.add(coments_verif_sist_est)
-
-    lista_cargas={'PD':748,'PL':108.84,'Ps':775.63} #Falta automatizar
-    analisis_est=analisis_estatico()
-    data_analisis_est=[sismo.data.Z,sismo.data.U,sismo.data.Tx,sismo.data.Ty,sismo.data.Cx,sismo.data.Cy,sismo.data.S,sismo.data.Rox,sismo.data.Roy,sismo.data.Ia,sismo.data.Ip,
-                       lista_cargas['PD'],lista_cargas['PL'],lista_cargas['Ps']]
-
-    corte_basal=cortante_basal(*data_analisis_est)
+    obj_list = [p_sitio,f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,t_resumen,
+            e_resp,p_sis,e_accidental,a_modal,
+            a_irreg,i_rig,i_masa,i_torsion,i_discontinuidad,i_esquinas,
+            analisis_din,criterios_comb,
+            desplaz_lat,verif_derivas,verif_sist_est,
+            analisis_est,corte_basal,corte_basal_min,sep_edificios]
     
-    corte_basal_min=fuerza_cortante_min(sismo.tables.shear_table)
+    #obj_list = [a_irreg,i_discontinuidad]
 
-    datos_sep={'altura_edificio':1410,'despl_max_X':4.81,'despl_max_Y':6.07} #Falta automatizar
-    sep_edificios=separacion_edificios(datos_sep)
+    for i in obj_list:
+        sec.append(i)
 
-    for i in [params_sitio,f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,resumen_params,
-              e_resp,p_sis,e_accidental,a_modal,
-              a_irreg,i_rig,i_masa,i_torsion,i_dis,i_esq,
-              analisis_din,criterios_comb,
-              desplaz_lat,verif_derivas,verif_sist_est,
-              analisis_est,corte_basal,corte_basal_min,sep_edificios]:
-        s1.append(i)
-
-    doc.append(s1)
-    
+    doc.append(sec)
     print("\n")
     print("Iniciando la generación del documento en formato .pdf y .tex...")
     doc.generate_pdf('out/Memoria Sismo2')
