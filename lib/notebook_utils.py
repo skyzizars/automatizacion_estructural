@@ -219,7 +219,7 @@ class Sismo(sis.Sismo_e30):
         clear_output(wait=False)
         d_diaf = []
         sec_change = check_box('cambios de sección',val=sec_c)
-        openings = check_box('aperturas',val=op)
+        openings = check_box('aberturas',val=op)
         sec_change.observe(lambda _:self.discontinuidad_diafragma(sec_change.value,openings.value,ap,self.data.sec_change,self.data.openings))
         openings.observe(lambda _:self.discontinuidad_diafragma(sec_change.value,openings.value,ap,self.data.sec_change,self.data.openings))
         d_diaf.append(sec_change)        
@@ -265,43 +265,43 @@ class Sismo(sis.Sismo_e30):
         d_diaf.append(openings)
 
         if openings.value:
-            desc_openings = widgets.HTML(value='<b>Aperturas en losa:</b>')
+            desc_openings = widgets.HTML(value='<b>aberturas en losa:</b>')
             ap = ap if ap else '0'
-            n_aperturas = input_box('Nro de aperturas (m)',val=ap)
-            n_aperturas.observe(lambda _:self.discontinuidad_diafragma(sec_change.value,openings.value,n_aperturas.value,self.data.sec_change,self.data.openings))
-            for i in [desc_openings,n_aperturas]:
+            n_aberturas = input_box('Nro de aberturas (m)',val=ap)
+            n_aberturas.observe(lambda _:self.discontinuidad_diafragma(sec_change.value,openings.value,n_aberturas.value,self.data.sec_change,self.data.openings))
+            for i in [desc_openings,n_aberturas]:
                 d_diaf.append(i)
-            aperturas = []
-            for i in range(int(n_aperturas.value)):
+            aberturas = []
+            for i in range(int(n_aberturas.value)):
                 try:
-                    val_l_a,val_e_a,_  = opns['aperturas'][i]
+                    val_l_a,val_e_a,_  = opns['aberturas'][i]
                 except:
                     val_l_a,val_e_a  = ['10','0.5']
-                aperturas.append(input_box('Largo de apertura %i (m)'%(i+1),val=val_l_a))
-                aperturas.append(input_box('Ancho de apertura %i (m)'%(i+1),val=val_e_a))
-                aperturas.append(input_box('Area de apertura %i (m)'%(i+1),val='',dis=True))
+                aberturas.append(input_box('Largo de apertura %i (m)'%(i+1),val=val_l_a))
+                aberturas.append(input_box('Ancho de apertura %i (m)'%(i+1),val=val_e_a))
+                aberturas.append(input_box('Area de apertura %i (m)'%(i+1),val='',dis=True))
             val_a_p = opns.get('area_planta','12.5')
-            area_op = input_box('Area total de aperturas (m2)',val='',dis=True)
+            area_op = input_box('Area total de aberturas (m2)',val='',dis=True)
             area_planta = input_box('Area de la planta (m2)',val=val_a_p)
             ratio_op = input_box('Ratio',val='',dis=True)
             ratio_lim_op = input_box('Ratio límite',val='50 %',dis=True)
             verificacion_op = input_box('verificación',val='',dis=True)
             def assign_openings():
                 self.data.openings['area_planta'] = []
-                self.data.openings['aperturas'] = []
-                for i in range(int(n_aperturas.value)):
-                    self.data.openings['aperturas'].append((aperturas[3*i].value,aperturas[3*i+1].value))
+                self.data.openings['aberturas'] = []
+                for i in range(int(n_aberturas.value)):
+                    self.data.openings['aberturas'].append((aberturas[3*i].value,aberturas[3*i+1].value))
                     try:
-                        aperturas[3*i+2].value = str(float(aperturas[3*i].value)*float(aperturas[3*i+1].value))
+                        aberturas[3*i+2].value = str(float(aberturas[3*i].value)*float(aberturas[3*i+1].value))
                     except:
-                        aperturas[3*i+2].value = 'datos no numéricos'  
-                area_op.value = str(sum([float(aperturas[3*i+2].value) for i in range(int(n_aperturas.value))]))
+                        aberturas[3*i+2].value = 'datos no numéricos'  
+                area_op.value = str(sum([float(aberturas[3*i+2].value) for i in range(int(n_aberturas.value))]))
                 self.data.openings['area_planta'] = area_planta.value
 
                 ratio_op.value = 'datos no numéricos' if 'datos no numéricos' in [area_op.value,area_planta.value] else str(float(area_op.value)/float(area_planta.value)*100) + ' %'
                 verificacion_op.value = 'datos no numéricos' if ratio_op.value == 'datos no numéricos' else 'Regular' if float(ratio_op.value[:-2]) < 50 else 'Irregular'
             
-            for i in aperturas:
+            for i in aberturas:
                 i.observe(lambda _: assign_openings())
                 d_diaf.append(i)
                 

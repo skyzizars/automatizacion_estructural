@@ -7,9 +7,9 @@
 \usepackage{geometry}%
 \geometry{left=2.5cm,top=1.5cm}%
 \usepackage[dvipsnames]{xcolor}%
-\usepackage{graphicx}%
 \usepackage{array}%
 \usepackage{colortbl}%
+\usepackage{graphicx}%
 \usepackage{caption}%
 \usepackage{ragged2e}%
 \usepackage{slashbox}%
@@ -122,7 +122,7 @@ Tl&3.00&2.50&\textcolor[rgb]{ 1,  0,  0}{\textbf{2.00}}\cellcolor[rgb]{ .949,  .
 \subsubsection{Sistema Estructural}%
 \label{ssubsec:SistemaEstructural}%
 Después de realizar el análisis sísmico se determino que los sistemas estructurales en X, Y son %
-Pórticos de Concreto Armado y Dual de Concreto Armado respectivamente%
+Dual de Concreto Armado y Pórticos de Concreto Armado respectivamente%
 %insertion%
 
 
@@ -208,11 +208,11 @@ Se determina según el artículo 14 de la E{-}030%
 \hline%
 \multirow{2}[4]{3cm}{A Edificaciones Escenciales}&A1: Establecimiento del sector salud (públicos y privados) del segundo y tercer nivel, según lo normado por el ministerio de salud.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{Con aislamiento 1.0 y sin aislamiento 1.5.}\\%
 \cline{2-3}%
-&A2: Edificaciones escenciales para el manejo de las emergencias, el funcionamiento del gobierno y en general aquellas que puedan servir de refugio después de un desastre.\cellcolor[rgb]{1,  .949,  .8}&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{\textcolor[rgb]{ 1,  0,  0}{\textbf{1.50}}\cellcolor[rgb]{1,  .949,  .8}}\\%
+&A2: Edificaciones escenciales para el manejo de las emergencias, el funcionamiento del gobierno y en general aquellas que puedan servir de refugio después de un desastre.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.50}\\%
 \hline%
 B Edificaciones Importantes &Edificaciones donde se reúnen gran cantidad de personas tales como cines, teatros, estadios, coliseos, centros comerciales, terminales de buses de pasajeros, establecimientos penitenciarios, o que guardan patrimonios valiosos como museos y bibliotecas.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.30}\\%
 \hline%
-C Edificaciones Comunes&Edificaciones comunes tales como: viviendas, oficinas, hoteles, restaurantes, depósitos e instalaciones industriales cuya falla no acarree peligros adicionales de incendios o fugas de contaminantes.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.00}\\%
+C Edificaciones Comunes\cellcolor[rgb]{ .949,  .949,  .949}&Edificaciones comunes tales como: viviendas, oficinas, hoteles, restaurantes, depósitos e instalaciones industriales cuya falla no acarree peligros adicionales de incendios o fugas de contaminantes.\cellcolor[rgb]{ .949,  .949,  .949}&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{\textcolor[rgb]{ 1,  0,  0}{\textbf{1.00}}\cellcolor[rgb]{ .949,  .949,  .949}}\\%
 \hline%
 D Edificaciones temporales&Construcciones provisionales para depósitos, casetas y otras similares.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{A criterio del proyectista}\\%
 \hline%
@@ -247,7 +247,7 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 \cline{2%
 -%
 4}%
-\textit{Factor de Uso (Tabla N° 5)}&\textbf{U}&\multicolumn{2}{c|}{1.50}\\%
+\textit{Factor de Uso (Tabla N° 5)}&\textbf{U}&\multicolumn{2}{c|}{1.00}\\%
 \cline{2%
 -%
 4}%
@@ -263,7 +263,7 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 \cline{2%
 -%
 4}%
-\textit{Coef. Básico de Reducción (Tabla N°7)}&\textbf{R\raisebox{-0.5ex}{\scriptsize{o}}}&8.00&7.00\\%
+\textit{Coef. Básico de Reducción (Tabla N°7)}&\textbf{R\raisebox{-0.5ex}{\scriptsize{o}}}&7.00&8.00\\%
 \cline{2%
 -%
 4}%
@@ -275,11 +275,11 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 \cline{2%
 -%
 4}%
-\textit{Coef. de Reducción (Articulo 22)}&\textbf{R}&8.00&7.00\\%
+\textit{Coef. de Reducción (Articulo 22)}&\textbf{R}&7.00&8.00\\%
 \cline{2%
 -%
 4}%
-&\textbf{ZUSg/R}&0.87&0.99\\%
+&\textbf{ZUSg/R}&0.66&0.58\\%
 \cline{2%
 -%
 4}%
@@ -293,7 +293,7 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 
 
 \begin{figure}[H]%
-\includegraphics[width=\textwidth]{images/espectro_respuestas}%
+\includegraphics[width=0.8\textwidth]{images/espectro_respuestas}%
 \caption{Espectro de aceleraciones}%
 \end{figure}
 
@@ -445,7 +445,7 @@ Se tiene irregularidad de masa (o peso) cuando el peso de un piso determinado se
 %insertion%
 
 
-\begin{table}[h!]%
+\begin{table}[H]%
 \centering%
 \caption{Irregularidad de Masa o Peso}%
 \begin{tabular}{ccccc}
@@ -499,16 +499,16 @@ Existe irregularidad torsional cuando, en cualquiera de las direcciones de anál
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story8 & SDx Max & X & 0.003021 & 0.002475 & 1.221 & 2.5 & 0.007250 & False & Regular \\
-Story7 & SDx Max & X & 0.003476 & 0.002869 & 1.211 & 2.5 & 0.008342 & False & Regular \\
-Story6 & SDx Max & X & 0.004116 & 0.003335 & 1.234 & 2.5 & 0.009878 & False & Regular \\
-Story5 & SDx Max & X & 0.00454 & 0.003673 & 1.236 & 2.5 & 0.010896 & False & Regular \\
-Story4 & SDx Max & X & 0.004657 & 0.003773 & 1.234 & 2.5 & 0.011177 & False & Regular \\
-Story3 & SDx Max & X & 0.004479 & 0.003582 & 1.25 & 2.5 & 0.010750 & False & Regular \\
-Story2 & SDx Max & X & 0.003811 & 0.002958 & 1.288 & 2.5 & 0.009146 & False & Regular \\
-Story1 & SDx Max & X & 0.001124 & 0.000904 & 1.244 & 1.5 & 0.004496 & False & Regular \\
-NT & SDx Max & X & 0.00024 & 0.00012 & 2 & 1.75 & 0.000823 & True & Regular \\
-NT & SDx Max & Y & 2.8E-05 & 1.4E-05 & 2 & 1.75 & 0.000096 & True & Regular \\
+Story8 & SDx Max & X & 0.003021 & 0.002475 & 1.221 & 2.5 & 0.006344 & False & Regular \\
+Story7 & SDx Max & X & 0.003476 & 0.002869 & 1.211 & 2.5 & 0.007300 & False & Regular \\
+Story6 & SDx Max & X & 0.004116 & 0.003335 & 1.234 & 2.5 & 0.008644 & False & Regular \\
+Story5 & SDx Max & X & 0.00454 & 0.003673 & 1.236 & 2.5 & 0.009534 & False & Regular \\
+Story4 & SDx Max & X & 0.004657 & 0.003773 & 1.234 & 2.5 & 0.009780 & False & Regular \\
+Story3 & SDx Max & X & 0.004479 & 0.003582 & 1.25 & 2.5 & 0.009406 & False & Regular \\
+Story2 & SDx Max & X & 0.003811 & 0.002958 & 1.288 & 2.5 & 0.008003 & False & Regular \\
+Story1 & SDx Max & X & 0.001124 & 0.000904 & 1.244 & 1.5 & 0.003934 & False & Regular \\
+NT & SDx Max & X & 0.00024 & 0.00012 & 2 & 1.75 & 0.000720 & True & Regular \\
+NT & SDx Max & Y & 2.8E-05 & 1.4E-05 & 2 & 1.75 & 0.000084 & True & Regular \\
 \bottomrule
 \end{tabular}
 }%
@@ -525,24 +525,24 @@ NT & SDx Max & Y & 2.8E-05 & 1.4E-05 & 2 & 1.75 & 0.000096 & True & Regular \\
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story8 & SDy Max & X & 0.000535 & 0.000322 & 1.662 & 2.5 & 0.001284 & True & Regular \\
-Story8 & SDy Max & Y & 0.000498 & 0.000478 & 1.042 & 2.5 & 0.001195 & True & Regular \\
-Story7 & SDy Max & X & 0.00059 & 0.000357 & 1.65 & 2.5 & 0.001416 & True & Regular \\
-Story7 & SDy Max & Y & 0.000527 & 0.00051 & 1.033 & 2.5 & 0.001265 & True & Regular \\
-Story6 & SDy Max & X & 0.000632 & 0.000387 & 1.633 & 2.5 & 0.001517 & True & Regular \\
-Story6 & SDy Max & Y & 0.000533 & 0.000517 & 1.031 & 2.5 & 0.001279 & True & Regular \\
-Story5 & SDy Max & X & 0.00065 & 0.000402 & 1.618 & 2.5 & 0.001560 & True & Regular \\
-Story5 & SDy Max & Y & 0.000523 & 0.000506 & 1.034 & 2.5 & 0.001255 & True & Regular \\
-Story4 & SDy Max & X & 0.000637 & 0.000397 & 1.605 & 2.5 & 0.001529 & True & Regular \\
-Story4 & SDy Max & Y & 0.000488 & 0.000471 & 1.035 & 2.5 & 0.001171 & True & Regular \\
-Story3 & SDy Max & X & 0.000577 & 0.000361 & 1.597 & 2.5 & 0.001385 & True & Regular \\
-Story3 & SDy Max & Y & 0.000423 & 0.000407 & 1.038 & 2.5 & 0.001015 & True & Regular \\
-Story2 & SDy Max & X & 0.00046 & 0.000287 & 1.602 & 2.5 & 0.001104 & True & Regular \\
-Story2 & SDy Max & Y & 0.000332 & 0.000313 & 1.058 & 2.5 & 0.000797 & True & Regular \\
-Story1 & SDy Max & X & 0.000167 & 0.000103 & 1.625 & 1.5 & 0.000668 & True & Regular \\
-Story1 & SDy Max & Y & 0.000126 & 0.000108 & 1.173 & 1.5 & 0.000504 & True & Regular \\
-NT & SDy Max & X & 3.3E-05 & 1.6E-05 & 2 & 1.75 & 0.000113 & True & Regular \\
-NT & SDy Max & Y & 2.7E-05 & 1.3E-05 & 2 & 1.75 & 0.000093 & True & Regular \\
+Story8 & SDy Max & X & 0.000535 & 0.000322 & 1.662 & 2.5 & 0.001123 & True & Regular \\
+Story8 & SDy Max & Y & 0.000498 & 0.000478 & 1.042 & 2.5 & 0.001046 & True & Regular \\
+Story7 & SDy Max & X & 0.00059 & 0.000357 & 1.65 & 2.5 & 0.001239 & True & Regular \\
+Story7 & SDy Max & Y & 0.000527 & 0.00051 & 1.033 & 2.5 & 0.001107 & True & Regular \\
+Story6 & SDy Max & X & 0.000632 & 0.000387 & 1.633 & 2.5 & 0.001327 & True & Regular \\
+Story6 & SDy Max & Y & 0.000533 & 0.000517 & 1.031 & 2.5 & 0.001119 & True & Regular \\
+Story5 & SDy Max & X & 0.00065 & 0.000402 & 1.618 & 2.5 & 0.001365 & True & Regular \\
+Story5 & SDy Max & Y & 0.000523 & 0.000506 & 1.034 & 2.5 & 0.001098 & True & Regular \\
+Story4 & SDy Max & X & 0.000637 & 0.000397 & 1.605 & 2.5 & 0.001338 & True & Regular \\
+Story4 & SDy Max & Y & 0.000488 & 0.000471 & 1.035 & 2.5 & 0.001025 & True & Regular \\
+Story3 & SDy Max & X & 0.000577 & 0.000361 & 1.597 & 2.5 & 0.001212 & True & Regular \\
+Story3 & SDy Max & Y & 0.000423 & 0.000407 & 1.038 & 2.5 & 0.000888 & True & Regular \\
+Story2 & SDy Max & X & 0.00046 & 0.000287 & 1.602 & 2.5 & 0.000966 & True & Regular \\
+Story2 & SDy Max & Y & 0.000332 & 0.000313 & 1.058 & 2.5 & 0.000697 & True & Regular \\
+Story1 & SDy Max & X & 0.000167 & 0.000103 & 1.625 & 1.5 & 0.000584 & True & Regular \\
+Story1 & SDy Max & Y & 0.000126 & 0.000108 & 1.173 & 1.5 & 0.000441 & True & Regular \\
+NT & SDy Max & X & 3.3E-05 & 1.6E-05 & 2 & 1.75 & 0.000099 & True & Regular \\
+NT & SDy Max & Y & 2.7E-05 & 1.3E-05 & 2 & 1.75 & 0.000081 & True & Regular \\
 \bottomrule
 \end{tabular}
 }%
@@ -558,7 +558,7 @@ NT & SDy Max & Y & 2.7E-05 & 1.3E-05 & 2 & 1.75 & 0.000093 & True & Regular \\
 \vspace{-10pt}%
 
 
-\begin{figure}[ht!]%
+\begin{figure}[H]%
 \centering%
 \caption{Irregularidad por discontinuidad del diafragma}%
 \includegraphics[scale=0.7]{images/i_diafragma.PNG}%
@@ -574,13 +574,13 @@ NT & SDy Max & Y & 2.7E-05 & 1.3E-05 & 2 & 1.75 & 0.000093 & True & Regular \\
 \caption{Irregularidad por discontinuidad del diafragma (a)}%
 \begin{tabular}{llcr}%
 \cline{1-3}%
-\multicolumn{2}{r}{Longitud del aligerado (L1)} & 7.51 & \multicolumn{1}{l}{m} \\%
+\multicolumn{2}{r}{Longitud del aligerado (L1)} & 10 & \multicolumn{1}{l}{m} \\%
 \multicolumn{2}{r}{Espesor del aligerado (e1)} & 0.05 & \multicolumn{1}{l}{m} \\%
-\multicolumn{2}{r}{Area del aligerado A1=L1$\cdot$ e1} & 0.38 & \multicolumn{1}{l}{$m^2$} \\%
-\multicolumn{2}{r}{Longitud de la losa maciza (L2)} & 2.25 & \multicolumn{1}{l}{m} \\%
-\multicolumn{2}{r}{Espesor de la losa maciza (e2)} & 0.2 & \multicolumn{1}{l}{m} \\%
-\multicolumn{2}{r}{Area de la losa maciza A1=L1$\cdot$ e1} & 0.45 & \multicolumn{1}{l}{$m^2$} \\%
-\multicolumn{2}{r}{Ratio} & 118.42 & \multicolumn{1}{l}{\%} \\%
+\multicolumn{2}{r}{Area del aligerado A1=L1$\cdot$ e1} & 0.50 & \multicolumn{1}{l}{$m^2$} \\%
+\multicolumn{2}{r}{Longitud de la losa macisa (L2)} & 1 & \multicolumn{1}{l}{m} \\%
+\multicolumn{2}{r}{Espesor de la losa macisa (e2)} & 0.2 & \multicolumn{1}{l}{m} \\%
+\multicolumn{2}{r}{Area de la losa macisa A1=L1$\cdot$ e1} & 0.20 & \multicolumn{1}{l}{$m^2$} \\%
+\multicolumn{2}{r}{Ratio} & 40.00 & \multicolumn{1}{l}{\%} \\%
 \multicolumn{2}{r}{Ratio límite} & 25.00 & \multicolumn{1}{l}{\%} \\%
 \multicolumn{2}{r}{Verificación} & \textcolor[rgb]{ .267,  .447,  .769}{\textbf{Regular}} & \multicolumn{1}{l}{} \\%
 \cline{1-3}%
@@ -598,17 +598,17 @@ NT & SDy Max & Y & 2.7E-05 & 1.3E-05 & 2 & 1.75 & 0.000093 & True & Regular \\
 \hline%
 \textbf{Abertura}&\textbf{Largo (m)}&\textbf{Ancho (m)}&\textbf{Área $m^2$}\\%
 \hline%
-1&4.02&2.30&9.25\\%
+1&10.00&0.50&5.00\\%
 \hline%
-2&1.10&2.30&2.53\\%
+2&10.00&0.50&5.00\\%
 \hline%
-3&1.20&19.00&22.80\\%
+3&10.00&0.50&5.00\\%
 \hline%
-&\multicolumn{2}{r}{Área total de aberturas:}&34.58 $m^2$\\%
-&\multicolumn{2}{r}{Área total de la planta:}&120.41 $m^2$\\%
-&\multicolumn{2}{r}{Ratio:}&28.72 \%\\%
+&\multicolumn{2}{r}{Área total de aberturas:}&15.00 $m^2$\\%
+&\multicolumn{2}{r}{Área total de la planta:}&12.50 $m^2$\\%
+&\multicolumn{2}{r}{Ratio:}&120.00 \%\\%
 &\multicolumn{2}{r}{Ratio límite:}&50.00 \%\\%
-&\multicolumn{2}{r}{Verificación:}&\textcolor[rgb]{ .267,  .447,  .769} {Regular}\\%
+&\multicolumn{2}{r}{Verificación:}&\textcolor[rgb]{ 1,  0,  0}{Irregular}\\%
 \end{tabular}%
 \end{table}
 
@@ -636,12 +636,12 @@ NT & SDy Max & Y & 2.7E-05 & 1.3E-05 & 2 & 1.75 & 0.000093 & True & Regular \\
 \caption{Irregularidad por esquinas entrantes}%
 \begin{tabular}{llcr}%
 \cline{1-3}%
-\multicolumn{2}{l}{Esquina entrante en X(a)} & 4.95 & \multicolumn{1}{l}{m} \\%
-\multicolumn{2}{l}{Esquina entrante en Y(b)} & 2.3 & \multicolumn{1}{l}{m} \\%
-\multicolumn{2}{l}{Dimensión total en X(A)} & 7.51 & \multicolumn{1}{l}{m} \\%
-\multicolumn{2}{l}{Dimensión total en Y(B)} & 15.28 & \multicolumn{1}{l}{m} \\%
-\multicolumn{2}{l}{a/A} & 65.91 & \multicolumn{1}{l}{\%} \\%
-\multicolumn{2}{l}{b/B} & 15.05 & \multicolumn{1}{l}{\%} \\%
+\multicolumn{2}{l}{Esquina entrante en X(a)} & 0.45 & \multicolumn{1}{l}{m} \\%
+\multicolumn{2}{l}{Esquina entrante en Y(b)} & 0.55 & \multicolumn{1}{l}{m} \\%
+\multicolumn{2}{l}{Dimensión total en X(A)} & 12.05 & \multicolumn{1}{l}{m} \\%
+\multicolumn{2}{l}{Dimensión total en Y(B)} & 21.05 & \multicolumn{1}{l}{m} \\%
+\multicolumn{2}{l}{a/A} & 3.73 & \multicolumn{1}{l}{\%} \\%
+\multicolumn{2}{l}{b/B} & 2.61 & \multicolumn{1}{l}{\%} \\%
 \multicolumn{2}{l}{Limite <} & 20.0 & \multicolumn{1}{l}{\%} \\%
 \multicolumn{2}{l}{Verificación} & \textcolor[rgb]{ .267,  .447,  .769}{\textbf{Regular}} & \multicolumn{1}{l}{} \\%
 \cline{1-3}%
@@ -689,7 +689,7 @@ $\omega _{j}$,$\omega _{i}$: son las frecuencias angulares de los modos i, j\\%
 
 
 \begin{figure}[H]%
-\includegraphics[width=\textwidth]{images/desplazamientos_laterales}%
+\includegraphics[width=0.8\textwidth]{images/desplazamientos_laterales}%
 \caption{Desplazamientos inelásticos}%
 \end{figure}
 
@@ -727,7 +727,7 @@ $\omega _{j}$,$\omega _{i}$: son las frecuencias angulares de los modos i, j\\%
 
 
 \begin{figure}[ht!]%
-\includegraphics[width=\textwidth]{images/derivas}%
+\includegraphics[width=0.8\textwidth]{images/derivas}%
 \caption{Derivas máxima de entrepiso}%
 \end{figure}
 
@@ -817,7 +817,7 @@ Lo anterior equivale a calcular los modos de vibrar en el modelo matemático res
 \cline{2%
 -%
 4}%
-\textit{Factor de Uso (Tabla N° 5)}&\textbf{U}&\multicolumn{2}{c|}{1.50}\\%
+\textit{Factor de Uso (Tabla N° 5)}&\textbf{U}&\multicolumn{2}{c|}{1.00}\\%
 \cline{2%
 -%
 4}%
@@ -833,7 +833,7 @@ Lo anterior equivale a calcular los modos de vibrar en el modelo matemático res
 \cline{2%
 -%
 4}%
-\textit{Coef. Básico de Reducción (Tabla N°7)}&\textbf{R\raisebox{-0.5ex}{\scriptsize{o}}}&8.00&7.00\\%
+\textit{Coef. Básico de Reducción (Tabla N°7)}&\textbf{R\raisebox{-0.5ex}{\scriptsize{o}}}&7.00&8.00\\%
 \cline{2%
 -%
 4}%
@@ -845,11 +845,11 @@ Lo anterior equivale a calcular los modos de vibrar en el modelo matemático res
 \cline{2%
 -%
 4}%
-\textit{Coef. de Reducción (Articulo 22)}&\textbf{R}&8.00&7.00\\%
+\textit{Coef. de Reducción (Articulo 22)}&\textbf{R}&7.00&8.00\\%
 \cline{2%
 -%
 4}%
-\textit{Verificación (Articulo 28.2.2)}&\textbf{C/R>0.11}&0.29&0.36\\%
+\textit{Verificación (Articulo 28.2.2)}&\textbf{C/R>0.11}&0.33&0.31\\%
 \cline{2%
 -%
 4}%
@@ -857,11 +857,11 @@ Lo anterior equivale a calcular los modos de vibrar en el modelo matemático res
 \cline{2%
 -%
 4}%
-\textit{Coeficientes}&\textbf{ZUCS/R}&0.21&0.25\\%
+\textit{Coeficientes}&\textbf{ZUCS/R}&0.16&0.15\\%
 \cline{2%
 -%
 4}%
-\textit{Cortante estática (Art.28.2)}&\textbf{V (ton)}&\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{144.44}}&\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{177.18}}\\%
+\textit{Cortante estática (Art.28.2)}&\textbf{V (ton)}&\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{110.05}}&\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{103.36}}\\%
 \cline{2%
 -%
 4}%
@@ -882,15 +882,15 @@ Lo anterior equivale a calcular los modos de vibrar en el modelo matemático res
 \toprule
 Piso & Peso & Altura & $H^{kx}$ & $H^{ky}$ & PxHx & PxHy & ax & ay & Vx & Vy \\
 \midrule
-Story8 & 65.394 & 20.750 & 25.810 & 20.750 & 1688.028 & 1356.921 & 0.177 & 0.213 & 25.534 & 37.715 \\
-Story7 & 85.837 & 18.250 & 22.490 & 18.250 & 1930.858 & 1566.533 & 0.202 & 0.243 & 29.208 & 43.140 \\
-Story6 & 85.676 & 15.750 & 19.210 & 15.750 & 1645.669 & 1349.392 & 0.172 & 0.208 & 24.894 & 36.768 \\
-Story5 & 85.695 & 13.250 & 15.960 & 13.250 & 1367.636 & 1135.458 & 0.143 & 0.172 & 20.688 & 30.556 \\
-Story4 & 89.857 & 10.750 & 12.750 & 10.750 & 1146.093 & 965.958 & 0.120 & 0.145 & 17.337 & 25.607 \\
-Story3 & 89.857 & 8.250 & 9.600 & 8.250 & 862.956 & 741.317 & 0.090 & 0.109 & 13.054 & 19.281 \\
-Story2 & 89.857 & 5.750 & 6.520 & 5.750 & 586.022 & 516.675 & 0.061 & 0.074 & 8.865 & 13.093 \\
-Story1 & 72.894 & 3.250 & 3.540 & 3.250 & 257.888 & 236.906 & 0.027 & 0.033 & 3.901 & 5.762 \\
-NT & 34.911 & 1.750 & 1.820 & 1.750 & 63.606 & 61.094 & 0.007 & 0.008 & 0.962 & 1.421 \\
+Story8 & 65.394 & 20.750 & 25.810 & 20.750 & 1688.028 & 1356.921 & 0.177 & 0.213 & 19.455 & 25.143 \\
+Story7 & 85.837 & 18.250 & 22.490 & 18.250 & 1930.858 & 1566.533 & 0.202 & 0.243 & 22.253 & 28.760 \\
+Story6 & 85.676 & 15.750 & 19.210 & 15.750 & 1645.669 & 1349.392 & 0.172 & 0.208 & 18.967 & 24.512 \\
+Story5 & 85.695 & 13.250 & 15.960 & 13.250 & 1367.636 & 1135.458 & 0.143 & 0.172 & 15.762 & 20.371 \\
+Story4 & 89.857 & 10.750 & 12.750 & 10.750 & 1146.093 & 965.958 & 0.120 & 0.145 & 13.209 & 17.071 \\
+Story3 & 89.857 & 8.250 & 9.600 & 8.250 & 862.956 & 741.317 & 0.090 & 0.109 & 9.946 & 12.854 \\
+Story2 & 89.857 & 5.750 & 6.520 & 5.750 & 586.022 & 516.675 & 0.061 & 0.074 & 6.754 & 8.729 \\
+Story1 & 72.894 & 3.250 & 3.540 & 3.250 & 257.888 & 236.906 & 0.027 & 0.033 & 2.972 & 3.841 \\
+NT & 34.911 & 1.750 & 1.820 & 1.750 & 63.606 & 61.094 & 0.007 & 0.008 & 0.733 & 0.947 \\
 \bottomrule
 \end{tabular}
 %

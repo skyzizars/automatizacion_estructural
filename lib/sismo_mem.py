@@ -345,7 +345,7 @@ def espectro_respuesta(T,Sax,Say,Tp,Tl,Rx,Ry,o_type=Subsubsection):
 
     obj.append(NoEscape('%insertion'))
     with obj.create(Figure(position='H')) as fig:
-        fig.append(NoEscape('\\includegraphics[width=\\textwidth]{images/espectro_respuestas}'))
+        fig.append(NoEscape('\\includegraphics[width=0.8\\textwidth]{images/espectro_respuestas}'))
         fig.add_caption('Espectro de aceleraciones')
     return obj
 
@@ -483,6 +483,7 @@ def irreg_masa(masa,o_type=Subsubsection):
     obj = def_obj(o_type,NoEscape('Irregularidad de Masa o Peso'))
     obj.packages.append(Package('tcolorbox'))
     obj.packages.append(Package('booktabs'))
+    obj.packages.append(Package('float'))
     
     mbox = mybox2('Tabla N°9 E-030')
     mbox.append(NoEscape('Se tiene irregularidad de masa (o peso) cuando el peso de un piso determinado según el artículo 26, es nayor que 1,5 veces el peso de un piso adyascente. Este criterio no se aplica en azoteas ni en sótanos'))
@@ -490,7 +491,7 @@ def irreg_masa(masa,o_type=Subsubsection):
 
     obj.append(NoEscape('%insertion'))
     
-    with obj.create(Table(position='h!')):
+    with obj.create(Table(position='H')):
         obj.append(NoEscape('\centering'))
         obj.append(NoEscape('\caption{Irregularidad de Masa o Peso}'))
         obj.append(NoEscape(latex_table(masa)))
@@ -550,7 +551,7 @@ def irreg_discontinuidad_diaf(sec_change=None,openings=None,o_type=Subsubsection
     recibe el objeto y produce un informe de discontinuidad de diafragma
     sintaxis de sec_change (diccionario):
         {aligerado: (longitud,espesor),
-         maciza: (longitud,esperor)}
+         macisa: (longitud,esperor)}
         tipo de seccion 1: [longitud,espesor]
     sintaxis de openings:
         aberturas : [(largo, ancho),]
@@ -570,7 +571,7 @@ def irreg_discontinuidad_diaf(sec_change=None,openings=None,o_type=Subsubsection
 
     obj.append(NoEscape('%insertion'))
     obj.append(NoEscape(r'\vspace{-10pt}'))
-    fig = Figure(position='ht!')
+    fig = Figure(position='H')
     fig.append(NoEscape(r'\centering'))
     fig.append(NoEscape(r'\caption{Irregularidad por discontinuidad del diafragma}'))
     fig.append(NoEscape(r'\includegraphics[scale=0.7]{images/i_diafragma.PNG}'))
@@ -581,15 +582,15 @@ def irreg_discontinuidad_diaf(sec_change=None,openings=None,o_type=Subsubsection
         data = [['Longitud del aligerado (L1)',sec_change['aligerado'][0],'m'],
                 ['Espesor del aligerado (e1)',sec_change['aligerado'][1],'m'],
                 ['Area del aligerado A1=L1$\\cdot$ e1','area1','$m^2$'],
-                ['Longitud de la losa maciza (L2)',sec_change['maciza'][0],'m'],
-                ['Espesor de la losa maciza (e2)',sec_change['maciza'][1],'m'],
-                ['Area de la losa maciza A1=L1$\\cdot$ e1','area2','$m^2$'],
+                ['Longitud de la losa macisa (L2)',sec_change['macisa'][0],'m'],
+                ['Espesor de la losa macisa (e2)',sec_change['macisa'][1],'m'],
+                ['Area de la losa macisa A1=L1$\\cdot$ e1','area2','$m^2$'],
                 ['Ratio','ratio','\%'],
                 ['Ratio límite','25.00','\%'],
                 ['Verificación','','']]
         
-        data[2][1] = '%.2f'%(sec_change['aligerado'][0]*sec_change['aligerado'][1])
-        data[5][1] = '%.2f'%(sec_change['maciza'][0]*sec_change['maciza'][1])
+        data[2][1] = '%.2f'%(float(sec_change['aligerado'][0])*float(sec_change['aligerado'][1]))
+        data[5][1] = '%.2f'%(float(sec_change['macisa'][0])*float(sec_change['macisa'][1]))
         data[6][1] = '%.2f'%(float(data[5][1])/float(data[2][1])*100)
         data[8][1] = r'\textcolor[rgb]{ .267,  .447,  .769}{\textbf{Regular}}' if float(data[6][1]) > float(data[7][1]) else r'\textcolor[rgb]{ 1,  0,  0}{\textbf{Irregular}}'
         obj.append(NoEscape(r'\vspace{-30pt}'))
@@ -608,11 +609,11 @@ def irreg_discontinuidad_diaf(sec_change=None,openings=None,o_type=Subsubsection
         data = [[r'\textbf{Abertura}', r'\textbf{Largo (m)}',r'\textbf{Ancho (m)}',r'\textbf{Área $m^2$}'],]
         
         for i,j in enumerate(openings['aberturas']):
-            data.append([i+1,'%.2f'%(j[0]),'%.2f'%(j[1]),'%.2f'%(j[0]*j[1])])
+            data.append([i+1,'%.2f'%(float(j[0])),'%.2f'%(float(j[1])),'%.2f'%(float(j[0])*float(j[1]))])
         
         a_total = sum(float(i[3]) for i in data[1:])
-        a_planta = openings['area_planta']
-        ratio = a_total/a_planta*100
+        a_planta = float(openings['area_planta'])
+        ratio = float(a_total)/float(a_planta)*100
         verif = r'\textcolor[rgb]{ .267,  .447,  .769} {Regular}' if ratio < 50 else r'\textcolor[rgb]{ 1,  0,  0}{Irregular}'
 
         obj.append(NoEscape(r'\vspace{-15pt}'))
@@ -669,8 +670,8 @@ def irreg_esquinas_entrantes(datos_esquinas=None,o_type=Subsubsection):
                 ['Limite <','20.0','\%'],
                 ['Verificación','','']]
         
-        data[4][1] = '%.2f'%(datos_esquinas['esq_X']/datos_esquinas['dim_X']*100)
-        data[5][1] = '%.2f'%(datos_esquinas['esq_Y']/datos_esquinas['dim_Y']*100)
+        data[4][1] = '%.2f'%(float(datos_esquinas['esq_X'])/float(datos_esquinas['dim_X'])*100)
+        data[5][1] = '%.2f'%(float(datos_esquinas['esq_Y'])/float(datos_esquinas['dim_Y'])*100)
         data[7][1] = r'\textcolor[rgb]{ 1,  0,  0}{\textbf{Irregular}}' if (float(data[4][1])>20 and float(data[5][1])>20  ) else r'\textcolor[rgb]{ .267,  .447,  .769}{\textbf{Regular}}'
         
         table = Table(position='H')
@@ -754,7 +755,7 @@ def desplazamientos_laterales(heights,disp_x,disp_y,Rx,Ry,o_type=Subsection):
     obj.append(mbox)
 
     with obj.create(Figure(position='H')) as fig:
-        fig.append(NoEscape('\\includegraphics[width=\\textwidth]{images/desplazamientos_laterales}'))
+        fig.append(NoEscape('\\includegraphics[width=0.8\\textwidth]{images/desplazamientos_laterales}'))
         fig.add_caption('Desplazamientos inelásticos')
     
     return obj
@@ -780,6 +781,7 @@ def verificacion_derivas(sist_x,sist_y,heights,drifts_x,drifts_y,max_drift,Rx,Ry
     fig = plt.gcf()
     fig.set_frameon(False)
     plt.savefig("images/derivas.pdf",dpi=300,pad_inches=0,bbox_inches='tight')
+    plt.clf()
 
     obj=def_obj(o_type,'Verificación de derivas máximas Art. 32 E-030')
     obj.packages.append(Package('array'))
@@ -830,7 +832,7 @@ def verificacion_derivas(sist_x,sist_y,heights,drifts_x,drifts_y,max_drift,Rx,Ry
     obj.append(table)
     
     with obj.create(Figure(position='ht!')) as fig:
-        fig.append(NoEscape('\\includegraphics[width=\\textwidth]{images/derivas}'))
+        fig.append(NoEscape('\\includegraphics[width=0.8\\textwidth]{images/derivas}'))
         fig.add_caption('Derivas máxima de entrepiso')
     
     return obj
@@ -951,7 +953,8 @@ def cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,sis_estatico,o_type=Sub
             tabular.add_row((NoEscape(r'\textit{Coeficiente k (Art.28.3.2)}'), NoEscape(r'\textbf{k}'), '{:.2f}'.format(kx), '{:.2f}'.format(ky)))
             tabular.add_hline(2,4)
 
-    def latex_table(table):
+    def latex_table(tab):
+        table = tab.copy()
         table.columns = ['Piso','Peso','Altura',r'$H^{kx}$',r'$H^{ky}$','PxHx','PxHy','ax','ay','Vx','Vy']
         for i in  ['Peso','Altura',r'$H^{kx}$',r'$H^{ky}$','PxHx','PxHy','ax','ay','Vx','Vy']:
             table.loc[:,i] = table.loc[:,i].astype(float)
@@ -1111,7 +1114,7 @@ if __name__ == '__main__':
 
     #datos discontinuidad de diafragma
     sec_change = {'aligerado':[7.51,0.05],
-                'maciza':[2.25,0.20]}
+                'macisa':[2.25,0.20]}
     openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
                 'area_planta' : 120.41}
     
