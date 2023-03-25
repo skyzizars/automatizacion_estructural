@@ -3,6 +3,7 @@ import os
 sys.path.append(os.getcwd())
 
 from lib import latex_utils as ltx
+import etabs_utils as etb
 from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure,MultiRow
 from pylatex.utils import NoEscape, bold
 from pylatex.package import Package
@@ -221,7 +222,7 @@ def factor_amplificacion(o_type=Subsubsection):
    
     obj.append(NoEscape('%insertion'))
 
-    obj.append('Se determina según el artículo 14 de la E-030')
+    obj.append('Se determina según el artículo 14 de la E-030.')
     obj.append(NoEscape(r'\setlength{\jot}{0.5cm}'))
     with obj.create(Figure(position='h!')):
         obj.append(NoEscape(r'\caption{Factor de amplificación}'))
@@ -297,7 +298,7 @@ def tabla_resumen(Z,U,S,Tp,Tl,Rox,Roy,Ia,Ip,o_type=Subsubsection):
             tabular.add_hline(2,4)
             tabular.add_row('',MultiColumn(3,align='c|',data=bold("PARÁMETROS SÍSMICOS")))
             tabular.add_hline(2,4)
-            tabular.add_row('','',NoEscape(r'\textit{\textbf{X}}'),NoEscape(r'\textit{\textbf{Y}}'))
+            tabular.add_row(NoEscape(r'\textit{\textbf{Norma E.030}}'),'',NoEscape(r'\textit{\textbf{X}}'),NoEscape(r'\textit{\textbf{Y}}'))
             tabular.add_hline(2,4)
             tabular.add_row((NoEscape(r'\textit{Factor de Zona (Tabla N° 1)}'), NoEscape(r'\textbf{Z}'),MultiColumn(2,align='c|',data='{:.2f}'.format(Z))))
             tabular.add_hline(2,4)
@@ -357,7 +358,7 @@ def peso_sismico(o_type=Subsubsection):
         
 
     mbox = mybox3(r'Art. 26')
-    mbox.append(NoEscape(r'\textit{El peso (P), se calcula adicionando a la carga permanente y total de la edificación un porcentaje de la carga viva o sobrecarga. En edificaciones de categoría C, se toma el 25\% de la carga viva.}'))
+    mbox.append(NoEscape(r'\textit{El peso (P), se calcula adicionando a la carga permanente y total de la edificación un porcentaje de la carga viva o sobrecarga. En edificaciones de categoría A y B, se toma el 50\% de la carga viva y en edificaciones de categoría C, se toma el 25\% de la carga viva.}'))
     obj.append(mbox)
 
     obj.append(NoEscape('%insertion'))
@@ -689,7 +690,7 @@ def irreg_esquinas_entrantes(datos_esquinas=None,o_type=Subsubsection):
 
 def analisis_dinamico(o_type=Subsection):
     obj = def_obj(o_type,'Análisis Dinámico Espectral Art. 29 E-030') 
-    obj.append(r'El análisis dinámico modal espectral consiste calcular la respuesta para cada modo ingresando al espectro de pseudo-aceleraciones definido en \ref{ssubsec:Espectroderespuestadeaceleraciones}, para posteriormente combinar los resultados según los criterios que se menciona en la norma E-030:')
+    obj.append(NoEscape(r'El análisis dinámico modal espectral consiste calcular la respuesta para cada modo ingresando al espectro de pseudo-aceleraciones definido en \ref{ssubsec:Espectroderespuestadeaceleraciones}, para posteriormente combinar los resultados según los criterios que se menciona en la norma E-030:'))
     obj.append(NoEscape('%insertion'))
 
     return obj
@@ -708,7 +709,7 @@ def criterios_combinacion(o_type=Subsubsection):
     obj.append(mbox)
     
     with obj.create(Alignat(aligns=1,numbering=True,escape=False)) as eq:  #Insertar ecuación
-        eq.append(r'r=\sqrt{\sum \sum r_{i}\,\rho _{i}\,r_{i}}')
+        eq.append(r'r=\sqrt{\sum \sum r_{i}\,\rho _{ij}\,r_{j}}')
 
     mbox = mybox3(r'Art. 29.3.3')
     mbox.append(NoEscape(r'\textit{Donde r representa las respuestas modales, desplazamientos o fuerzas, los coeficientes de correlación están dados por:}'))
@@ -840,7 +841,7 @@ def verificacion_derivas(sist_x,sist_y,heights,drifts_x,drifts_y,max_drift,Rx,Ry
 def verificacion_sist_est(o_type=Subsection):
     obj=def_obj(o_type,'Verificación del sistema estructural')
     obj.packages.append(Package('caption')) 
-    obj.append(r'Se verificará que efectivamente se tiene un sistema estructural de muros en la dirección X, en la dirección Y no se verificara dado que no existen muros estructurales. Como se muestra en la figura \ref{fig:sist_est_etabs} el valor de cortante que absorben los muros es de 64 ton, y la cortante total es aproximadamente 70 ton (ver figura \ref{fig:corte_basal}) por lo que el porcentaje que toman los muros es mayor al 90%.')
+    obj.append(NoEscape(r'Se verificará que efectivamente se tiene un sistema estructural de muros en la dirección X, en la dirección Y no se verificara dado que no existen muros estructurales. Como se muestra en la figura \ref{fig:sist_est_etabs} el valor de cortante que absorben los muros es de 64 ton, y la cortante total es aproximadamente 70 ton (ver figura \ref{fig:corte_basal}) por lo que el porcentaje que toman los muros es mayor al 90\%.'))
     obj.append(NoEscape('%insertion'))
     
     fig = Figure(position='ht!')
@@ -971,7 +972,7 @@ def cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,sis_estatico,o_type=Sub
 
     return obj
 
-def fuerza_cortante_min(tabla_corte_min,o_type=Subsection):
+def fuerza_cortante_min(tabla_corte_min,heights,shear_x,shear_y,o_type=Subsection):
     obj = def_obj(o_type,'Fuerza cortante mínima Art. 29.4 E-030')
     obj.packages.append(Package('tcolorbox'))
     obj.packages.append(Package('array'))
@@ -985,6 +986,43 @@ def fuerza_cortante_min(tabla_corte_min,o_type=Subsection):
     mbox = mybox2(r'Art. 29.4.2')
     mbox.append(NoEscape(r'\textit{Si fuera necesario incrementar el cortante para cumplir los mínimos señalados,  se escalan proporcionalmente todos los otros resultados obtenidos, excepto los  desplazamientos.}'))
     obj.append(mbox)
+
+    shear_x['VX']=shear_x['VX'].astype(float)
+    shear_y['VY']=shear_y['VY'].astype(float)
+    max_shear_x = shear_x['VX'].max()
+    max_shear_y = shear_y['VY'].max()
+
+    #Compatibilización  del array heights con el dataframe shear_x y shear_y
+    list_heights=list(reversed(heights)) #Convertir a lista e invertir posiciones
+    heights_extended=[]
+    for i in range(len(list_heights)):
+        if i==0 or i==len(list_heights)-1:
+            heights_extended.append(list_heights[i])
+        else:
+            heights_extended.append(list_heights[i])
+            heights_extended.append(list_heights[i])
+
+    #Creación de la figura
+    plt.clf()
+    plt.ylim(0,max(heights_extended)*1.05)
+    plt.xlim(0,max(max_shear_x,max_shear_y)*1.02)
+    plt.plot(shear_x['VX'],heights_extended,'r',label='X (R=%.2f)'%Rx)
+    plt.plot(shear_y['VY'],heights_extended,'b',label='Y (R=%.2f)'%Ry)
+    plt.scatter(shear_x['VX'],heights_extended,color='r',marker='x')
+    plt.scatter(shear_y['VY'],heights_extended,color='b',marker='x')
+    plt.xlabel('Fuerza cortante (t)')
+    plt.ylabel('h (m)')
+    plt.grid(linestyle='dotted', linewidth=1)
+    plt.legend(loc='upper right')
+    fig = plt.gcf()
+    fig.set_frameon(False)
+    plt.savefig("images/cortantes.pdf",dpi=300,pad_inches=0,bbox_inches='tight')
+    plt.clf()
+
+    with obj.create(Figure(position='ht!')) as fig:
+        fig.append(NoEscape('\\includegraphics[width=0.8\\textwidth]{images/cortantes}'))
+        fig.add_caption('Cortantes de Entrepiso del Análisis Modal Espectral')
+        fig.append(NoEscape(r'\label{fig:corte_basal}'))
 
     def latex_table(table):
         table.columns = table.iloc[0]
@@ -1124,6 +1162,16 @@ if __name__ == '__main__':
                 'dim_X':7.51,
                 'dim_Y':15.28}
     
+    #datos cortantes por piso
+    _,_SapModel= etb.connect_to_etabs()
+    _,cortantes = etb.get_table(_SapModel,'Story Forces')
+
+    df1 = cortantes[['Story','OutputCase','Location','VX']]
+    shear_x=df1[(df1["OutputCase"]=='SDx')] #Filtro
+    
+    df2 = cortantes[['Story','OutputCase','Location','VY']]
+    shear_y=df2[(df2["OutputCase"]=='SDy')] #Filtro
+    
     #Cargas sismicas
     sis_estatico = sismo.tables.static_seism
 
@@ -1165,7 +1213,7 @@ if __name__ == '__main__':
     verif_sist_est = verificacion_sist_est()
     analisis_est = analisis_estatico()
     corte_basal= cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,sis_estatico)
-    corte_basal_min = fuerza_cortante_min(sismo.tables.shear_table)
+    corte_basal_min = fuerza_cortante_min(sismo.tables.shear_table,heights,shear_x,shear_y)
     sep_edificios= separacion_edificios(datos_sep)
     
     obj_list = [p_sitio,f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,t_resumen,
