@@ -10,7 +10,7 @@ from lib import sismo_utils as sis
 from lib import sismo_mem as smem
 
 
-_SapModel, _EtabsObject = etb.connect_to_etabs()
+_, _SapModel = etb.connect_to_etabs()
 
 #Definir variables de salida 'Ton_m_C' o 'kgf_cm_C'
 etb.set_units(_SapModel,'Ton_m_C')
@@ -28,71 +28,51 @@ sistemas = ['Pórticos de Concreto Armado',
             'Albañilería Armada o Confinada',
             'Madera']
 
-datos = {'Factor de Importancia': 'C',
-        'Sistema Estructural': sistemas[0],
-        'Número de Pisos': '4',
-        'Número de Sotanos': '0',
-        'Número de Azoteas': '1',
-        'Factor Zona': '2',
-        'Factor Suelo': 'S2',
-        'Piso Blando': 'False',
-        'Piso Blando Extremo': 'False',
-        'Irregularidad de Masa': 'False',
-        'Irregularidad Vertical': 'False',
-        'Dicontinuidad Vertical': 'False',
-        'Dicontinuidad Vertical Extrema': 'False',
-        'Irregularidad Torsional': 'False',
-        'Irregulariad Torsional Extrema': 'False',
-        'Esquinas Entrantes': 'False',
-        'Discontinuidad del diafragma': 'False',
-        'Sistemas no Paralelos': 'False'}
+categorias = ['A1 aislado',
+                  'A1 no aislado',
+                  'A2',
+                  'B',
+                  'C']
+    
+sis_loads = {'Sismo_EstX': 'Sx',
+                 'Sismo_EstY': 'Sy',
+                 'Sismo_DinX': 'SDx',
+                 'Sismo_DinY': 'SDy'}
 
+zona = 4
+suelo = 'S2'
+sist_x = sistemas[0]
+sist_y = sistemas[1]
+categoria = categorias[2]
+n_pisos = 3
+n_sotanos = 0
+n_azoteas = 0
+story_base = 'Story1'
 
+sismo = sis.Sismo_e30()
+sismo.data.factor_zona(zona)
+sismo.data.factor_suelo(suelo)
+sismo.data.periodos_suelo()
+sismo.data.sist_estructural(sist_x,sist_y)
+sismo.data.categoria_edificacion(categoria)
+sismo.data.set_pisos(n_pisos,n_azoteas,n_sotanos)
+sismo.data.irreg_altura(i_vertical=False)
+sismo.data.irreg_planta(i_torsional=False)
+sismo.data.factor_R()
+sismo.data.set_pisos(n_pisos, n_azoteas, n_sotanos)
+#sismo.data.show_params()
 
+sismo.loads.set_seism_loads(sis_loads)
+sismo.set_base_story(story_base)
 
-sismo = sis.sismo_e30(data=datos)
-self.zona = int(self.data['Factor Zona'])
-self.Z = float(self.factor_zona[self.factor_zona.Zona == zona].Z)
-categoria = self.data['Factor de Importancia']
-self.U = float(self.cat_edificacion[self.cat_edificacion.categoria == categoria].U)
-suelo = self.data['Factor Suelo']
-self.S = float(self.factor_suelo[self.factor_suelo.Z == zona][suelo])
-self.Tp = self.periodos_suelo[suelo].loc['Tp']
-self.Tl = self.periodos_suelo[suelo].loc['Tl']
-sistema_x = self.data['Sistema Estructural X']
-sistema_y = self.data['Sistema Estructural X']
-self.Rox = float(self.sist_estructural[self.sist_estructural.sistema == sistema_x]['R_0'])
-self.Roy = float(self.sist_estructural[self.sist_estructural.sistema == sistema_y]['R_0'])
-self.max_drift_x = float(self.sist_estructural[self.sist_estructural.sistema == sistema_x]['max_drift'])
-self.max_drift_y = float(self.sist_estructural[self.sist_estructural.sistema == sistema_y]['max_drift'])
-self.N = int(self.data['Número de Pisos'])
-self.n_sotanos = int(self.data['Número de Sotanos'])
-self.n_azoteas = int(self.data['Número de Azoteas'])
-self.Ip = min([j for i, j in self.irreg_planta.items() if eval(self.data[i])] + [1, ])
-self.Ia = min([j for i, j in self.irreg_altura.items() if eval(self.data[i])] + [1, ])
-
-sismo.show_params()
-sismo.analisis_sismo(_SapModel)
-
-zona = 2
-suelo = 'S1'
-categoria = 'A2'
-
-geometry_options = { "left": "2.5cm", "top": "1.5cm" }
-doc = smem.Document(geometry_options=geometry_options)
-doc.packages.append(smem.Package('xcolor', options=['dvipsnames']))
-s1 = smem.Section('Análisis Sísmico')
-s1.packages.append(smem.Package('tcolorbox'))
-s1.packages.append(smem.Package('booktabs'))
-# s1 = smem.params_sitio(zona,suelo,categoria,s1)
-# s1 = smem.ana_modal(sismo.modal, s1)
-tabla = sismo.piso_blando_table
-sis_x = tabla[tabla['OutputCase']=='SDX Max']
-sis_y = tabla[tabla['OutputCase']=='SDY Max']
-s1 = smem.irreg_rigidez(s1,sis_x,sis_y)
-
-doc.append(s1)
-doc.generate_pdf('Memoria Sismo2')
-doc.generate_tex('Memoria Sismo2')
-
+sismo.ana_modal(_SapModel)
+sismo.sismo_estatico(_SapModel)
+sismo.dinamic_spectrum()
+sismo.min_shear(_SapModel,story=sismo.base_story)
+sismo.piso_blando(_SapModel)
+sismo.irregularidad_masa(_SapModel)
+sismo.irregularidad_torsion(_SapModel)
+sismo.derivas(_SapModel)
+sismo.desplazamientos(_SapModel)
+sismo.centro_masa_inercia(_SapModel)
 
