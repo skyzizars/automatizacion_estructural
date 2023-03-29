@@ -21,7 +21,7 @@
 \usepackage{booktabs}%
 \usepackage{subfigure}%
 %
-\graphicspath{ {D:/CIVIL ENGINEER/PROYECTO LATEX-PYTHON-ETABS/GITHUB/automatizacion_estructural/} }%
+\graphicspath{ {D:/programas/automatizacion_estructural/} }%
 %
 \begin{document}%
 \normalsize%
@@ -342,15 +342,15 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 \toprule
 Mode & Period & UX & UY & RZ & SumUX & SumUY & SumRZ \\
 \midrule
-1 & 0.360 & 0.864 & 0.000 & 0.000 & 0.864 & 0.000 & 0.000 \\
-2 & 0.273 & 0.000 & 0.872 & 0.000 & 0.864 & 0.872 & 0.000 \\
-3 & 0.225 & 0.000 & 0.000 & 0.850 & 0.864 & 0.872 & 0.850 \\
-4 & 0.101 & 0.119 & 0.000 & 0.000 & 0.983 & 0.872 & 0.850 \\
-5 & 0.077 & 0.000 & 0.112 & 0.000 & 0.983 & 0.984 & 0.850 \\
-6 & 0.062 & 0.000 & 0.000 & 0.132 & 0.983 & 0.984 & 0.982 \\
-7 & 0.048 & 0.017 & 0.000 & 0.000 & 1.000 & 0.984 & 0.982 \\
-8 & 0.037 & 0.000 & 0.016 & 0.000 & 1.000 & 1.000 & 0.982 \\
-9 & 0.029 & 0.000 & 0.000 & 0.018 & 1.000 & 1.000 & 1.000 \\
+1 & 0.353 & 0.863 & 0.000 & 0.000 & 0.863 & 0.000 & 0.000 \\
+2 & 0.267 & 0.000 & 0.871 & 0.000 & 0.863 & 0.871 & 0.000 \\
+3 & 0.221 & 0.000 & 0.000 & 0.849 & 0.863 & 0.871 & 0.849 \\
+4 & 0.099 & 0.119 & 0.000 & 0.000 & 0.983 & 0.871 & 0.849 \\
+5 & 0.075 & 0.000 & 0.113 & 0.000 & 0.983 & 0.984 & 0.849 \\
+6 & 0.061 & 0.000 & 0.000 & 0.132 & 0.983 & 0.984 & 0.982 \\
+7 & 0.047 & 0.017 & 0.000 & 0.000 & 1.000 & 0.984 & 0.982 \\
+8 & 0.036 & 0.000 & 0.016 & 0.000 & 1.000 & 1.000 & 0.982 \\
+9 & 0.028 & 0.000 & 0.000 & 0.018 & 1.000 & 1.000 & 1.000 \\
 \bottomrule
 \end{tabular}
 %
@@ -385,9 +385,9 @@ Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante
 \toprule
 Story & OutputCase & VX & VY & Rigidez Lateral(k) & 70\%k previo & 80\%Prom(k) & is\_reg \\
 \midrule
-Story3 & SDx Max & 37.537 & 9.565 & 18791.749 &  &  & Regular \\
-Story2 & SDx Max & 74.277 & 19.164 & 28433.680 & 13154.224 &  & Regular \\
-Story1 & SDx Max & 95.209 & 24.671 & 35703.618 & 19903.576 &  & Regular \\
+Story3 & SDx Max & 36.386 & 9.274 & 19004.918 &  &  & Regular \\
+Story2 & SDx Max & 70.704 & 18.243 & 28372.162 & 13303.443 &  & Regular \\
+Story1 & SDx Max & 90.325 & 23.406 & 35626.027 & 19860.513 &  & Regular \\
 \bottomrule
 \end{tabular}
 %
@@ -403,9 +403,9 @@ Story1 & SDx Max & 95.209 & 24.671 & 35703.618 & 19903.576 &  & Regular \\
 \toprule
 Story & OutputCase & VX & VY & Rigidez Lateral(k) & 70\%k previo & 80\%Prom(k) & is\_reg \\
 \midrule
-Story3 & SDy Max & 11.261 & 31.883 & 18765.862 &  &  & Regular \\
-Story2 & SDy Max & 22.283 & 63.881 & 28442.075 & 13136.104 &  & Regular \\
-Story1 & SDy Max & 28.563 & 82.237 & 35708.771 & 19909.452 &  & Regular \\
+Story3 & SDy Max & 10.916 & 30.915 & 18977.594 &  &  & Regular \\
+Story2 & SDy Max & 21.211 & 60.811 & 28389.869 & 13284.316 &  & Regular \\
+Story1 & SDy Max & 27.098 & 78.021 & 35642.302 & 19872.908 &  & Regular \\
 \bottomrule
 \end{tabular}
 %
@@ -427,9 +427,9 @@ Se tiene irregularidad de masa (o peso) cuando el peso de un piso determinado se
 \toprule
 Story & Masa & 1.5 Masa & Tipo de Piso & is\_reg \\
 \midrule
-Story3 & 9.191 &  & Azotea & Regular \\
-Story2 & 13.850 & 20.774 & Piso & Regular \\
-Story1 & 14.612 & 21.918 & Piso & Regular \\
+Story3 & 8.953 &  & Azotea & Regular \\
+Story2 & 13.017 & 19.525 & Piso & Regular \\
+Story1 & 13.779 & 20.668 & Piso & Regular \\
 Base & 2.723 &  & Sotano & Regular \\
 \bottomrule
 \end{tabular}
@@ -468,12 +468,12 @@ Existe irregularidad torsional cuando, en cualquiera de las direcciones de anál
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story3 & SDx Max & X & 0.004028 & 0.003867 & 1.042 & 3.6 & 0.006713 & False & Regular \\
-Story3 & SDx Max & Y & 0.000643 & 0.000622 & 1.034 & 3.6 & 0.001072 & True & Regular \\
-Story2 & SDx Max & X & 0.004952 & 0.004773 & 1.037 & 3.6 & 0.008253 & False & Regular \\
-Story2 & SDx Max & Y & 0.000826 & 0.000802 & 1.03 & 3.6 & 0.001377 & True & Regular \\
-Story1 & SDx Max & X & 0.004885 & 0.004718 & 1.036 & 5 & 0.005862 & False & Regular \\
-Story1 & SDx Max & Y & 0.00083 & 0.000808 & 1.028 & 5 & 0.000996 & True & Regular \\
+Story3 & SDx Max & X & 0.003861 & 0.003707 & 1.042 & 3.6 & 0.006435 & False & Regular \\
+Story3 & SDx Max & Y & 0.000617 & 0.000597 & 1.034 & 3.6 & 0.001028 & True & Regular \\
+Story2 & SDx Max & X & 0.00472 & 0.004551 & 1.037 & 3.6 & 0.007867 & False & Regular \\
+Story2 & SDx Max & Y & 0.000788 & 0.000765 & 1.03 & 3.6 & 0.001313 & True & Regular \\
+Story1 & SDx Max & X & 0.004647 & 0.004487 & 1.036 & 5 & 0.005576 & False & Regular \\
+Story1 & SDx Max & Y & 0.00079 & 0.000768 & 1.028 & 5 & 0.000948 & True & Regular \\
 \bottomrule
 \end{tabular}
 }%
@@ -490,12 +490,12 @@ Story1 & SDx Max & Y & 0.00083 & 0.000808 & 1.028 & 5 & 0.000996 & True & Regula
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story3 & SDy Max & X & 0.001227 & 0.00117 & 1.049 & 3.6 & 0.002045 & True & Regular \\
-Story3 & SDy Max & Y & 0.00176 & 0.001751 & 1.005 & 3.6 & 0.002933 & True & Regular \\
-Story2 & SDy Max & X & 0.001508 & 0.001443 & 1.045 & 3.6 & 0.002513 & True & Regular \\
-Story2 & SDy Max & Y & 0.002307 & 0.002297 & 1.004 & 3.6 & 0.003845 & False & Regular \\
-Story1 & SDy Max & X & 0.001486 & 0.001426 & 1.042 & 5 & 0.001783 & True & Regular \\
-Story1 & SDy Max & Y & 0.002355 & 0.002346 & 1.004 & 5 & 0.002826 & True & Regular \\
+Story3 & SDy Max & X & 0.001176 & 0.001121 & 1.049 & 3.6 & 0.001960 & True & Regular \\
+Story3 & SDy Max & Y & 0.001688 & 0.00168 & 1.005 & 3.6 & 0.002813 & True & Regular \\
+Story2 & SDy Max & X & 0.001437 & 0.001376 & 1.045 & 3.6 & 0.002395 & True & Regular \\
+Story2 & SDy Max & Y & 0.0022 & 0.00219 & 1.004 & 3.6 & 0.003667 & False & Regular \\
+Story1 & SDy Max & X & 0.001414 & 0.001356 & 1.043 & 5 & 0.001697 & True & Regular \\
+Story1 & SDy Max & Y & 0.002239 & 0.00223 & 1.004 & 5 & 0.002687 & True & Regular \\
 \bottomrule
 \end{tabular}
 }%
@@ -774,7 +774,7 @@ Lo anterior equivale a calcular los modos de vibrar en el modelo matemático res
 \cline{2%
 -%
 4}%
-\textit{Periodos en traslación pura obtenidos del ETABS (Art. 28.4.2)}&\textbf{T}&0.36&0.27\\%
+\textit{Periodos en traslación pura obtenidos del ETABS (Art. 28.4.2)}&\textbf{T}&0.35&0.27\\%
 \cline{2%
 -%
 4}%
@@ -806,7 +806,7 @@ Lo anterior equivale a calcular los modos de vibrar en el modelo matemático res
 \cline{2%
 -%
 4}%
-\textit{Peso sísmico (ETABS)}&\textbf{Ps (Ton)}&\multicolumn{2}{c|}{369.21}\\%
+\textit{Peso sísmico (ETABS)}&\textbf{Ps (Ton)}&\multicolumn{2}{c|}{350.55}\\%
 \cline{2%
 -%
 4}%
@@ -814,7 +814,7 @@ Lo anterior equivale a calcular los modos de vibrar en el modelo matemático res
 \cline{2%
 -%
 4}%
-\textit{Cortante estática (Art.28.2)}&\textbf{V (ton)}&\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{81.78}}&\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{93.46}}\\%
+\textit{Cortante estática (Art.28.2)}&\textbf{V (ton)}&\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{77.64}}&\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{88.73}}\\%
 \cline{2%
 -%
 4}%
@@ -835,9 +835,9 @@ Lo anterior equivale a calcular los modos de vibrar en el modelo matemático res
 \toprule
 Piso & Peso & Altura & $H^{kx}$ & $H^{ky}$ & PxHx & PxHy & ax & ay & Vx & Vy \\
 \midrule
-Story3 & 90.122 & 12.200 & 12.200 & 12.200 & 1099.494 & 1099.494 & 0.368 & 0.368 & 30.133 & 34.437 \\
-Story2 & 135.809 & 8.600 & 8.600 & 8.600 & 1167.954 & 1167.954 & 0.391 & 0.391 & 32.009 & 36.581 \\
-Story1 & 143.284 & 5.000 & 5.000 & 5.000 & 716.420 & 716.420 & 0.240 & 0.240 & 19.634 & 22.439 \\
+Story3 & 87.789 & 12.200 & 12.200 & 12.200 & 1071.021 & 1071.021 & 0.377 & 0.377 & 29.235 & 33.412 \\
+Story2 & 127.640 & 8.600 & 8.600 & 8.600 & 1097.705 & 1097.705 & 0.386 & 0.386 & 29.964 & 34.244 \\
+Story1 & 135.116 & 5.000 & 5.000 & 5.000 & 675.578 & 675.578 & 0.238 & 0.238 & 18.441 & 21.075 \\
 \bottomrule
 \end{tabular}
 %
@@ -846,13 +846,13 @@ Story1 & 143.284 & 5.000 & 5.000 & 5.000 & 716.420 & 716.420 & 0.240 & 0.240 & 1
 %
 \subsection{Fuerza cortante mínima Art. 29.4 E{-}030}%
 \label{subsec:FuerzacortantemnimaArt.29.4E{-}030}%
-%insertion%
 \begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Art. 29.4.1]%
 \textit{Para cada una de las direcciones consideradas en el análisis, la fuerza cortante en el primer entrepiso del edificio no puede ser menor que el 80\% del valor calculado según el artículo 25 para estructuras regulares, ni menor que el 90\% para estructuras irregulares.}%
 \end{tcolorbox}%
 \begin{tcolorbox}[colback=gray!5!white,colframe=cyan!75!black,fonttitle=\bfseries,title=Art. 29.4.2]%
 \textit{Si fuera necesario incrementar el cortante para cumplir los mínimos señalados,  se escalan proporcionalmente todos los otros resultados obtenidos, excepto los  desplazamientos.}%
 \end{tcolorbox}%
+%insertion%
 
 
 \begin{figure}[ht!]%
@@ -865,17 +865,17 @@ Story1 & 143.284 & 5.000 & 5.000 & 5.000 & 716.420 & 716.420 & 0.240 & 0.240 & 1
 %insertion%
 
 
-\begin{table}[h!]%
+\begin{table}[H]%
 \centering%
 \caption{Escalamiento de la cortante dinámica}%
 \begin{tabular}{ccc}
 \toprule
  & X & Y \\
 \midrule
-V din (Ton) & 95.21 & 82.24 \\
-V est (Ton) & -109.04 & -93.45 \\
+V din (Ton) & 90.33 & 78.02 \\
+V est (Ton) & -59.25 & -59.25 \\
 \% min & 80.00 & 80.00 \\
-\% & 87.32 & 88.00 \\
+\% & 152.46 & 131.69 \\
 F.E. & 1.00 & 1.00 \\
 \bottomrule
 \end{tabular}
@@ -901,7 +901,7 @@ Donde h es la altura medida desde el nivel del terreno natural hasta el nivel co
 \end{tcolorbox}%
 
 
-\begin{figure}[ht!]%
+\begin{figure}[H]%
 \centering%
 \caption{Separación entre edificios}%
 \includegraphics[scale=0.5]{images/sep_edificios.PNG}%
@@ -924,13 +924,13 @@ Donde h es la altura medida desde el nivel del terreno natural hasta el nivel co
 \cline{2-3}%
 \textit{Separación mínima del limite de propiedad} & \textbf{s/2} & {3.66} & {cm} \\%
 \cline{2-3}%
-\textit{Desplazamiento máximo en X} & \textbf{$\Delta_x$} & {1.57} & {cm} \\%
+\textit{Desplazamiento máximo en X} & \textbf{$\Delta_x$} & {1.32} & {cm} \\%
 \cline{2-3}%
-\textit{Desplazamiento máximo en Y} & \textbf{$\Delta_y$} & {0.72} & {cm} \\%
+\textit{Desplazamiento máximo en Y} & \textbf{$\Delta_y$} & {0.61} & {cm} \\%
 \cline{2-3}%
-\textit{Separación del limite de propiedad X} & \textbf{2/3$\Delta_{x}$} & {1.04} & {cm} \\%
+\textit{Separación del limite de propiedad X} & \textbf{2/3$\Delta_{x}$} & {0.88} & {cm} \\%
 \cline{2-3}%
-\textit{Separación del limite de propiedad Y} & \textbf{2/3$\Delta_{y}$} & {0.48} & {cm} \\%
+\textit{Separación del limite de propiedad Y} & \textbf{2/3$\Delta_{y}$} & {0.41} & {cm} \\%
 \cline{2-3}%
 \end{tabular}%
 \label{tab:junta_sis}%

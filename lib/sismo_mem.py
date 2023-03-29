@@ -977,7 +977,6 @@ def fuerza_cortante_min(tabla_corte_min,heights,shear_x,shear_y,o_type=Subsectio
     obj.packages.append(Package('tcolorbox'))
     obj.packages.append(Package('array'))
     obj.packages.append(Package('booktabs'))
-    obj.append(NoEscape('%insertion'))
     
     mbox = mybox2(r'Art. 29.4.1')
     mbox.append(NoEscape(r'\textit{Para cada una de las direcciones consideradas en el análisis, la fuerza cortante en el primer entrepiso del edificio no puede ser menor que el 80\% del valor calculado según el artículo 25 para estructuras regulares, ni menor que el 90\% para estructuras irregulares.}'))
@@ -987,29 +986,29 @@ def fuerza_cortante_min(tabla_corte_min,heights,shear_x,shear_y,o_type=Subsectio
     mbox.append(NoEscape(r'\textit{Si fuera necesario incrementar el cortante para cumplir los mínimos señalados,  se escalan proporcionalmente todos los otros resultados obtenidos, excepto los  desplazamientos.}'))
     obj.append(mbox)
 
-    shear_x['VX']=shear_x['VX'].astype(float)
-    shear_y['VY']=shear_y['VY'].astype(float)
-    max_shear_x = shear_x['VX'].max()
-    max_shear_y = shear_y['VY'].max()
+    obj.append(NoEscape('%insertion'))
+
+    shear_x=list(shear_x['VX'].astype(float))
+    shear_x.insert(0,0)
+    shear_y=list(shear_y['VY'].astype(float))
+    shear_y.insert(0,0)
+    max_shear_x = max(shear_x)
+    max_shear_y = max(shear_y)
 
     #Compatibilización  del array heights con el dataframe shear_x y shear_y
     list_heights=list(reversed(heights)) #Convertir a lista e invertir posiciones
-    heights_extended=[]
-    for i in range(len(list_heights)):
-        if i==0 or i==len(list_heights)-1:
-            heights_extended.append(list_heights[i])
-        else:
-            heights_extended.append(list_heights[i])
-            heights_extended.append(list_heights[i])
+    heights_extended = []
+    heights_extended.extend([i, i] for i in list_heights[:-1])
+    heights_extended = [item for sublist in heights_extended for item in sublist] + [0]
 
     #Creación de la figura
     plt.clf()
     plt.ylim(0,max(heights_extended)*1.05)
     plt.xlim(0,max(max_shear_x,max_shear_y)*1.02)
-    plt.plot(shear_x['VX'],heights_extended,'r',label='X (R=%.2f)'%Rx)
-    plt.plot(shear_y['VY'],heights_extended,'b',label='Y (R=%.2f)'%Ry)
-    plt.scatter(shear_x['VX'],heights_extended,color='r',marker='x')
-    plt.scatter(shear_y['VY'],heights_extended,color='b',marker='x')
+    plt.plot(shear_x,heights_extended,'r',label='X (R=%.2f)'%Rx)
+    plt.plot(shear_y,heights_extended,'b',label='Y (R=%.2f)'%Ry)
+    plt.scatter(shear_x,heights_extended,color='r',marker='x')
+    plt.scatter(shear_y,heights_extended,color='b',marker='x')
     plt.xlabel('Fuerza cortante (t)')
     plt.ylabel('h (m)')
     plt.grid(linestyle='dotted', linewidth=1)
@@ -1035,7 +1034,7 @@ def fuerza_cortante_min(tabla_corte_min,heights,shear_x,shear_y,o_type=Subsectio
         return table
     obj.append(NoEscape('%insertion'))
     
-    with obj.create(Table(position='h!')) as table:
+    with obj.create(Table(position='H')) as table:
         table.append(NoEscape('\centering'))
         table.append(NoEscape('\caption{Escalamiento de la cortante dinámica}'))
         table.append(NoEscape(latex_table(tabla_corte_min)))
@@ -1067,7 +1066,7 @@ def separacion_edificios(datos_sep,o_type=Subsection):
     mbox.append(NoEscape(r'\textit{El edificio se retira de los límites de propiedad adyacentes a otros lotes edificables,  o  con  edificaciones,  distancias  no  menores  que  2/3  del desplazamiento máximo calculado según el artículo 28 ni menores que s/2 si la edificación existente cuenta con una junta sísmica reglamentaria.}'))
     obj.append(mbox)
 
-    fig = Figure(position='ht!')
+    fig = Figure(position='H')
     fig.append(NoEscape(r'\centering'))
     fig.append(NoEscape(r'\caption{Separación entre edificios}'))
     fig.append(NoEscape(r'\includegraphics[scale=0.5]{images/sep_edificios.PNG}'))
