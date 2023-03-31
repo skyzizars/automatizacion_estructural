@@ -94,7 +94,7 @@ class Sismo_e30():
 
 
         def set_pisos(self,n_pisos,n_azoteas,n_sotanos):
-            self.n_pisos, self.n_azoteas, self.n_sotanos = n_pisos,n_azoteas,n_sotanos
+            self.n_pisos, self.n_azoteas, self.n_sotanos = int(n_pisos),int(n_azoteas),int(n_sotanos)
 
         def irreg_planta(self,i_torsional=False,i_torsional_e=False,i_esquinas_entrantes=False,
                         i_discontinuidad_diafragma=False,i_sistemas_no_paralelos=False):
@@ -710,6 +710,16 @@ Factor de Reducción:
         datos_sep={'altura_edificio':max(heights)*100,
                'despl_max_X':max(disp_x)*100,
                'despl_max_Y':max(disp_y)*100}
+        
+        #datos cortantes por piso
+        _,_SapModel= etb.connect_to_etabs()
+        _,cortantes = etb.get_table(_SapModel,'Story Forces')
+
+        df1 = cortantes[['Story','OutputCase','Location','VX']]
+        shear_x=df1[(df1["OutputCase"]=='SDx')] #Filtro
+        
+        df2 = cortantes[['Story','OutputCase','Location','VY']]
+        shear_y=df2[(df2["OutputCase"]=='SDy')] #Filtro
 
         geometry_options = { "left": "2.5cm", "top": "1.5cm" }
         doc = Document(geometry_options=geometry_options)
@@ -742,7 +752,7 @@ Factor de Reducción:
         verif_sist_est = smem.verificacion_sist_est()
         analisis_est = smem.analisis_estatico()
         corte_basal= smem.cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,sis_estatico)
-        corte_basal_min = smem.fuerza_cortante_min(self.tables.shear_table)
+        corte_basal_min = smem.fuerza_cortante_min(self.tables.shear_table,heights_drifts,shear_x,shear_y,Rx,Ry)
         sep_edificios= smem.separacion_edificios(datos_sep)
 
         obj_list = [p_sitio,f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,t_resumen,

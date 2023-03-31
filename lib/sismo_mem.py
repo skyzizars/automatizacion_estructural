@@ -3,7 +3,7 @@ import os
 sys.path.append(os.getcwd())
 
 from lib import latex_utils as ltx
-import etabs_utils as etb
+from lib import etabs_utils as etb
 from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure,MultiRow
 from pylatex.utils import NoEscape, bold
 from pylatex.package import Package
@@ -245,6 +245,8 @@ def factor_importancia(categoria,o_type=Subsubsection):
     obj.packages.append(Package('float'))
     obj.packages.append(Package('graphicx'))
     
+    if categoria in ('A1 aislado','A1 no aislado'):
+        categoria = 'A1'
     cat_ind = {'A1':0,'A2':1,'B':2,'C':3,'D':4}
     data = [['A Edificaciones Escenciales','A1: Establecimiento del sector salud (públicos y privados) del segundo y tercer nivel, según lo normado por el ministerio de salud.','Con aislamiento 1.0 y sin aislamiento 1.5.'],
             ['','A2: Edificaciones escenciales para el manejo de las emergencias, el funcionamiento del gobierno y en general aquellas que puedan servir de refugio después de un desastre.','1.50'],
@@ -972,7 +974,7 @@ def cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,sis_estatico,o_type=Sub
 
     return obj
 
-def fuerza_cortante_min(tabla_corte_min,heights,shear_x,shear_y,o_type=Subsection):
+def fuerza_cortante_min(tabla_corte_min,heights,shear_x,shear_y,Rx,Ry,o_type=Subsection):
     obj = def_obj(o_type,'Fuerza cortante mínima Art. 29.4 E-030')
     obj.packages.append(Package('tcolorbox'))
     obj.packages.append(Package('array'))
@@ -1040,6 +1042,10 @@ def fuerza_cortante_min(tabla_corte_min,heights,shear_x,shear_y,o_type=Subsectio
         table.append(NoEscape(latex_table(tabla_corte_min)))
 
     return obj
+
+
+
+
 
 def separacion_edificios(datos_sep,o_type=Subsection):
     obj = def_obj(o_type,'Separación entre edificios Art. 33 E-030')
@@ -1212,7 +1218,7 @@ if __name__ == '__main__':
     verif_sist_est = verificacion_sist_est()
     analisis_est = analisis_estatico()
     corte_basal= cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,sis_estatico)
-    corte_basal_min = fuerza_cortante_min(sismo.tables.shear_table,heights,shear_x,shear_y)
+    corte_basal_min = fuerza_cortante_min(sismo.tables.shear_table,heights,shear_x,shear_y,Rx,Ry)
     sep_edificios= separacion_edificios(datos_sep)
     
     obj_list = [p_sitio,f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,t_resumen,
