@@ -5,9 +5,9 @@ import sys
 sys.path.append(os.getcwd()+'\\..')
 import numpy as np
 import pandas as pd
-from lib import etabs_utils as etb
-from lib import sismo_utils as sis
-from lib import sismo_mem as smem
+from utils import etabs_utils as etb
+from utils import sismo_utils as sis
+from utils import sismo_mem as smem
 
 
 _, _SapModel = etb.connect_to_etabs()
@@ -34,10 +34,23 @@ categorias = ['A1 aislado',
                   'B',
                   'C']
     
-sis_loads = {'Sismo_EstX': 'Sx',
-                 'Sismo_EstY': 'Sy',
-                 'Sismo_DinX': 'SDx',
-                 'Sismo_DinY': 'SDy'}
+sis_loads = {'Sismo_EstX': 'SX',
+                 'Sismo_EstY': 'SY',
+                 'Sismo_DinX': 'SDX',
+                 'Sismo_DinY': 'SDY'}
+
+sec_change = {'aligerado':[7.51,0.05],
+            'macisa':[2.25,0.20]}
+
+openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
+            'area_planta' : 120.41}
+
+datos_esquinas={'esq_X':4.95,
+            'esq_Y':2.30,
+            'dim_X':7.51,
+            'dim_Y':15.28}
+
+
 
 zona = 4
 suelo = 'S2'
@@ -62,6 +75,13 @@ sismo.data.factor_R()
 sismo.data.set_pisos(n_pisos, n_azoteas, n_sotanos)
 #sismo.data.show_params()
 
+
+sismo.data.sec_change = sec_change
+sismo.data.openings = openings
+sismo.data.esquinas = datos_esquinas
+sismo.data.sistema_x = sist_x
+sismo.data.sistema_x = sist_y
+
 sismo.loads.set_seism_loads(sis_loads)
 sismo.set_base_story(story_base)
 
@@ -75,4 +95,7 @@ sismo.irregularidad_torsion(_SapModel)
 sismo.derivas(_SapModel)
 sismo.desplazamientos(_SapModel)
 sismo.centro_masa_inercia(_SapModel)
+
+sismo.generate_memoria()
+
 

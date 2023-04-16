@@ -47,9 +47,9 @@ Este factor se interpreta como la aceleración máxima horizontal en el suelo r�
 \hline%
 \textbf{ZONA}&\textbf{Z}\\%
 \hline%
-4\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{0.45}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
+4&0.45\\%
 \hline%
-3&0.35\\%
+3\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{0.35}}\cellcolor[rgb]{ .949,  .949,  .949} \\%
 \hline%
 2&0.25\\%
 \hline%
@@ -81,9 +81,9 @@ Este factor se interpreta como  un factor de modificación de la aceleración pi
 \hline%
 \backslashbox{\textit{\textbf{ZONA}}}{\textit{\textbf{SUELO}}}&\textbf{S0}&\textbf{S1}&\textbf{S2}&\textbf{S3}\\%
 \hline%
-4\cellcolor[rgb]{ .949,  .949,  .949} &0.80\cellcolor[rgb]{ .949,  .949,  .949} &1.00\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{1.05}}\cellcolor[rgb]{ .949,  .949,  .949} \cellcolor[rgb]{ .949,  .949,  .949} &1.10\cellcolor[rgb]{ .949,  .949,  .949} \\%
+4&0.80&1.00&1.05\cellcolor[rgb]{ .949,  .949,  .949} &1.10\\%
 \hline%
-3&0.80&1.00&1.15\cellcolor[rgb]{ .949,  .949,  .949} &1.20\\%
+3\cellcolor[rgb]{ .949,  .949,  .949} &0.80\cellcolor[rgb]{ .949,  .949,  .949} &1.00\cellcolor[rgb]{ .949,  .949,  .949} &\textcolor[rgb]{ 1,  0,  0}{\textbf{1.15}}\cellcolor[rgb]{ .949,  .949,  .949} \cellcolor[rgb]{ .949,  .949,  .949} &1.20\cellcolor[rgb]{ .949,  .949,  .949} \\%
 \hline%
 2&0.80&1.00&1.20\cellcolor[rgb]{ .949,  .949,  .949} &1.40\\%
 \hline%
@@ -206,13 +206,13 @@ Se determina según el artículo 14 de la E{-}030.%
 \hline%
 \multicolumn{1}{|c|}{\textbf{CATEGORIA}}&\multicolumn{1}{|c|}{\textbf{DESCRIPCION}}&\multicolumn{1}{|c|}{\textbf{FACTOR U}}\\%
 \hline%
-\multirow{2}[4]{3cm}{A Edificaciones Escenciales}&A1: Establecimiento del sector salud (públicos y privados) del segundo y tercer nivel, según lo normado por el ministerio de salud.\cellcolor[rgb]{1,  .949,  .8}&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{\textcolor[rgb]{ 1,  0,  0}{\textbf{Con aislamiento 1.0 y sin aislamiento 1.5.}}\cellcolor[rgb]{1,  .949,  .8}}\\%
+\multirow{2}[4]{3cm}{A Edificaciones Escenciales}&A1: Establecimiento del sector salud (públicos y privados) del segundo y tercer nivel, según lo normado por el ministerio de salud.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{Con aislamiento 1.0 y sin aislamiento 1.5.}\\%
 \cline{2-3}%
 &A2: Edificaciones escenciales para el manejo de las emergencias, el funcionamiento del gobierno y en general aquellas que puedan servir de refugio después de un desastre.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.50}\\%
 \hline%
 B Edificaciones Importantes &Edificaciones donde se reúnen gran cantidad de personas tales como cines, teatros, estadios, coliseos, centros comerciales, terminales de buses de pasajeros, establecimientos penitenciarios, o que guardan patrimonios valiosos como museos y bibliotecas.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.30}\\%
 \hline%
-C Edificaciones Comunes&Edificaciones comunes tales como: viviendas, oficinas, hoteles, restaurantes, depósitos e instalaciones industriales cuya falla no acarree peligros adicionales de incendios o fugas de contaminantes.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{1.00}\\%
+C Edificaciones Comunes\cellcolor[rgb]{ .949,  .949,  .949}&Edificaciones comunes tales como: viviendas, oficinas, hoteles, restaurantes, depósitos e instalaciones industriales cuya falla no acarree peligros adicionales de incendios o fugas de contaminantes.\cellcolor[rgb]{ .949,  .949,  .949}&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{\textcolor[rgb]{ 1,  0,  0}{\textbf{1.00}}\cellcolor[rgb]{ .949,  .949,  .949}}\\%
 \hline%
 D Edificaciones temporales&Construcciones provisionales para depósitos, casetas y otras similares.&\multicolumn{1}{>{\centering\arraybackslash}m{2.8cm}|}{A criterio del proyectista}\\%
 \hline%
@@ -314,7 +314,7 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 %insertion%
 
 
-\begin{figure}[ht!]%
+\begin{figure}[H]%
 \centering%
 \caption{Excentricidad de la masa en ETABS}%
 \includegraphics[scale=0.7]{images/excentricidad.PNG}%
@@ -342,30 +342,36 @@ D Edificaciones temporales&Construcciones provisionales para depósitos, casetas
 \toprule
 Mode & Period & UX & UY & RZ & SumUX & SumUY & SumRZ \\
 \midrule
-1 & 0.644 & 0.691 & 0.001 & 0.011 & 0.691 & 0.001 & 0.011 \\
-2 & 0.451 & 0.016 & 0.017 & 0.663 & 0.706 & 0.018 & 0.675 \\
-3 & 0.218 & 0.000 & 0.654 & 0.018 & 0.707 & 0.672 & 0.693 \\
-4 & 0.176 & 0.131 & 0.001 & 0.002 & 0.838 & 0.672 & 0.695 \\
-5 & 0.130 & 0.001 & 0.001 & 0.017 & 0.839 & 0.674 & 0.712 \\
-6 & 0.122 & 0.002 & 0.001 & 0.100 & 0.841 & 0.675 & 0.812 \\
-7 & 0.100 & 0.000 & 0.003 & 0.030 & 0.841 & 0.678 & 0.842 \\
-8 & 0.087 & 0.019 & 0.000 & 0.007 & 0.861 & 0.678 & 0.848 \\
-9 & 0.076 & 0.034 & 0.000 & 0.000 & 0.894 & 0.678 & 0.848 \\
-10 & 0.064 & 0.001 & 0.000 & 0.002 & 0.895 & 0.678 & 0.850 \\
-11 & 0.054 & 0.000 & 0.001 & 0.049 & 0.896 & 0.678 & 0.899 \\
-12 & 0.050 & 0.001 & 0.056 & 0.001 & 0.897 & 0.735 & 0.900 \\
-13 & 0.050 & 0.001 & 0.123 & 0.001 & 0.898 & 0.858 & 0.901 \\
-14 & 0.049 & 0.007 & 0.000 & 0.000 & 0.905 & 0.858 & 0.901 \\
-15 & 0.046 & 0.019 & 0.000 & 0.002 & 0.924 & 0.858 & 0.903 \\
-16 & 0.042 & 0.000 & 0.000 & 0.000 & 0.924 & 0.858 & 0.903 \\
-17 & 0.037 & 0.000 & 0.000 & 0.000 & 0.924 & 0.858 & 0.903 \\
-18 & 0.035 & 0.001 & 0.000 & 0.020 & 0.925 & 0.858 & 0.924 \\
-19 & 0.034 & 0.001 & 0.000 & 0.002 & 0.925 & 0.858 & 0.926 \\
-20 & 0.033 & 0.006 & 0.000 & 0.001 & 0.931 & 0.858 & 0.927 \\
-21 & 0.032 & 0.004 & 0.000 & 0.000 & 0.935 & 0.858 & 0.927 \\
-22 & 0.031 & 0.006 & 0.000 & 0.002 & 0.941 & 0.858 & 0.929 \\
-23 & 0.026 & 0.004 & 0.000 & 0.008 & 0.945 & 0.858 & 0.937 \\
-24 & 0.024 & 0.006 & 0.000 & 0.000 & 0.951 & 0.858 & 0.937 \\
+1 & 1.013 & 0.533 & 0.173 & 0.038 & 0.533 & 0.173 & 0.038 \\
+2 & 0.979 & 0.182 & 0.541 & 0.000 & 0.716 & 0.714 & 0.039 \\
+3 & 0.713 & 0.018 & 0.010 & 0.689 & 0.734 & 0.724 & 0.728 \\
+4 & 0.274 & 0.101 & 0.027 & 0.011 & 0.835 & 0.750 & 0.739 \\
+5 & 0.245 & 0.035 & 0.124 & 0.001 & 0.870 & 0.875 & 0.739 \\
+6 & 0.170 & 0.015 & 0.009 & 0.144 & 0.884 & 0.883 & 0.884 \\
+7 & 0.127 & 0.037 & 0.010 & 0.007 & 0.921 & 0.893 & 0.890 \\
+8 & 0.107 & 0.014 & 0.045 & 0.000 & 0.936 & 0.939 & 0.891 \\
+9 & 0.074 & 0.018 & 0.005 & 0.004 & 0.954 & 0.944 & 0.895 \\
+10 & 0.072 & 0.007 & 0.004 & 0.052 & 0.960 & 0.948 & 0.947 \\
+11 & 0.062 & 0.007 & 0.021 & 0.000 & 0.967 & 0.969 & 0.947 \\
+12 & 0.050 & 0.009 & 0.003 & 0.002 & 0.977 & 0.972 & 0.949 \\
+13 & 0.042 & 0.004 & 0.011 & 0.000 & 0.980 & 0.983 & 0.949 \\
+14 & 0.042 & 0.003 & 0.002 & 0.024 & 0.983 & 0.985 & 0.973 \\
+15 & 0.036 & 0.005 & 0.002 & 0.001 & 0.988 & 0.986 & 0.975 \\
+16 & 0.031 & 0.002 & 0.005 & 0.000 & 0.990 & 0.992 & 0.975 \\
+17 & 0.029 & 0.003 & 0.001 & 0.000 & 0.994 & 0.993 & 0.975 \\
+18 & 0.028 & 0.001 & 0.001 & 0.013 & 0.994 & 0.994 & 0.987 \\
+19 & 0.026 & 0.001 & 0.003 & 0.000 & 0.995 & 0.996 & 0.987 \\
+20 & 0.024 & 0.001 & 0.001 & 0.000 & 0.997 & 0.997 & 0.988 \\
+21 & 0.022 & 0.001 & 0.001 & 0.000 & 0.997 & 0.998 & 0.988 \\
+22 & 0.022 & 0.001 & 0.000 & 0.006 & 0.998 & 0.998 & 0.994 \\
+23 & 0.021 & 0.001 & 0.000 & 0.000 & 0.999 & 0.999 & 0.994 \\
+24 & 0.020 & 0.001 & 0.001 & 0.000 & 0.999 & 0.999 & 0.994 \\
+25 & 0.019 & 0.000 & 0.000 & 0.000 & 0.999 & 1.000 & 0.994 \\
+26 & 0.018 & 0.000 & 0.000 & 0.000 & 1.000 & 1.000 & 0.994 \\
+27 & 0.018 & 0.000 & 0.000 & 0.003 & 1.000 & 1.000 & 0.997 \\
+28 & 0.016 & 0.000 & 0.000 & 0.001 & 1.000 & 1.000 & 0.999 \\
+29 & 0.015 & 0.000 & 0.000 & 0.001 & 1.000 & 1.000 & 0.999 \\
+30 & 0.014 & 0.000 & 0.000 & 0.000 & 1.000 & 1.000 & 1.000 \\
 \bottomrule
 \end{tabular}
 %
@@ -400,14 +406,16 @@ Las rigideces laterales pueden calcularse como la razon entre la fuerza cortante
 \toprule
 Story & OutputCase & VX & VY & Rigidez Lateral(k) & 70\%k previo & 80\%Prom(k) & is\_reg \\
 \midrule
-Story8 & SDx Max & 16.998 & 0.844 & 7535.714 &  &  & Regular \\
-Story7 & SDx Max & 34.801 & 1.727 & 15987.963 & 5275.000 &  & Regular \\
-Story6 & SDx Max & 49.265 & 2.437 & 19039.063 & 11191.574 &  & Regular \\
-Story5 & SDx Max & 60.929 & 3.010 & 21194.366 & 13327.344 & 11350.064 & Regular \\
-Story4 & SDx Max & 70.491 & 3.478 & 24846.429 & 14836.056 & 14992.371 & Regular \\
-Story3 & SDx Max & 77.406 & 3.810 & 29997.638 & 17392.500 & 17354.629 & Regular \\
-Story2 & SDx Max & 81.495 & 3.992 & 40326.263 & 20998.346 & 20276.915 & Regular \\
-Story1 & SDx Max & 82.631 & 4.029 & 175195.652 & 28228.384 & 25378.754 & Regular \\
+NIVEL 10 & SXDIN Max & 53.418 & 24.244 & 44648.987 &  &  & Regular \\
+NIVEL 9 & SXDIN Max & 101.511 & 38.249 & 71094.610 & 31254.291 &  & Regular \\
+NIVEL 8 & SXDIN Max & 135.570 & 43.482 & 78914.156 & 49766.227 &  & Regular \\
+NIVEL 7 & SXDIN Max & 160.859 & 43.791 & 80497.794 & 55239.909 & 51908.734 & Regular \\
+NIVEL 6 & SXDIN Max & 182.195 & 43.477 & 75613.043 & 56348.456 & 61468.416 & Regular \\
+NIVEL 5 & SXDIN Max & 202.394 & 46.155 & 79033.219 & 52929.130 & 62673.332 & Regular \\
+NIVEL 4 & SXDIN Max & 222.073 & 52.383 & 89542.906 & 55323.253 & 62705.082 & Regular \\
+NIVEL 3 & SXDIN Max & 240.224 & 61.455 & 110332.675 & 62680.034 & 65117.112 & Regular \\
+NIVEL 2 & SXDIN Max & 254.932 & 71.223 & 149001.674 & 77232.873 & 74375.680 & Regular \\
+NIVEL 1 & SXDIN Max & 263.858 & 77.969 & 245960.568 & 104301.172 & 93033.935 & Regular \\
 \bottomrule
 \end{tabular}
 %
@@ -423,14 +431,16 @@ Story1 & SDx Max & 82.631 & 4.029 & 175195.652 & 28228.384 & 25378.754 & Regular
 \toprule
 Story & OutputCase & VX & VY & Rigidez Lateral(k) & 70\%k previo & 80\%Prom(k) & is\_reg \\
 \midrule
-Story8 & SDy Max & 0.953 & 19.257 & 40885.350 &  &  & Regular \\
-Story7 & SDy Max & 1.804 & 39.310 & 79414.949 & 28619.745 &  & Regular \\
-Story6 & SDy Max & 2.451 & 54.588 & 108958.283 & 55590.465 &  & Regular \\
-Story5 & SDy Max & 2.973 & 66.249 & 135201.224 & 76270.798 & 61135.622 & Regular \\
-Story4 & SDy Max & 3.465 & 75.805 & 166238.816 & 94640.857 & 86286.522 & Regular \\
-Story3 & SDy Max & 3.878 & 83.019 & 210709.137 & 116367.171 & 109439.553 & Regular \\
-Story2 & SDy Max & 4.154 & 87.479 & 295538.176 & 147496.396 & 136573.114 & Regular \\
-Story1 & SDy Max & 4.230 & 88.650 & 757692.308 & 206876.723 & 179329.634 & Regular \\
+NIVEL 10 & SYDIN Max & 24.532 & 57.725 & 46374.480 &  &  & Regular \\
+NIVEL 9 & SYDIN Max & 38.781 & 107.674 & 76041.765 & 32462.136 &  & Regular \\
+NIVEL 8 & SYDIN Max & 44.022 & 141.348 & 81371.534 & 53229.235 &  & Regular \\
+NIVEL 7 & SYDIN Max & 44.191 & 166.048 & 77664.148 & 56960.074 & 54343.408 & Regular \\
+NIVEL 6 & SYDIN Max & 43.589 & 187.059 & 75282.902 & 54364.903 & 62687.319 & Regular \\
+NIVEL 5 & SYDIN Max & 46.047 & 207.491 & 78311.735 & 52698.031 & 62484.956 & Regular \\
+NIVEL 4 & SYDIN Max & 52.249 & 228.189 & 86504.636 & 54818.214 & 61669.009 & Regular \\
+NIVEL 3 & SYDIN Max & 61.395 & 247.782 & 106589.236 & 60553.245 & 64026.473 & Regular \\
+NIVEL 2 & SYDIN Max & 71.237 & 263.695 & 141905.378 & 74612.465 & 72374.828 & Regular \\
+NIVEL 1 & SYDIN Max & 77.969 & 273.430 & 236989.362 & 99333.765 & 89333.133 & Regular \\
 \bottomrule
 \end{tabular}
 %
@@ -452,16 +462,17 @@ Se tiene irregularidad de masa (o peso) cuando el peso de un piso determinado se
 \toprule
 Story & Masa & 1.5 Masa & Tipo de Piso & is\_reg \\
 \midrule
-Story8 & 6.669 &  & Azotea & Regular \\
-Story7 & 8.754 & 13.130 & Piso & Regular \\
-Story6 & 8.737 & 13.106 & Piso & Regular \\
-Story5 & 8.739 & 13.109 & Piso & Regular \\
-Story4 & 9.163 & 13.745 & Piso & Regular \\
-Story3 & 9.163 & 13.745 & Piso & Regular \\
-Story2 & 9.163 & 13.745 & Piso & Regular \\
-Story1 & 7.434 & 11.150 & Piso & Regular \\
-NT & 3.560 &  & Sotano & Regular \\
-Base & 3.918 &  & Sotano & Regular \\
+NIVEL 10 & 35.746 &  & Azotea & Regular \\
+NIVEL 9 & 46.903 & 70.354 & Piso & Regular \\
+NIVEL 8 & 46.903 & 70.354 & Piso & Regular \\
+NIVEL 7 & 46.903 & 70.354 & Piso & Regular \\
+NIVEL 6 & 46.903 & 70.354 & Piso & Regular \\
+NIVEL 5 & 46.903 & 70.354 & Piso & Regular \\
+NIVEL 4 & 46.903 & 70.354 & Piso & Regular \\
+NIVEL 3 & 46.903 & 70.354 & Piso & Regular \\
+NIVEL 2 & 46.903 & 70.354 & Piso & Regular \\
+NIVEL 1 & 48.555 & 72.832 & Piso & Regular \\
+Base & 6.532 &  & Sotano & Regular \\
 \bottomrule
 \end{tabular}
 %
@@ -499,16 +510,26 @@ Existe irregularidad torsional cuando, en cualquiera de las direcciones de anál
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story8 & SDx Max & X & 0.003021 & 0.002475 & 1.221 & 2.5 & 0.006344 & False & Regular \\
-Story7 & SDx Max & X & 0.003476 & 0.002869 & 1.211 & 2.5 & 0.007300 & False & Regular \\
-Story6 & SDx Max & X & 0.004116 & 0.003335 & 1.234 & 2.5 & 0.008644 & False & Regular \\
-Story5 & SDx Max & X & 0.00454 & 0.003673 & 1.236 & 2.5 & 0.009534 & False & Regular \\
-Story4 & SDx Max & X & 0.004657 & 0.003773 & 1.234 & 2.5 & 0.009780 & False & Regular \\
-Story3 & SDx Max & X & 0.004479 & 0.003582 & 1.25 & 2.5 & 0.009406 & False & Regular \\
-Story2 & SDx Max & X & 0.003811 & 0.002958 & 1.288 & 2.5 & 0.008003 & False & Regular \\
-Story1 & SDx Max & X & 0.001124 & 0.000904 & 1.244 & 1.5 & 0.003934 & False & Regular \\
-NT & SDx Max & X & 0.00024 & 0.00012 & 2 & 1.75 & 0.000720 & True & Regular \\
-NT & SDx Max & Y & 2.8E-05 & 1.4E-05 & 2 & 1.75 & 0.000084 & True & Regular \\
+NIVEL 10 & SXDIN Max & X & 0.002542 & 0.002381 & 1.068 & 3.25 & 0.004106 & False & Regular \\
+NIVEL 10 & SXDIN Max & Y & 0.000862 & 0.00074 & 1.165 & 3.25 & 0.001392 & True & Regular \\
+NIVEL 9 & SXDIN Max & X & 0.002896 & 0.002638 & 1.098 & 3.25 & 0.004678 & False & Regular \\
+NIVEL 9 & SXDIN Max & Y & 0.000942 & 0.000794 & 1.186 & 3.25 & 0.001522 & True & Regular \\
+NIVEL 8 & SXDIN Max & X & 0.00324 & 0.002875 & 1.127 & 3.25 & 0.005234 & False & Regular \\
+NIVEL 8 & SXDIN Max & Y & 0.001001 & 0.00083 & 1.207 & 3.25 & 0.001617 & True & Regular \\
+NIVEL 7 & SXDIN Max & X & 0.003555 & 0.003084 & 1.153 & 3.25 & 0.005743 & False & Regular \\
+NIVEL 7 & SXDIN Max & Y & 0.001045 & 0.000849 & 1.231 & 3.25 & 0.001688 & True & Regular \\
+NIVEL 6 & SXDIN Max & X & 0.003787 & 0.003221 & 1.176 & 3.25 & 0.006117 & False & Regular \\
+NIVEL 6 & SXDIN Max & Y & 0.00108 & 0.000859 & 1.257 & 3.25 & 0.001745 & True & Regular \\
+NIVEL 5 & SXDIN Max & X & 0.003914 & 0.003264 & 1.199 & 3.25 & 0.006323 & False & Regular \\
+NIVEL 5 & SXDIN Max & Y & 0.001118 & 0.000868 & 1.289 & 3.25 & 0.001806 & True & Regular \\
+NIVEL 4 & SXDIN Max & X & 0.003887 & 0.003176 & 1.224 & 3.25 & 0.006279 & False & Regular \\
+NIVEL 4 & SXDIN Max & Y & 0.001149 & 0.000869 & 1.321 & 3.25 & 0.001856 & True & Regular \\
+NIVEL 3 & SXDIN Max & X & 0.003616 & 0.002893 & 1.25 & 3.25 & 0.005841 & False & Regular \\
+NIVEL 3 & SXDIN Max & Y & 0.001128 & 0.000835 & 1.351 & 3.25 & 0.001822 & True & Regular \\
+NIVEL 2 & SXDIN Max & X & 0.003001 & 0.00235 & 1.277 & 3.25 & 0.004848 & False & Regular \\
+NIVEL 2 & SXDIN Max & Y & 0.000998 & 0.000721 & 1.385 & 3.25 & 0.001612 & True & Regular \\
+NIVEL 1 & SXDIN Max & X & 0.001784 & 0.00141 & 1.266 & 4.35 & 0.002153 & True & Regular \\
+NIVEL 1 & SXDIN Max & Y & 0.000668 & 0.000478 & 1.397 & 4.35 & 0.000806 & True & Regular \\
 \bottomrule
 \end{tabular}
 }%
@@ -525,24 +546,26 @@ NT & SDx Max & Y & 2.8E-05 & 1.4E-05 & 2 & 1.75 & 0.000084 & True & Regular \\
 \toprule
 Story & OutputCase & Direction & Max Drift & Avg Drift & Ratio & Height & Drifts & < Driftmax/2 & Es Regular \\
 \midrule
-Story8 & SDy Max & X & 0.000535 & 0.000322 & 1.662 & 2.5 & 0.001123 & True & Regular \\
-Story8 & SDy Max & Y & 0.000498 & 0.000478 & 1.042 & 2.5 & 0.001046 & True & Regular \\
-Story7 & SDy Max & X & 0.00059 & 0.000357 & 1.65 & 2.5 & 0.001239 & True & Regular \\
-Story7 & SDy Max & Y & 0.000527 & 0.00051 & 1.033 & 2.5 & 0.001107 & True & Regular \\
-Story6 & SDy Max & X & 0.000632 & 0.000387 & 1.633 & 2.5 & 0.001327 & True & Regular \\
-Story6 & SDy Max & Y & 0.000533 & 0.000517 & 1.031 & 2.5 & 0.001119 & True & Regular \\
-Story5 & SDy Max & X & 0.00065 & 0.000402 & 1.618 & 2.5 & 0.001365 & True & Regular \\
-Story5 & SDy Max & Y & 0.000523 & 0.000506 & 1.034 & 2.5 & 0.001098 & True & Regular \\
-Story4 & SDy Max & X & 0.000637 & 0.000397 & 1.605 & 2.5 & 0.001338 & True & Regular \\
-Story4 & SDy Max & Y & 0.000488 & 0.000471 & 1.035 & 2.5 & 0.001025 & True & Regular \\
-Story3 & SDy Max & X & 0.000577 & 0.000361 & 1.597 & 2.5 & 0.001212 & True & Regular \\
-Story3 & SDy Max & Y & 0.000423 & 0.000407 & 1.038 & 2.5 & 0.000888 & True & Regular \\
-Story2 & SDy Max & X & 0.00046 & 0.000287 & 1.602 & 2.5 & 0.000966 & True & Regular \\
-Story2 & SDy Max & Y & 0.000332 & 0.000313 & 1.058 & 2.5 & 0.000697 & True & Regular \\
-Story1 & SDy Max & X & 0.000167 & 0.000103 & 1.625 & 1.5 & 0.000584 & True & Regular \\
-Story1 & SDy Max & Y & 0.000126 & 0.000108 & 1.173 & 1.5 & 0.000441 & True & Regular \\
-NT & SDy Max & X & 3.3E-05 & 1.6E-05 & 2 & 1.75 & 0.000099 & True & Regular \\
-NT & SDy Max & Y & 2.7E-05 & 1.3E-05 & 2 & 1.75 & 0.000081 & True & Regular \\
+NIVEL 10 & SYDIN Max & X & 0.000785 & 0.000692 & 1.135 & 3.25 & 0.001268 & True & Regular \\
+NIVEL 10 & SYDIN Max & Y & 0.002711 & 0.002605 & 1.041 & 3.25 & 0.004379 & False & Regular \\
+NIVEL 9 & SYDIN Max & X & 0.000835 & 0.000734 & 1.138 & 3.25 & 0.001349 & True & Regular \\
+NIVEL 9 & SYDIN Max & Y & 0.002946 & 0.002787 & 1.057 & 3.25 & 0.004759 & False & Regular \\
+NIVEL 8 & SYDIN Max & X & 0.000888 & 0.000767 & 1.157 & 3.25 & 0.001434 & True & Regular \\
+NIVEL 8 & SYDIN Max & Y & 0.003182 & 0.002966 & 1.073 & 3.25 & 0.005140 & False & Regular \\
+NIVEL 7 & SYDIN Max & X & 0.000936 & 0.000794 & 1.178 & 3.25 & 0.001512 & True & Regular \\
+NIVEL 7 & SYDIN Max & Y & 0.003381 & 0.003109 & 1.087 & 3.25 & 0.005462 & False & Regular \\
+NIVEL 6 & SYDIN Max & X & 0.000975 & 0.000811 & 1.203 & 3.25 & 0.001575 & True & Regular \\
+NIVEL 6 & SYDIN Max & Y & 0.003506 & 0.003183 & 1.101 & 3.25 & 0.005664 & False & Regular \\
+NIVEL 5 & SYDIN Max & X & 0.001011 & 0.000821 & 1.232 & 3.25 & 0.001633 & True & Regular \\
+NIVEL 5 & SYDIN Max & Y & 0.003529 & 0.003164 & 1.115 & 3.25 & 0.005701 & False & Regular \\
+NIVEL 4 & SYDIN Max & X & 0.001035 & 0.000819 & 1.263 & 3.25 & 0.001672 & True & Regular \\
+NIVEL 4 & SYDIN Max & Y & 0.00341 & 0.003017 & 1.13 & 3.25 & 0.005508 & False & Regular \\
+NIVEL 3 & SYDIN Max & X & 0.001009 & 0.000783 & 1.289 & 3.25 & 0.001630 & True & Regular \\
+NIVEL 3 & SYDIN Max & Y & 0.003086 & 0.002693 & 1.146 & 3.25 & 0.004985 & False & Regular \\
+NIVEL 2 & SYDIN Max & X & 0.000886 & 0.000676 & 1.311 & 3.25 & 0.001431 & True & Regular \\
+NIVEL 2 & SYDIN Max & Y & 0.00249 & 0.002139 & 1.164 & 3.25 & 0.004022 & False & Regular \\
+NIVEL 1 & SYDIN Max & X & 0.000516 & 0.00041 & 1.258 & 4.35 & 0.000623 & True & Regular \\
+NIVEL 1 & SYDIN Max & Y & 0.001568 & 0.001332 & 1.177 & 4.35 & 0.001892 & True & Regular \\
 \bottomrule
 \end{tabular}
 }%
@@ -774,11 +797,11 @@ Lo anterior equivale a calcular los modos de vibrar en el modelo matemático res
 \cline{2%
 -%
 4}%
-\textit{Periodos en traslación pura obtenidos del ETABS (Art. 28.4.2)}&\textbf{T}&0.64&0.22\\%
+\textit{Periodos en traslación pura obtenidos del ETABS (Art. 28.4.2)}&\textbf{T}&1.01&0.98\\%
 \cline{2%
 -%
 4}%
-\textit{Factor de Amplificación (Art. 14)}&\textbf{C}&2.33&2.50\\%
+\textit{Factor de Amplificación (Art. 14)}&\textbf{C}&1.48&1.53\\%
 \cline{2%
 -%
 4}%
@@ -802,23 +825,23 @@ Lo anterior equivale a calcular los modos de vibrar en el modelo matemático res
 \cline{2%
 -%
 4}%
-\textit{Verificación (Articulo 28.2.2)}&\textbf{C/R>0.11}&0.33&0.36\\%
+\textit{Verificación (Articulo 28.2.2)}&\textbf{C/R>0.11}&0.21&0.22\\%
 \cline{2%
 -%
 4}%
-\textit{Peso sísmico (ETABS)}&\textbf{Ps (Ton)}&\multicolumn{2}{c|}{699.98}\\%
+\textit{Peso sísmico (ETABS)}&\textbf{Ps (Ton)}&\multicolumn{2}{c|}{44189.75}\\%
 \cline{2%
 -%
 4}%
-\textit{Coeficientes}&\textbf{ZUCS/R}&0.16&0.17\\%
+\textit{Coeficientes}&\textbf{ZUCS/R}&0.10&0.10\\%
 \cline{2%
 -%
 4}%
-\textit{Cortante estática (Art.28.2)}&\textbf{V (ton)}&\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{110.05}}&\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{118.12}}\\%
+\textit{Cortante estática (Art.28.2)}&\textbf{V (ton)}&\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{4416.79}}&\cellcolor[rgb]{ 1,  .949,  .8}\textcolor[rgb]{ 1,  0,  0}{\textbf{4570.19}}\\%
 \cline{2%
 -%
 4}%
-\textit{Coeficiente k (Art.28.3.2)}&\textbf{k}&1.07&1.00\\%
+\textit{Coeficiente k (Art.28.3.2)}&\textbf{k}&1.26&1.24\\%
 \cline{2%
 -%
 4}%
@@ -835,15 +858,16 @@ Lo anterior equivale a calcular los modos de vibrar en el modelo matemático res
 \toprule
 Piso & Peso & Altura & $H^{kx}$ & $H^{ky}$ & PxHx & PxHy & ax & ay & Vx & Vy \\
 \midrule
-Story8 & 65.394 & 20.750 & 25.810 & 20.750 & 1688.028 & 1356.921 & 0.177 & 0.213 & 19.455 & 25.143 \\
-Story7 & 85.837 & 18.250 & 22.490 & 18.250 & 1930.858 & 1566.533 & 0.202 & 0.243 & 22.253 & 28.760 \\
-Story6 & 85.676 & 15.750 & 19.210 & 15.750 & 1645.669 & 1349.392 & 0.172 & 0.208 & 18.967 & 24.512 \\
-Story5 & 85.695 & 13.250 & 15.960 & 13.250 & 1367.636 & 1135.458 & 0.143 & 0.172 & 15.762 & 20.371 \\
-Story4 & 89.857 & 10.750 & 12.750 & 10.750 & 1146.093 & 965.958 & 0.120 & 0.145 & 13.209 & 17.071 \\
-Story3 & 89.857 & 8.250 & 9.600 & 8.250 & 862.956 & 741.317 & 0.090 & 0.109 & 9.946 & 12.854 \\
-Story2 & 89.857 & 5.750 & 6.520 & 5.750 & 586.022 & 516.675 & 0.061 & 0.074 & 6.754 & 8.729 \\
-Story1 & 72.894 & 3.250 & 3.540 & 3.250 & 257.888 & 236.906 & 0.027 & 0.033 & 2.972 & 3.841 \\
-NT & 34.911 & 1.750 & 1.820 & 1.750 & 63.606 & 61.094 & 0.007 & 0.008 & 0.733 & 0.947 \\
+NIVEL 10 & 3437.510 & 33600.000 & 486794.100 & 407753.350 & 1673359557.347 & 1401656194.848 & 0.157 & 0.187 & 694.997 & 852.550 \\
+NIVEL 9 & 4510.377 & 30350.000 & 428383.170 & 359447.690 & 1932169421.899 & 1621244467.090 & 0.182 & 0.215 & 802.489 & 984.409 \\
+NIVEL 8 & 4510.377 & 27100.000 & 371557.400 & 312367.210 & 1675863792.360 & 1408893741.805 & 0.158 & 0.187 & 696.038 & 853.826 \\
+NIVEL 7 & 4510.377 & 23850.000 & 316456.600 & 266622.530 & 1427338425.747 & 1202568033.169 & 0.134 & 0.159 & 592.817 & 727.206 \\
+NIVEL 6 & 4510.377 & 20600.000 & 263253.510 & 222350.660 & 1187372445.606 & 1002885203.110 & 0.112 & 0.132 & 493.152 & 604.947 \\
+NIVEL 5 & 4510.377 & 17350.000 & 212167.960 & 179726.330 & 956957387.658 & 810633427.331 & 0.090 & 0.107 & 397.454 & 487.554 \\
+NIVEL 4 & 4510.377 & 14100.000 & 163490.990 & 138981.530 & 737405918.610 & 626859041.266 & 0.069 & 0.082 & 306.267 & 375.696 \\
+NIVEL 3 & 4510.377 & 10850.000 & 117629.830 & 100441.960 & 530554826.891 & 453031045.423 & 0.050 & 0.059 & 220.356 & 270.309 \\
+NIVEL 2 & 4510.377 & 7600.000 & 75204.230 & 64605.340 & 339199405.716 & 291394433.786 & 0.032 & 0.038 & 140.880 & 172.817 \\
+NIVEL 1 & 4669.226 & 4350.000 & 37304.550 & 32352.470 & 174183350.842 & 151060988.978 & 0.016 & 0.019 & 72.344 & 88.744 \\
 \bottomrule
 \end{tabular}
 %
@@ -878,11 +902,11 @@ NT & 34.911 & 1.750 & 1.820 & 1.750 & 63.606 & 61.094 & 0.007 & 0.008 & 0.733 & 
 \toprule
  & X & Y \\
 \midrule
-V din (Ton) & 50.89 & 65.19 \\
-V est (Ton) & -61.30 & -73.04 \\
+V din (Ton) & 263.86 & 273.43 \\
+V est (Ton) & -336.31 & -347.71 \\
 \% min & 80.00 & 80.00 \\
-\% & 83.02 & 89.25 \\
-F.E. & 1.00 & 1.00 \\
+\% & 78.46 & 78.64 \\
+F.E. & 1.02 & 1.02 \\
 \bottomrule
 \end{tabular}
 %
@@ -924,19 +948,19 @@ Donde h es la altura medida desde el nivel del terreno natural hasta el nivel co
 \renewcommand{\arraystretch}{1.5}%
 \begin{tabular}{l|c|c|l}%
 \cline{2-3}%
-\textit{Altura del edificio} & \textbf{h} & {1900.0} & {cm} \\%
+\textit{Altura del edificio} & \textbf{h} & {3360.0} & {cm} \\%
 \cline{2-3}%
-\textit{Separación mínima entre edificios} & \textbf{s=0.006h} & {11.40} & {>3cm} \\%
+\textit{Separación mínima entre edificios} & \textbf{s=0.006h} & {20.16} & {>3cm} \\%
 \cline{2-3}%
-\textit{Separación mínima del limite de propiedad} & \textbf{s/2} & {5.70} & {cm} \\%
+\textit{Separación mínima del limite de propiedad} & \textbf{s/2} & {10.08} & {cm} \\%
 \cline{2-3}%
-\textit{Desplazamiento máximo en X} & \textbf{$\Delta_x$} & {3.28} & {cm} \\%
+\textit{Desplazamiento máximo en X} & \textbf{$\Delta_x$} & {3.64} & {cm} \\%
 \cline{2-3}%
-\textit{Desplazamiento máximo en Y} & \textbf{$\Delta_y$} & {0.48} & {cm} \\%
+\textit{Desplazamiento máximo en Y} & \textbf{$\Delta_y$} & {3.69} & {cm} \\%
 \cline{2-3}%
-\textit{Separación del limite de propiedad X} & \textbf{2/3$\Delta_{x}$} & {2.18} & {cm} \\%
+\textit{Separación del limite de propiedad X} & \textbf{2/3$\Delta_{x}$} & {2.42} & {cm} \\%
 \cline{2-3}%
-\textit{Separación del limite de propiedad Y} & \textbf{2/3$\Delta_{y}$} & {0.32} & {cm} \\%
+\textit{Separación del limite de propiedad Y} & \textbf{2/3$\Delta_{y}$} & {2.46} & {cm} \\%
 \cline{2-3}%
 \end{tabular}%
 \label{tab:junta_sis}%
@@ -944,7 +968,7 @@ Donde h es la altura medida desde el nivel del terreno natural hasta el nivel co
 
 %
 Según lo calculado en la tabla \ref{tab:junta_sis} %
- el edificio tendrá que ser separado del limite de propiedad 6.00 cm como mínimo en ambas direcciones, en el caso que no exista junta reglamentaria el edificio actual se separa del edificio existente el valor de s/2 que le corresponde, más el valor s/2 de la estructura vecina.
+ el edificio tendrá que ser separado del limite de propiedad 10.50 cm como mínimo en ambas direcciones, en el caso que no exista junta reglamentaria el edificio actual se separa del edificio existente el valor de s/2 que le corresponde, más el valor s/2 de la estructura vecina.
 
 %
 \end{document}
