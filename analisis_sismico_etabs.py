@@ -34,10 +34,10 @@ categorias = ['A1 aislado',
                   'B',
                   'C']
     
-sis_loads = {'Sismo_EstX': 'SX',
-                 'Sismo_EstY': 'SY',
-                 'Sismo_DinX': 'SDX',
-                 'Sismo_DinY': 'SDY'}
+sis_loads = {'Sismo_EstX': 'SEXX NEG',
+                 'Sismo_EstY': 'SEYY NEG',
+                 'Sismo_DinX': 'SDXX',
+                 'Sismo_DinY': 'SDYY'}
 
 sec_change = {'aligerado':[7.51,0.05],
             'macisa':[2.25,0.20]}
@@ -57,7 +57,7 @@ suelo = 'S2'
 sist_x = sistemas[0]
 sist_y = sistemas[1]
 categoria = categorias[2]
-n_pisos = 3
+n_pisos = 6
 n_sotanos = 0
 n_azoteas = 0
 story_base = 'Story1'
@@ -99,3 +99,37 @@ sismo.centro_masa_inercia(_SapModel)
 sismo.generate_memoria()
 
 
+# _,_SapModel= etb.connect_to_etabs()
+# _,cortantes = etb.get_table(_SapModel,'Story Forces')
+
+# df1 = cortantes[['Story','OutputCase','Location','VX']]
+# shear_x=df1[(df1["OutputCase"]==sismo.loads.seism_loads['Sismo_DinX'])] #Filtro
+
+# df2 = cortantes[['Story','OutputCase','Location','VY']]
+# shear_y=df2[(df2["OutputCase"]==sismo.loads.seism_loads['Sismo_DinY'])] #Filtro
+
+# shear_x=list(shear_x['VX'].astype(float))
+# shear_x.insert(0,0)
+# shear_y=list(shear_y['VY'].astype(float))
+# shear_y.insert(0,0)
+# max_shear_x = max(shear_x)
+# max_shear_y = max(shear_y)
+
+# heights = sismo.heights_drifts
+
+# list_heights=list(reversed(heights)) #Convertir a lista e invertir posiciones
+# heights_extended = []
+# heights_extended.extend([i, i] for i in list_heights[:-1])
+# heights_extended = [item for sublist in heights_extended for item in sublist] + [0]
+
+# a = sismo.tables
+# stories  = etb.get_story_data(_SapModel)
+
+
+# set_loads = [load for load in sismo.loads.seism_loads.values()]
+# _SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_loads)
+# _SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])
+
+# _ , table = etb.get_table(_SapModel,'Story Max Over Avg Drifts')
+# table['OutputCase'] = table.OutputCase+' '+table.StepType
+# table = table[['Story','OutputCase','Direction','Max Drift','Avg Drift','Ratio']]
