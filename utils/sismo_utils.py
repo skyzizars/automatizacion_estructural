@@ -3,7 +3,7 @@ import os
 sys.path.append(os.getcwd())
 import pandas as pd
 from IPython.display import display
-from lib import etabs_utils as etb
+from utils import etabs_utils as etb
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -659,7 +659,7 @@ Factor de Reducción:
         from pylatex import Document, Section
         from pylatex.utils import NoEscape
         from pylatex.package import Package
-        from lib import sismo_mem as smem
+        from utils import sismo_mem as smem
         seism_x = self.loads.seism_loads['Sismo_DinX'] + ' Max'
         seism_y = self.loads.seism_loads['Sismo_DinY'] + ' Max'
         zona = self.data.zona
@@ -716,10 +716,10 @@ Factor de Reducción:
         _,cortantes = etb.get_table(_SapModel,'Story Forces')
 
         df1 = cortantes[['Story','OutputCase','Location','VX']]
-        shear_x=df1[(df1["OutputCase"]=='SDx')] #Filtro
+        shear_x=df1[(df1["OutputCase"]==self.loads.seism_loads['Sismo_DinX'])] #Filtro
         
         df2 = cortantes[['Story','OutputCase','Location','VY']]
-        shear_y=df2[(df2["OutputCase"]=='SDy')] #Filtro
+        shear_y=df2[(df2["OutputCase"]==self.loads.seism_loads['Sismo_DinY'])] #Filtro
 
         geometry_options = { "left": "2.5cm", "top": "1.5cm" }
         doc = Document(geometry_options=geometry_options)
@@ -777,6 +777,7 @@ Factor de Reducción:
 if __name__ == '__main__':
 
     _,_SapModel= etb.connect_to_etabs()
+
 
     #Definir variables de salida 'Ton_m_C' o 'kgf_cm_C'
     etb.set_units(_SapModel,'Ton_m_C')

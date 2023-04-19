@@ -2,8 +2,8 @@ import sys
 import os
 sys.path.append(os.getcwd())
 
-from lib import latex_utils as ltx
-from lib import etabs_utils as etb
+from utils import latex_utils as ltx
+from utils import etabs_utils as etb
 from pylatex import Document, Section, Subsection,Subsubsection, Tabular, NoEscape, MiniPage, Center, MultiColumn, Table, Figure,MultiRow
 from pylatex.utils import NoEscape, bold
 from pylatex.package import Package
@@ -108,7 +108,7 @@ def factor_suelo(zona,suelo,o_type=Subsubsection):
         with obj.create(Tabular(r'|>{\centering\arraybackslash}m{3.75cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|>{\centering\arraybackslash}m{2cm}|')) as table:
             table.add_hline()
             table.add_row((MultiColumn(5, align='|c|', data=bold('FACTOR DE SUELO SEGÚN E-030')),))
-            table.add_hline()
+            table.add_hline() 
             table.add_row(NoEscape(r'\backslashbox{\textit{\textbf{ZONA}}}{\textit{\textbf{SUELO}}}'),bold('S0'),bold('S1'),bold('S2'),bold('S3'))
             table.add_hline()
             for row in data:
@@ -380,7 +380,7 @@ def excentricidad_accidental(o_type=Subsubsection):
 
     obj.append(NoEscape('%insertion'))
 
-    fig = Figure(position='ht!')
+    fig = Figure(position='H')
     fig.append(NoEscape(r'\centering'))
     fig.append(NoEscape(r'\caption{Excentricidad de la masa en ETABS}'))
     fig.append(NoEscape(r'\includegraphics[scale=0.7]{images/excentricidad.PNG}'))
@@ -1172,10 +1172,10 @@ if __name__ == '__main__':
     _,cortantes = etb.get_table(_SapModel,'Story Forces')
 
     df1 = cortantes[['Story','OutputCase','Location','VX']]
-    shear_x=df1[(df1["OutputCase"]=='SDx')] #Filtro
+    shear_x=df1[(df1["OutputCase"]==sismo.loads.seism_loads['Sismo_DinX'])] #Filtro
     
     df2 = cortantes[['Story','OutputCase','Location','VY']]
-    shear_y=df2[(df2["OutputCase"]=='SDy')] #Filtro
+    shear_y=df2[(df2["OutputCase"]==sismo.loads.seism_loads['Sismo_DinY'])] #Filtro
     
     #Cargas sismicas
     sis_estatico = sismo.tables.static_seism

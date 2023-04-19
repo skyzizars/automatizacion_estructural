@@ -1,7 +1,7 @@
 from ipywidgets import widgets
 from IPython.display import clear_output, display
-from lib import sismo_utils as sis
-from lib import baseDatos_Zonificacion as BD
+from utils import sismo_utils as sis
+from utils import baseDatos_Zonificacion as BD
 import numpy as np
 
 #widgets
@@ -215,6 +215,8 @@ class Sismo(sis.Sismo_e30):
                 
         return self.stories_dropdown
     
+    
+    
     def discontinuidad_diafragma(self,sec_c=False,op=False,ap='1',sec_chang={},opns={}):
         clear_output(wait=False)
         d_diaf = []
@@ -314,7 +316,7 @@ class Sismo(sis.Sismo_e30):
         
         display(widgets.VBox(d_diaf))
 
-    def esquinas_entrantes(self):       
+    def esquinas_entrantes(self,esq_e=False):       
         def calc_ratio(esq,total,widget):
             try:
                 widget.value = str(round(float(esq)/float(total)*100,2)) + ' %'
@@ -331,27 +333,35 @@ class Sismo(sis.Sismo_e30):
             calc_ratio(esq_y.value,dim_y.value,ratio_y)
             verif.value = 'datos no numéricos' if 'datos no numéricos' in [ratio_x.value,ratio_y.value] else 'Regular' if float(ratio_x.value[:-2]) < 20 or float(ratio_y.value[:-2]) < 20 else 'Irregular'
             
-
-        des_esquinas = widgets.HTML(value='<b>Cambios de Sección:</b>')
-        val_ex  = self.data.esquinas.get('esq_X',('0.45'))
-        val_ey  = self.data.esquinas.get('esq_Y',('0.55'))
-        val_dx = self.data.esquinas.get('dim_X',('12.05'))
-        val_dy = self.data.esquinas.get('dim_Y',('21.05'))
-        esq_x = input_box('Esquina entrante X (m)',val=val_ex)
-        esq_y = input_box('Esquina entrante Y (m)',val=val_ey)
-        dim_x = input_box('Dimension total en X (m)',val=val_dx)
-        dim_y = input_box('Dimension total en Y (m)',val=val_dy)
-        ratio_x = input_box('Esquina_x/Total_x',val='',dis=True)
-        ratio_y = input_box('Esquina_y/Total_y',val='',dis=True)
-        ratio_l = input_box('Limite',val='20 %',dis=True)
-        verif = input_box('Verificación',val='',dis=True)
-        esq_x.observe(lambda _:assign_esquinas())
-        esq_y.observe(lambda _:assign_esquinas())
-        dim_x.observe(lambda _:assign_esquinas())
-        dim_y.observe(lambda _:assign_esquinas())
-
-        d_esq = [des_esquinas,esq_x,esq_y,dim_x,dim_y,ratio_x,ratio_y,ratio_l,verif]
-        assign_esquinas()
+        
+        clear_output(wait=False)
+        irreg = check_box('esquinas entrantes',val=esq_e)
+        irreg.observe(lambda _:self.esquinas_entrantes(esq_e=irreg.value))
+        d_esq = [irreg,]
+        
+        if irreg.value:
+            des_esquinas = widgets.HTML(value='<b>Cambios de Sección:</b>')
+            val_ex  = self.data.esquinas.get('esq_X',('0.45'))
+            val_ey  = self.data.esquinas.get('esq_Y',('0.55'))
+            val_dx = self.data.esquinas.get('dim_X',('12.05'))
+            val_dy = self.data.esquinas.get('dim_Y',('21.05'))
+            esq_x = input_box('Esquina entrante X (m)',val=val_ex)
+            esq_y = input_box('Esquina entrante Y (m)',val=val_ey)
+            dim_x = input_box('Dimension total en X (m)',val=val_dx)
+            dim_y = input_box('Dimension total en Y (m)',val=val_dy)
+            ratio_x = input_box('Esquina_x/Total_x',val='',dis=True)
+            ratio_y = input_box('Esquina_y/Total_y',val='',dis=True)
+            ratio_l = input_box('Limite',val='20 %',dis=True)
+            verif = input_box('Verificación',val='',dis=True)
+            esq_x.observe(lambda _:assign_esquinas())
+            esq_y.observe(lambda _:assign_esquinas())
+            dim_x.observe(lambda _:assign_esquinas())
+            dim_y.observe(lambda _:assign_esquinas())
+            
+            for i in [des_esquinas,esq_x,esq_y,dim_x,dim_y,ratio_x,ratio_y,ratio_l,verif]:
+                d_esq.append(i)
+                
+            assign_esquinas()
 
         display(widgets.VBox(d_esq))
         
