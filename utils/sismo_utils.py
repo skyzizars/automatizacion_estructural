@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.getcwd())
 import pandas as pd
-from lib import etabs_utils as etb
+from utils import etabs_utils as etb
 
 
 #Programado para etabs 2019
@@ -162,7 +162,148 @@ Factor de Reducción:
 
     def set_base_story(self,base_story):
         self.base_story = base_story
+
+    
+    def analisis_Cimentación_2(self, SapModel):
+        self.list_Case_Modal = pd.DataFrame(
+            [['Modal','UX'],
+             ['Modal +eY','UX'],
+             ['Modal -eY','UX'],
+             ['Modal','UY'],
+             ['Modal +eX','UY'],
+             ['Modal -eX','UY']])
+        self.List_Case_SisDin = pd.DataFrame(
+            [['SDx','UX'],
+             ['SDx +eY','UX'],
+             ['SDx -eY','UX'],
+             ['SDy','UY'],
+             ['SDy +eX','UY'],
+             ['SDy -eX','UY']])
+        #Creamos una lista para los objetos A_modal que guardan los modos correspondientes a la máxima participación segun el sentido de análisis
+        if len(self.list_Case_Modal) == len(self.List_Case_SisDin):
+            self.List_Obj_Modal = []
+            number_rows = len(self.list_Case_Modal)
+            for i in range(number_rows):
+                #Creamos el Objeto Modo
+                objeto_mode = self.identificar_Modo_Principal(SapModel, self.list_Case_Modal.iloc[i,0] , self.list_Case_Modal.iloc[i,1])
+                self.List_Obj_Modal.append(objeto_mode)
+                #Calculamos el Momento de Volteo del Modo
+                Mvmodo = self.hallar_momento_volteo(SapModel, self.list_Case_Modal.iloc[i,0], self.list_Case_Modal.iloc[i,1], self.List_Obj_Modal[i].Modo)
+                self.List_Obj_Modal[i].Mvolt_modo = Mvmodo
+                #Calculamos el Momento de Volteo del Sismo Dinámico
+                Mvsismo = self.hallar_momento_volteo(SapModel, self.List_Case_SisDin.iloc[i,0], self.List_Case_SisDin.iloc[i,1])
+                self.List_Obj_Modal[i].Mvolt_Sdin = Mvsismo
+                #Calculamos el Factor de Escala
+                if Mvmodo != 0 and Mvsismo != 0:
+                    self.List_Obj_Modal[i].Escala_din = Mvsismo/Mvmodo
+                else:
+                    self.List_Obj_Modal[i].Escala_din = 0
+            
+            #Creamos un pandas para guardar los datos un una sola tabla
+            Factor_Escala = pd.DataFrame( 
+                        columns=['Caso Modal','Modo','Sentido','% masa Part' , 'Mvolteo', 'Sismo Din', 'Mv Sismo', 'F. Escala'], # Fill columnets
+                        index=range(number_rows) # Fill rows
+                        ) 
+            for i in range(number_rows):
+                Factor_Escala.iat[i, 0] = self.List_Obj_Modal[i].Case
+                Factor_Escala.iat[i, 1] = self.List_Obj_Modal[i].Modo
+                Factor_Escala.iat[i, 2] = self.List_Obj_Modal[i].Sentido
+                Factor_Escala.iat[i, 3] = self.List_Obj_Modal[i].MasaPart
+                Factor_Escala.iat[i, 4] = self.List_Obj_Modal[i].Mvolt_modo
+                Factor_Escala.iat[i, 5] = self.List_Case_SisDin.iloc[i,0]
+                Factor_Escala.iat[i, 6] = self.List_Obj_Modal[i].Mvolt_Sdin
+                Factor_Escala.iat[i, 7] = self.List_Obj_Modal[i].Escala_din
+            
+            self.tables.Factor_Escala_Cimentacion = Factor_Escala
+
         
+    def identificar_Modo_Principal(self, SapModel, Case = 'Modal', U = 'UX' ):
+        '''
+        Devuelve un objeto que guarda el valor del número de modo que tiene la máxima participación modal en el Sentido Indicado (UX o UY)
+        '''
+        _,modal = etb.get_table(SapModel,'Modal Participating Mass Ratios')
+        modal = modal[['Case','Mode','UX','UY','RZ']]
+        modal['Mode'] = modal.Mode.astype(int)
+        modal['UX']=modal.UX.astype(float)
+        modal['UY']=modal.UY.astype(float)
+
+        modal = modal.loc[modal['Case']==Case]
+        
+        #Si la tabla tiene datos, hallamos el modo que tiene la mayor participación en el Sentido Indicado (UX o UY)
+        if len(modal)>0:
+            A_modal = self.A_modal()
+            if U == 'UX':
+                A_modal.Modo = int(modal[modal.UX == max(modal.UX)].Mode)
+                A_modal.MasaPart = max(modal.UX)
+            elif  U == 'UY':
+                A_modal.Modo = int(modal[modal.UY == max(modal.UY)].Mode)
+                A_modal.MasaPart = max(modal.UY)
+            #Guardamos los demas datos
+            A_modal.Case = Case
+            A_modal.Sentido = U
+
+        else: #No se ha encontrado resultados que coincidan con el Case ingresado
+            A_modal = self.A_modal()
+            A_modal.Case = 'None'
+            A_modal.Modo = 0
+            A_modal.Sentido = 'None'
+            A_modal.MasaPart = 0
+
+        return A_modal
+    
+    def hallar_momento_volteo(self, SapModel, Case = 'Modal', U = 'UX', modo = -1):
+        ''''
+        Halla el valor del momento de vuelco, para un Caso modal en un sentido específico y para el modo que produce la maxima participación
+        '''
+        try:
+
+            set_load = [Case]
+            SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_load)
+            SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])
+
+            _, table = etb.get_table(SapModel,'Base Reactions')
+            table['OutputCase'] = table.OutputCase
+            table['OutputCase'] = table['OutputCase'].apply(lambda x:x.rstrip())
+            table = table[['OutputCase','StepNumber','MX','MY']]
+            if modo >= 0:
+                table['StepNumber'] =table.StepNumber.astype(int)
+            table['MX']=table.MX.astype(float)
+            table['MY']=table.MY.astype(float)
+
+            #Hallamos el momento de Volteo (Pata la direccion X se toma MY y viceversa)
+            if U == 'UX':
+                Head = 'MY'
+            elif U == 'UY':
+                Head = 'MX'
+            if modo >= 0:
+                Mvolteo = float(table[table.StepNumber == modo][Head])
+            else:
+                Mvolteo = float(table[Head])
+
+            return Mvolteo
+        
+        except:
+            return 0
+        
+
+
+    class A_modal():
+        '''
+        Esta clase guardará los datos de los modos que tiene la máxima participación modal en el sentido indicado, así como el factor de escala
+        '''
+        def __init__(self):
+            self.Case = 'Modal' #Guarda el nombre del caso modal
+            self.Modo = 1  #Guarda el número del modo que tiene la máxima participación
+            self.Sentido = '' #Guarda el sentido fundamental del modo
+            self.Escala_din = 0.0 #Guardará el factor de escala en relación con el sismo dinámico que corresponde
+            self.Mvolt_modo = 0.0 #Guarda el momento de volteo del modo sin factos de escala
+            self.Mvolt_Sdin = 0.0 #Guarda el momento del análisis dinámico correspondiente al modo
+            self.MasaPart = 0.90  #Guarda el porcentaje de la masa participativa del modo
+            
+
+
+
+
     #Sismo Estático
     def ana_modal(self,SapModel,report=False):
         '''Devuelve datos del analisis modal, y los periodos fundamentales
@@ -515,26 +656,26 @@ Factor de Reducción:
         doc.packages.append(Package('xcolor', options=['dvipsnames']))
         doc.preamble.append(NoEscape(r'\graphicspath{ {%s/} }'%os.getcwd().replace('\\','/')))
         sec = Section('Análisis Sísmico')
-        f_zona = smem.factor_zona(zona, o_type=Subsection)
-        f_suelo = smem.factor_suelo(zona, suelo)
-        p_suelo = smem.periodos_suelo(suelo)   
-        s_est = smem.sist_estructural()
-        f_amp = smem.factor_amplificacion()
-        f_imp = smem.factor_importancia(categoria)
-        a_modal = smem.ana_modal(self.tables.modal)             
+        f_zona = smem.factor_zona(doc, zona, o_type=Subsection)
+        f_suelo = smem.factor_suelo(doc, zona, suelo)
+        p_suelo = smem.periodos_suelo(doc, suelo)   
+        s_est = smem.sist_estructural(doc)
+        f_amp = smem.factor_amplificacion(doc)
+        f_imp = smem.factor_importancia(doc, categoria)
+        a_modal = smem.ana_modal(doc, self.tables.modal)             
         sis_x = self.tables.piso_blando_table.query('OutputCase == @seism_x')
         sis_y = self.tables.piso_blando_table.query('OutputCase == @seism_y')
-        i_rig = smem.irreg_rigidez(sis_x,sis_y)
-        i_masa = smem.irreg_masa(self.tables.rev_masa_table)
+        i_rig = smem.irreg_rigidez(doc, sis_x,sis_y)
+        # i_masa = smem.irreg_masa(doc,self.tables.rev_masa_table)
         sis_x = self.tables.torsion_table.query('OutputCase == @seism_x')
         sis_y = self.tables.torsion_table.query('OutputCase == @seism_y')
-        i_torsion = smem.irreg_torsion(sis_x, sis_y)
+        i_torsion = smem.irreg_torsion(doc, sis_x, sis_y)
         sec_change = {'aligerado':[7.51,0.05],
                     'macisa':[2.25,0.20]}
         openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
                     'area_planta' : 120.41}
-        i_esquinas = smem.irreg_esquinas(sec_change=sec_change, openings=openings)
-        for i in [f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,a_modal,i_rig,i_masa,i_torsion]:
+        # i_esquinas = smem.irreg_esquinas(doc,sec_change=sec_change, openings=openings)
+        for i in [f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,a_modal,i_rig,i_torsion]:
             sec.append(i)
         
         doc.append(sec)
