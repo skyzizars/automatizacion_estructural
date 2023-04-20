@@ -352,7 +352,7 @@ Factor de Reducción:
             print('Periodo y Masa Participativa X: Tx={0:.3f}'.format(Tx)+', Ux={0:.3f}'.format(Ux))
             print('Periodo y Masa Participativa Y: Ty={0:.3f}'.format(Ty)+', Uy={0:.3f}'.format(Uy))
         
-        self.tablefs.modal = modal
+        self.tables.modal = modal
         self.data.Tx = Tx
         self.data.Ty = Ty
 
