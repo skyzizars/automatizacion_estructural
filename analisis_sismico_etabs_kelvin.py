@@ -73,7 +73,7 @@ sismo.loads.set_seism_loads(_sis_loads)
 sismo.set_base_story(_story_base)
 
 sismo.ana_modal(_SapModel)
-sismo.sismo_estatico(_SapModel)
+sismo.sismo_estatico(_SapModel,report=True)
 sismo.dinamic_spectrum()
 sismo.min_shear(_SapModel,story=sismo.base_story)
 sismo.piso_blando(_SapModel)
@@ -87,6 +87,7 @@ tables = sismo.tables
 torsion = tables.torsion_table
 drifts = tables.drift_table
 centros_MR = tables.CM_CR_table
+f_e = tables.shear_table
 
 
 # sismo.generate_memoria()
