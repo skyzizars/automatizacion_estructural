@@ -64,7 +64,7 @@ def get_modal_data(SapModel,clean_data='true'):
     return (modal,MP_x,MP_y,period_x,period_y,Ux,Uy)
 
 
-def set_envelopes_for_dysplay(SapModel):
+def set_envelopes_for_dysplay(SapModel,set_envelopes=True):
     IsUserBaseReactionLocation=False
     UserBaseReactionX=0
     UserBaseReactionY=0
@@ -75,8 +75,8 @@ def set_envelopes_for_dysplay(SapModel):
     IsAllBucklingModes=True
     StartBucklingMode=0
     EndBucklingMode=0
-    MultistepStatic=1
-    NonlinearStatic=1
+    MultistepStatic=1 if set_envelopes else 2
+    NonlinearStatic=1 if set_envelopes else 2
     ModalHistory=1
     DirectHistory=1
     Combo=2
@@ -86,8 +86,8 @@ def set_envelopes_for_dysplay(SapModel):
                                                         EndBucklingMode,MultistepStatic,NonlinearStatic,
                                                         ModalHistory,DirectHistory,Combo)
 
-def get_table(SapModel,table_name):
-    set_envelopes_for_dysplay(SapModel)
+def get_table(SapModel,table_name,set_envelopes=True):
+    set_envelopes_for_dysplay(SapModel,set_envelopes)
     data = SapModel.DatabaseTables.GetTableForDisplayArray(table_name,FieldKeyList='',GroupName='')
     
     if not data[2][0]:
@@ -106,6 +106,7 @@ def get_table(SapModel,table_name):
 def get_story_data(SapModel):
     _,story_data = get_table(SapModel,'Story Definitions')
     return story_data
+
 
 def set_concrete(SapModel,fc=210):
     set_units(SapModel, 'kgf_cm_C')
