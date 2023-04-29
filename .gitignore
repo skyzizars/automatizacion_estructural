@@ -8,5 +8,4 @@
 *.synctex.gz
 *.aux
 *.chm
-*.ipynb
-concreto
+analisis_sismico_etabs_kelvin.py

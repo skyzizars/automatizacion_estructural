@@ -11,7 +11,7 @@ El repositorio se divide:
     
     - latex (ejemplos practicos de Latex y Python)
     
-    - lib (librerias/funciones/ modulos)
+    - lib (librerias/funciones/ modulos de calculo)
     
     - mem (lib/mod/ funciones para la memoria de calculo)
     
