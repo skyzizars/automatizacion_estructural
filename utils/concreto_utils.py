@@ -40,9 +40,10 @@ bar_dic={'3/8"':[d_3,A_3],'1/2"':[d_4,A_4],'5/8"':[d_5,A_5],
 esp_list=[0.4,0.35,0.30,0.25,0.20,0.15,0.125,0.10,0.075,0.05]
 
 class Concrete():
-    def __init__(self,b,h,r=4*cm):
+    def __init__(self,b,h,r=4*cm,gamma_c=2400*9.81):
         self.b = b
         self.h = h
+        self.d = h-r
         self.Ag = b*h
         self.r = r
         self.fy = 420*MPa
@@ -51,6 +52,7 @@ class Concrete():
         self.fc = 21*MPa
         self.eps_u = 0.003
         self.betha = 0.85
+        self.gamma_c = gamma_c
     
     def set_concrete(self,fc,eps_u):
         self.fc = fc
@@ -66,6 +68,27 @@ class Concrete():
         self.fy = fy
         self.Es = Es
         self.eps_y = fy/Es
+
+    def nominal_moment(self,phi_f=0.9):
+        As = self.Ast
+        fy = self.fy
+        fc = self.fc
+        b = self.b
+        d = self.d
+        self.a = As*fy/(0.5*fc*b)
+        self.Mn = As*fy*(d-self.a/2)
+        self.phi_Mn = phi_f*self.Mn
+
+    def nominal_shear(self,phi_s=0.85):
+        fc = self.fc
+        self.Vn=0.17*(fc/MPa)**0.5*self.b*self.d*MPa
+        self.phi_Vn = self.Vn*phi_s
+
+    def nominal_punch_shear(self,punch_perim,phi_s=0.85):
+        fc = self.fc
+        self.Vn_p=0.33*(fc/MPa)**0.5*punch_perim*self.d*MPa
+        self.phi_Vn_p = self.Vn_p*phi_s 
+    
     
     def stress_f(self,c,x,mayored='False'):
         'Esfuerzo en barras de acero segun su posición'
@@ -131,7 +154,7 @@ class Beam(Concrete):
             else:
                 self.Asb = d_s**2/4*math.pi*n_s
         
-    def calc_Mnv(self,phi_f=0.9):
+    def nominal_moment(self,phi_f=0.9):
         As = self.Ast
         fy = self.fy
         fc = self.fc
@@ -637,35 +660,32 @@ class Column(Concrete):
             exec('self.V1'+axis+'=V1')
             exec('self.V2'+axis+'=V2')
             exec('self.Vcol'+axis+'=Vcol')
-    
-class Cimentacion:
+  
+
+
+class Soil():
+    def __init__(self,q_adm,gamma_s):
+        self.q_adm = q_adm
+        self.gamma_s = gamma_s
+ 
+class Foundation(Concrete):
     '''
-    Clase que incluyen las cimentaciones tipo zapata aislada..
+    Clase general de diseño de cimentaciones
     '''
-    g=9.83
-    PE_suelo=1.6*tonf/m**3
-    PE_concreto=PE_concreto=2.4*tonf/m**3
-    def __init__(self, q_adm,Df):
+    def set_soil(self,q_adm,gamma_s):
         '''
-        Se definen la presion admisible y profundidad
-        de desplante
         Parameters
         ----------
-        q_adm : capacidad admisible.
-        Df : Profundidad de desplante.
-        Returns
-        -------
-        None.
+        q_adm : Capacidad portante del suelo.
+        Df : Profundidad de desplante
         '''
-        self.q_adm = q_adm
-        self.Df=Df
+        self.soil = Soil(q_adm,gamma_s)
+        
 
-class Zapata(Cimentacion):
+class Isolate_footing(Foundation):
     '''
     Parameters
     ----------
-    q_adm : Capacidad portante del suelo.
-    Df : Profundidad de desplante
     dim1_col : dimension 1 de la columna.
     dim2_col : dimension 2 de la columna.
     h : Altura de zapata.
@@ -676,25 +696,30 @@ class Zapata(Cimentacion):
     -------
     None.
     '''
-    def __init__(self,q_adm,Df,dim1_col,dim2_col,h,fuerzas):
+    def __init__(self,dim1_col,dim2_col,df,h,b=1,r=0.075,gamma_c=2.4*9.81):
         
-        Cimentacion.__init__(self,q_adm,Df)
         self.b_col = min(dim1_col,dim2_col)
         self.h_col=max(dim1_col,dim2_col)
-        self.h=h
+        self.df = df
+        
+        super().__init__(b,h=h,r=r,gamma_c=gamma_c)
         
         #PREDIMENSIONAMIENTO:
-        self.B=round(4*self.b_col,2)
-        self.L=round(self.B+(self.h_col-self.b_col),2)
-        self.Lv1=round(self.B-self.b_col,2)
-        self.Lv2=round(self.L-self.h_col,2)
+        B=round(4*self.b_col,2)
+        L=round(B+(self.h_col-self.b_col),2)
+        self.set_foot_dimensions(B,L)
+
         
-        #Peso del terreno y zapata:
-        p_terr=self.PE_suelo*(self.B*self.L-self.b_col*self.h_col)*(self.Df-self.h)
-        p_col=self.PE_concreto*(self.b_col*self.h_col)*self.h
-        fuerzas.append([p_terr+p_col,0,0])
-        self.Fzas=np.array(fuerzas)
-        
+
+
+    def assign_forces(self,forces):
+        '''
+        Fuerzas : Lista de cargas que llegan de la columna
+        [Fz,Mx,My] para cada tipo de carga: D,L,Sx,Sy,Vx,Vy 
+        '''
+        forces.append([0,0,0])
+        self.forces=np.array(forces)
+
         #Definiendo la matriz de combinación
         #[D,L,SX,SY,VX,VY,PP]#POSIBILIDAD DE AUMENTAR LOS CASOS NEGATIVOS DE SISMO Y VIENTO
         Comb=[[1,1,0,0,0,0,1],
@@ -712,8 +737,19 @@ class Zapata(Cimentacion):
               [0.9,0,0,1,0,0,0.9],
               [0.9,0,0,0,1,0,0.9],
               [0.9,0,1,0,0,1,0.9]]
+            
         self.C=np.array(Comb)
-    def prop_zap(self,B,L):
+
+
+    def soil_forces(self):
+        #Peso del terreno y zapata:
+        w_soil=self.soil.gamma_s*(self.B*self.L-self.b_col*self.h_col)*(self.df-self.h)
+        w_col=self.gamma_c*(self.b_col*self.h_col)*(self.df-self.h)
+        w_p=self.gamma_c*(self.B*self.L)*self.h
+        self.forces[-1][0]  = w_soil+w_col+w_p
+
+
+    def set_foot_dimensions(self,B,L):
         '''
         Se calculan las propiedades de area y momento
         de inercia de la zapata para el calculo de presiones
@@ -726,12 +762,46 @@ class Zapata(Cimentacion):
         Returns
         -------
         None.
-
         '''
+        self.B = B
+        self.L = L
+        self.Lv1=(self.B-self.b_col)/2
+        self.Lv2=(self.L-self.h_col)/2
         self.A=B*L
         self.Izx=B*L**3/12
         self.Izy=B**3*L/12
-    def presiones_suelo(self,X,Y):
+
+    def ultimate_shear(self):
+        self.σ_U=np.amax(self.data_presiones[6:11])
+        self.V_u=self.σ_U*self.b*(max(self.Lv1,self.Lv2)-self.d) #d_eff < Lv1]
+
+    def ultimate_moments(self):
+        self.Mu_x=self.σ_U*self.Lv2*self.b
+        self.Mu_y=self.σ_U*self.Lv1*self.b
+        self.Mu=max(self.Mu_x,self.Mu_y)
+
+    def punch_dimensions(self):
+        d_col=self.h_col-0.06*m
+        #Lados del perimetro punzonado
+        h_pun=self.h_col+d_col/2
+        b_pun=self.b_col+d_col/2
+        #perimetro y area de punzonamiento:
+        self.punch_perim=2*(h_pun+b_pun)
+        self.punch_area=h_pun*b_pun
+
+    def ultimate_punch_shear(self):
+        try:
+            self.Vu_p=self.σ_U*(self.B*self.L-self.punch_area)
+        except:
+            self.punch_dimensions()
+            self.ultimate_shear()
+            self.Vu_p=self.σ_U*(self.B*self.L-self.punch_area)
+
+    def nominal_punch_shear(self, phi_s=0.85):
+        super().nominal_punch_shear(self.punch_perim, phi_s)
+
+
+    def soil_pressures(self,X,Y):
         '''
         Se calculan la presiones del suelo para una coordenada
         dentro de la zapata, tomandose el centro de coordenadas el 
@@ -749,9 +819,11 @@ class Zapata(Cimentacion):
         '''
         Coord=[[1/self.A],[Y/self.Izx],[X/self.Izy]]
         Co=np.array(Coord)
-        self.Pres=np.dot(self.Fzas,Co)
+        self.Pres=np.dot(self.forces,Co)
         self.Re=np.dot(self.C,self.Pres)
-    def presiones_resultantes(self,B,L,n=0.2,nc=None,und=kgf/cm**2):
+
+
+    def total_pressures(self,n=0.2,nc=None,und=Pa):
         '''
         Se calculan todas la presiones para todas la combinaciones 
         de carga definidas para la sección de la zapata las cuales se
@@ -759,24 +831,23 @@ class Zapata(Cimentacion):
 
         Parameters
         ----------
-        B : Ancho de zapata (eje x).
-        L : Largo de zapata (eje y).
         n : opcional, dimensión máx de un elemento discretizado (en metros).
         nc : opcional, indice de la combinación para ser ploteada.
-        und: opcional, unidades del sistema, por defecto kgf/cm**2.
+        und: opcional, unidades del sistema, por defecto Pa.
 
         Returns
         -------
         None.
 
         '''
-        self.prop_zap(B,L)
+        B = self.B
+        L = self.L
         X_list=np.linspace(-B/2,B/2,num=(int(B/n)))
         Y_list=np.linspace(-L/2,L/2,num=(int(L/n)))
         Mapa=np.zeros((len(self.C),len(Y_list),len(X_list)))
         for i in range(len(Y_list)):
             for j in range(len(X_list)):
-                self.presiones_suelo(Y_list[i],X_list[j])
+                self.soil_pressures(Y_list[i],X_list[j])
                 for k in range(len(self.Re)):
                     Mapa[k][i][j]=self.Re[k]
         self.data_presiones=Mapa
@@ -786,9 +857,11 @@ class Zapata(Cimentacion):
             fig, ax = plt.subplots()
             im=ax.imshow((self.data_presiones[nc]/und),cmap = "gist_rainbow")
             cbar = ax.figure.colorbar(im, ax = ax)
-            cbar.ax.set_ylabel("Color bar", rotation = -90, va = "bottom")  
+            cbar.ax.set_ylabel("Color bar", rotation = -90, va = "bottom") 
+
+
             
-    def verificacion_presiones(self,B,L,n=0.1):
+    def press_check(self,n=0.1):
         '''
         Se verifica si la presión máxima a servicio cumple con la presión admisible
         del suelo.
@@ -805,16 +878,18 @@ class Zapata(Cimentacion):
             DESCRIPTION.
 
         '''
-        self.presiones_resultantes(B,L,n)
+        self.total_pressures(n)
         self.σ_max_g=np.amax(self.data_presiones[0]) #presión máxima por gravedad
         self.σ_max_sismo=np.amax(self.data_presiones[1:5]) #presión máxima por sismo
         self.σ_min=np.amin(self.data_presiones[0:5]) #presión mínima por gravedad y sismo
-        if (self.σ_max_g<=self.q_adm*0.96) and (self.σ_max_sismo<=self.q_adm*1.3*0.96) and (self.σ_min>=0):
+        if (self.σ_max_g<=self.soil.q_adm*0.96) and (self.σ_max_sismo<=self.soil.q_adm*1.3*0.96) and (self.σ_min>=0):
             return True
         else:
             return False
+        
 
-    def dimensionar_zapata(self,B,L):
+
+    def foot_sizing(self):
         '''
         Realiza las verificaciones de presiones en el suelo
         y dimensiona las secciones finales de la zapata B y L.
@@ -827,120 +902,91 @@ class Zapata(Cimentacion):
         None.
         '''
         #actualizando el valor del peso de la zapata y terreno
-        p_terr=self.PE_suelo*(B*L-self.b_col*self.h_col)*(self.Df-self.h)
-        p_col=self.PE_concreto*(self.b_col*self.h_col)*self.h
-        self.Fzas[-1]=[p_terr+p_col,0,0]
+        B = self.B
+        L = self.L
+        self.soil_forces()
         
-        nitermax=0 #contador para iteraciones máximas
-        while self.verificacion_presiones(B,L)==False:
-            B=B+0.1*m
-            L=B+(self.h_col-self.b_col)
+        i=0 
+        while self.press_check()==False:
+            B=round(B+0.1*m,2)
+            L=round(B+(self.h_col-self.b_col),2)
             #actualizando el valor del peso de la zapata y terreno
-            p_terr=self.PE_suelo*(B*L-self.b_col*self.h_col)*(self.Df-self.h)
-            p_col=self.PE_concreto*(self.b_col*self.h_col)*self.h
-            self.Fzas[-1]=[p_terr+p_col,0,0]
-            nitermax=nitermax+1
-            if nitermax==40:
+            self.set_foot_dimensions(B,L)
+            self.soil_forces()
+            i=i+1
+            if i==40: #contador para iteraciones máximas
                 break
-        self.verificacion_presiones(B,L)
-        self.B=round(B,2)
-        self.L=round(L,2)
-        self.Lv1=(self.B-self.b_col)/2
-        self.Lv2=(self.L-self.h_col)/2
+        self.total_pressures()
 
-    def diseño_cortante(self,re=0.1*m,b=1.00*m,fc=280*kgf/cm**2):
+
+    def shear_design(self):
         '''
         Diseño a cortante de la zapata, itera hast obtener la altura de la zapata
         que cumple el diseño por cortante.
-
-        Parameters
-        ----------
-        re : float, optional
-            Recubrimiento. The default is 0.1*m.
-        b : float, optional
-            Ancho de diseño. The default is 1.00*m.
-        fc : float, optional
-            Resistencia a la compresión del concreto. The default is 280*kgf/cm**2.
 
         Returns
         -------
         None.
 
         '''
-        self.re=re
-        self.d_eff=self.h-self.re#-0.5*pulg
-        #Introducir aqui el presion ultima:
-        self.σ_U=np.amax(self.data_presiones[6:11])
-        #self.V_u=self.σ_U*b*(self.Lv2-self.d_eff)
-        self.V_u=self.σ_U*b*(max(self.Lv1,self.Lv2)-self.d_eff) #d_eff < Lv1
-        self.ØV_c=0.85*0.53*(fc/(kgf/cm**2))**0.5*b*self.d_eff*kgf/cm**2
-        nitermax=0
-        while self.V_u>=self.ØV_c:
+       
+        #Cortante ultimo y nominal
+        self.ultimate_shear()
+        self.nominal_shear()
+        i=0
+        while self.V_u>=self.phi_Vn:
             self.h=self.h+0.05
-            self.d_eff=self.h-self.re
-            self.V_u=self.σ_U*b*(max(self.Lv1,self.Lv2)-self.d_eff)
-            self.ØV_c=0.85*0.53*(fc/(kgf/cm**2))**0.5*b*self.d_eff*kgf/cm**2
-            nitermax=nitermax+1
-            if nitermax==40:
+            self.d=self.h-self.r
+            self.nominal_shear()
+            i=i+1
+            if i==40:
                 break
-    def diseño_punzonamiento(self,fc=280*kgf/cm**2):
+
+
+    def punch_design(self):
         '''
         Verificación del punzonamiento de la columna sobre la zapata.
 
         Parameters
         ----------
-        fc : float, optional
-            Resistencia a la compresión del concreto. The default is 280*kgf/cm**2.
 
         Returns
         -------
         None.
 
         '''
-        d_eff_col=self.h_col-0.06*m
-        #Lados del perimetro punzonado
-        h_pun=self.h_col+d_eff_col/2
-        b_pun=self.b_col+d_eff_col/2
-        #perimetro y area de punzonamiento:
-        per_p=2*(h_pun+b_pun)
-        area_p=h_pun*b_pun
-        #cortante
-        self.Vu_p=self.σ_U*(self.B*self.L-area_p)
-        #cortante resistente
-        self.ØVc_p=0.85*1.06*(fc/(kgf/cm**2))**0.5*per_p*self.d_eff*kgf/cm**2
-        nitermax=0
-        while self.Vu_p>=self.ØVc_p:
+        self.punch_dimensions()
+        self.ultimate_punch_shear()
+        self.nominal_punch_shear()
+
+        i=0
+        while self.Vu_p>=self.phi_Vn_p:
             self.h=self.h+0.05*m
-            self.d_eff=self.h-self.re
-            self.Vu_p=self.σ_U*(self.B*self.L-area_p)
-            self.ØVc_p=0.85*1.06*(fc/(kgf/cm**2))**0.5*per_p*self.d_eff*kgf/cm**2
-            nitermax=nitermax+1
-            if nitermax==40:
+            self.d=self.h-self.r
+            self.nominal_punch_shear()
+            i=i+1
+            if i==40:
                 break
-    def diseño_flexion(self,b=1*m,fy=4200*kgf/cm**2,fc=280*kgf/cm**2):
+
+
+    def flex_design(self):
         '''
         Diseño a flexión de la zapata con un ancho unitario por defecto.
 
-        Parameters
-        ----------
-        b : float, optional
-            ancho unitario de diseño. The default is 1*m.
-        fy : float, optional
-            Esfuerzo de fluencia del acero de refuerzo. The default is 4200*kgf/cm**2.
-        fc : float, optional
-            Resistencia a la compresión del concreto. The default is 280*kgf/cm**2.
-
         Returns
         -------
         None.
 
         '''
+        fy = self.fy
+        fc = self.fc
+        b = self.b
         #Momentos ultimos
-        self.Mu_x=self.σ_U*self.Lv2*b
-        self.Mu_y=self.σ_U*self.Lv1*b
-        self.Mu=max(self.Mu_x,self.Mu_y)
-        self.As_min=0.0018*b*self.h
+        self.ultimate_moments()
+
+        self.As_min=0.0018*self.b*self.h
         #espaciamiento máximo 0.40cm
+
         #se inicia con malla de 3/8" y 0.40cm de espaciamiento
         #en set_barras se guardaran todas varillas con su espacimineto que cumplen
         self.set_barras=[]
@@ -955,9 +1001,11 @@ class Zapata(Cimentacion):
         self.set_diseño=[]
         for i in self.set_barras:
             a=bar_dic[i[0]][1]*fy/(0.85*fc*b)
-            phiMn=0.90*bar_dic[i[0]][1]*(math.ceil(b/i[1]))*fy*(self.d_eff-a/2)
+            phiMn=0.90*bar_dic[i[0]][1]*(math.ceil(b/i[1]))*fy*(self.d-a/2)
             if phiMn>self.Mu and phiMn<1.30*self.Mu:
                 self.set_diseño.append([i[0],i[1],phiMn])
+
+
 
 if __name__ == '__main__':
     pass
