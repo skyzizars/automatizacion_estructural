@@ -684,10 +684,10 @@ class Zapata(Cimentacion):
         self.h=h
         
         #PREDIMENSIONAMIENTO:
-        self.B=4*self.b_col
-        self.L=self.B+(self.h_col-self.b_col)
-        self.Lv1=(self.B-self.b_col)
-        self.Lv2=(self.L-self.h_col)
+        self.B=round(4*self.b_col,2)
+        self.L=round(self.B+(self.h_col-self.b_col),2)
+        self.Lv1=round(self.B-self.b_col,2)
+        self.Lv2=round(self.L-self.h_col,2)
         
         #Peso del terreno y zapata:
         p_terr=self.PE_suelo*(self.B*self.L-self.b_col*self.h_col)*(self.Df-self.h)
@@ -809,7 +809,7 @@ class Zapata(Cimentacion):
         self.σ_max_g=np.amax(self.data_presiones[0]) #presión máxima por gravedad
         self.σ_max_sismo=np.amax(self.data_presiones[1:5]) #presión máxima por sismo
         self.σ_min=np.amin(self.data_presiones[0:5]) #presión mínima por gravedad y sismo
-        if (self.σ_max_g<=self.q_adm*0.90) and (self.σ_max_sismo<=self.q_adm*1.3*0.90) and (self.σ_min>=0):
+        if (self.σ_max_g<=self.q_adm*0.96) and (self.σ_max_sismo<=self.q_adm*1.3*0.96) and (self.σ_min>=0):
             return True
         else:
             return False
