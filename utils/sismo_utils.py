@@ -220,6 +220,60 @@ Factor de Reducción:
         self.data.Tx = Tx
         self.data.Ty = Ty
 
+    #Cálculo del exponente de altura
+    def get_k(self,T):
+        """Devuelve el exponente relacionado con el periodo (T). Revise
+        28.3.2 NTE 030 2020
+        
+        Parámetros
+        ----------
+        T : Periodo fundamental de vibración de la estructura (seg)
+        
+        Returns
+        -------
+        k=1, si T<=0.5 seg.
+        k=0.75+0.5*T, si T>=0.5
+        k=2, si 0.75+0.5*T>2
+        """
+        if T < 0.5:
+            return 1
+        elif 0.75+0.5*T < 2:
+            return 0.75+0.5*T
+        else:
+            return 2
+        
+    #Cálculo del Factor C
+    def get_C(self,T):
+        """Devuelve el factor de amplificacion sismica (C).Revise
+        Articulo 14 NTE 030 2020
+        
+        Parámetros
+        ----------
+        T : Periodo fundamental de vibración de la estructura (seg)
+        Tp: Periodo del suelo
+        Tl: Periodo del suelo
+        
+        Returns
+        -------
+        C=2.5, si T<Tp
+        C=2.5*Tp/T, si Tp<T<Tl
+        C=2.5*(Tp*Tl/T**2), si T>Tl
+        """
+        if T < self.data.Tp:
+            return 2.5
+        elif T < self.data.Tl:
+            return 2.5*self.data.Tp/T
+        else:
+            return 2.5*self.data.Tp*self.data.Tl/T**2
+        
+    def get_ZUCS_R(self,C,R):
+            ZUS = self.data.Z*self.data.U*self.data.S
+            if C/R>0.11:
+                return C/R*ZUS
+            else:
+                return 0.11*ZUS
+    
+
     def sismo_estatico(self,SapModel,report=False):
         '''Registra en un diccionario: el factor de Reduccion total R, los factores de 
         amplificacion sísmica en ambas direcciones de analisis, los exponentes de altura 
@@ -238,75 +292,41 @@ Factor de Reducción:
         Ip: Factor de irregularidad en planta
         Ia: Factor de irregularidad en altura
         R_o: Coeficiente basico de reduccion
-
         Returns
         -------
         Imprime los valores de 
         data: Diccionario que contiene la tabla "Modal Participating Mass Ratios", k_x,
         k_y, C_x, C_y, ZUCS_Rx y ZUCS_Ry
         '''
+        self.data.factor_R()
+        self.ana_modal(SapModel,report)
+        self.data.kx = self.get_k(self.data.Tx)
+        self.data.ky = self.get_k(self.data.Ty)
+        self.data.Cx = self.get_C(self.data.Tx)
+        self.data.Cy = self.get_C(self.data.Ty)
+        self.data.ZUCS_Rx = self.get_ZUCS_R(self.data.Cx,self.data.Rx)
+        self.data.ZUCS_Ry = self.get_ZUCS_R(self.data.Cy,self.data.Ry)
 
-        #Cálculo del exponente de altura
-        def get_k(T):
-            """Devuelve el exponente relacionado con el periodo (T). Revise
-            28.3.2 NTE 030 2020
-            
-            Parámetros
-            ----------
-            T : Periodo fundamental de vibración de la estructura (seg)
-            
-            Returns
-            -------
-            k=1, si T<=0.5 seg.
-            k=0.75+0.5*T, si T>=0.5
-            k=2, si 0.75+0.5*T>2
-            """
-            if T < 0.5:
-                return 1
-            elif 0.75+0.5*T < 2:
-                return 0.75+0.5*T
-            else:
-                return 2
-            
-        #Cálculo del Factor C
-        def get_C(T):
-            """Devuelve el factor de amplificacion sismica (C).Revise
-            Articulo 14 NTE 030 2020
-            
-            Parámetros
-            ----------
-            T : Periodo fundamental de vibración de la estructura (seg)
-            Tp: Periodo del suelo
-            Tl: Periodo del suelo
-            
-            Returns
-            -------
-            C=2.5, si T<Tp
-            C=2.5*Tp/T, si Tp<T<Tl
-            C=2.5*(Tp*Tl/T**2), si T>Tl
-            """
-            if T < self.data.Tp:
-                return 2.5
-            elif T < self.data.Tl:
-                return 2.5*self.data.Tp/T
-            else:
-                return 2.5*self.data.Tp*self.data.Tl/T**2
-            
-        def get_ZUCS_R(C,R):
-            ZUS = self.data.Z*self.data.U*self.data.S
-            if C/R>0.11:
-                return C/R*ZUS
-            else:
-                return 0.11*ZUS
+        #Análisis Sísmico Manual
+        static_seism = etb.get_table(SapModel,'Mass Summary by Story')[1][['Story','UX']]
+        static_seism['UX'] = static_seism['UX'].astype(float)*9.806
+        stories = etb.get_table(SapModel,'Story Definitions')[1][['Story','Height']]
+        static_seism = static_seism.merge(stories,left_on='Story',right_on='Story')
+        static_seism['Height'] = static_seism.loc[::-1,'Height'].astype(float).cumsum()[::-1]
+        static_seism['H^kx'] = static_seism['Height']**self.data.kx
+        static_seism['H^ky'] = static_seism['Height']**self.data.ky
+        static_seism['PxHx'] = static_seism['H^kx'] * static_seism['UX']
+        static_seism['PxHy'] = static_seism['H^ky'] * static_seism['UX']
+        static_seism['ax'] = static_seism['PxHx']/sum(static_seism['PxHx'])
+        static_seism['ay'] = static_seism['PxHx']/sum(static_seism['PxHy'])
+        self.data.Vx = self.data.ZUCS_Rx*sum(static_seism['UX'])
+        self.data.Vy = self.data.ZUCS_Ry*sum(static_seism['UX'])
+        static_seism['vx'] = static_seism['ax']*self.data.Vx
+        static_seism['vy'] = static_seism['ay']*self.data.Vy
+        static_seism = static_seism.rename(columns={'UX':'Weight'})
+        static_seism = static_seism.round({'Weight':3,'Height':2,'H^kx':2,'H^ky':2,'PxHx':3,'PxHy':3,'ax':3,'ay':3,'vx':3,'vy':3})
 
-
-        self.ana_modal(SapModel)
-        self.data.kx = get_k(self.data.Tx)
-        self.data.ky = get_k(self.data.Ty)
-        self.data.Cx = get_C(self.data.Tx)
-        self.data.Cy = get_C(self.data.Ty)
-        self.data.ZUCS_Rx = get_ZUCS_R(self.data.Cx,self.data.Rx)
-        self.data.ZUCS_Ry = get_ZUCS_R(self.data.Cy,self.data.Ry)
+        self.tables.static_seism = static_seism
 
         if report:
             #Resumen
@@ -316,13 +336,16 @@ Factor de Reducción:
             print('C en Y: {0:.2f}'.format(self.data.Cy))
 
             print('\nCoeficiente de sismo estático X: {0:.3f}'.format(self.data.ZUCS_Rx))
-            print('Coeficiente de sismo estático Y: {0:.3f}'.format(self.data.ZUCS_Rx))
+            print('Coeficiente de sismo estático Y: {0:.3f}'.format(self.data.ZUCS_Ry))
             print('Exponente de altura X: {0:.2f}'.format(self.data.kx))
             print('Exponente de altura Y: {0:.2f}'.format(self.data.ky))
             print('Fuerza Cortante en X: {0:.2f}'.format(self.data.Vx))
             print('Fuerza Cortante en Y: {0:.2f}'.format(self.data.Vy))
 
             display(self.tables.static_seism)
+            
+            
+    
             
     #Espectro Dinamico
     def dinamic_spectrum(self,report=False):
@@ -390,12 +413,8 @@ Factor de Reducción:
 
         stories  = etb.get_story_data(SapModel)
         table = table.merge(stories[['Story','Height']], on = 'Story')
-        if self.data.is_regular:
-            table['Drifts']=table['Max Drift'].apply(lambda x:float(x))/table['Height'].apply(lambda x:float(x))*0.75
-        else:
-            table['Drifts']=table['Max Drift'].apply(lambda x:float(x))/table['Height'].apply(lambda x:float(x))*0.85
-
-        table['Drifts'] = table.apply((lambda row: float(row['Max Drift'])*self.data.Rx if 'x' in row['OutputCase'] else float(row['Max Drift'])*self.data.Ry),axis=1)
+        table['Drifts']=table['Max Drift'].astype(float)/table['Height'].astype(float) * 0.75 if self.data.is_regular else 0.85
+        table['Drifts'] = table.apply((lambda row: row['Drifts']*self.data.Rx if 'x' in row['OutputCase'].lower() else row['Drifts']*self.data.Ry),axis=1)
 
         table['Drift < Dmax/2'] = table['Drifts'] < self.data.max_drift_x/2
         tor_reg = (table['Drift < Dmax/2']) | (table['Ratio'].apply(lambda x: float(x)) < 1.3)
@@ -455,7 +474,7 @@ Factor de Reducción:
 
     # Masa
 
-    def irregularidad_masa(self,SapModel):
+    def irregularidad_masa(self,SapModel,report=False):
         _,masa = etb.get_table(SapModel,'Mass Summary by Story')
         masa['Mass'] = masa.UX
         masa = masa[['Story','Mass']]
@@ -490,6 +509,9 @@ Factor de Reducción:
         
         masa = masa[['Story','Mass','1.5 Mass','story_type','is_regular']].fillna('')
         self.tables.rev_masa_table = masa
+
+        if report:
+            display(masa)
 
     # Derivas
     def derivas(self,SapModel,report=False):
@@ -603,14 +625,20 @@ Factor de Reducción:
 
     # Centros de Masas y Rigideces
 
-    def centro_masa_inercia(self,SapModel):
-        _,rev_CM_CR = etb.get_table(SapModel,'Centers Of Mass And Rigidity')
-        rev_CM_CR = rev_CM_CR[['Story','XCCM','XCR','YCCM','YCR']]
-        rev_CM_CR['DifX'] = rev_CM_CR.XCCM.apply(lambda x: float(x)) - rev_CM_CR.XCR.apply(lambda x: float(x))
-        rev_CM_CR['DifY'] = rev_CM_CR.YCCM.apply(lambda x: float(x)) - rev_CM_CR.YCR.apply(lambda x: float(x))
-        self.tables.CM_CR_table = rev_CM_CR
+    def centro_masa_inercia(self,SapModel,report=False):
+        try:
+            _,rev_CM_CR = etb.get_table(SapModel,'Centers Of Mass And Rigidity')
+            rev_CM_CR = rev_CM_CR[['Story','XCCM','XCR','YCCM','YCR']]
+            rev_CM_CR['DifX'] = rev_CM_CR.XCCM.apply(lambda x: float(x)) - rev_CM_CR.XCR.apply(lambda x: float(x))
+            rev_CM_CR['DifY'] = rev_CM_CR.YCCM.apply(lambda x: float(x)) - rev_CM_CR.YCR.apply(lambda x: float(x))
+            self.tables.CM_CR_table = rev_CM_CR
+        except:
+            print('Por favor active el cálculo del centro de Rigidez')
 
-    def min_shear(self,SapModel,story='Story1'):
+        if report:
+            display(rev_CM_CR)
+
+    def min_shear(self,SapModel,story='Story1',report=False):
         etb.set_units(SapModel,'Ton_m_C')
         seism_loads = self.loads.seism_loads
         set_loads = [load for load in seism_loads.values()]
@@ -702,7 +730,7 @@ Factor de Reducción:
         self.sismo_estatico(SapModel)
         self.piso_blando(SapModel)
         self.irregularidad_masa(SapModel)
-        #self.centro_masa_inercia(SapModel)
+        self.centro_masa_inercia(SapModel)
         self.irregularidad_torsion(SapModel)
         self.derivas()
         self.min_shear(SapModel,self.base_story)

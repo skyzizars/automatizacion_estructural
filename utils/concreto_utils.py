@@ -12,6 +12,13 @@ cm = m/100
 Pa = 1
 MPa = 10**6*Pa
 pulg = 2.54 *m / 100
+kN = 1000*N
+kgf = 9.80665*N
+tonf = 1000*kgf
+ft = 12*pulg
+ksi = 6894757.2932*Pa
+kip = ksi*pulg**2
+psi = 6894.76*Pa
 
 
 # Definicion de varillas de acero:
@@ -27,12 +34,16 @@ A_5 = d_5 ** 2 /4 * math.pi
 A_6 = d_6 ** 2 /4 * math.pi
 A_8 = d_8 ** 2 /4 * math.pi
 
-
+bar_dic={'3/8"':[d_3,A_3],'1/2"':[d_4,A_4],'5/8"':[d_5,A_5],
+         '3/4"':[d_6,A_6],'1"':[d_8,A_8]}
+#Lista de espaciamientos entre barras en losas
+esp_list=[0.4,0.35,0.30,0.25,0.20,0.15,0.125,0.10,0.075,0.05]
 
 class Concrete():
-    def __init__(self,b,h,r=4*cm):
+    def __init__(self,b,h,r=4*cm,gamma_c=2400*9.81):
         self.b = b
         self.h = h
+        self.d = h-r
         self.Ag = b*h
         self.r = r
         self.fy = 420*MPa
@@ -41,6 +52,7 @@ class Concrete():
         self.fc = 21*MPa
         self.eps_u = 0.003
         self.betha = 0.85
+        self.gamma_c = gamma_c
     
     def set_concrete(self,fc,eps_u):
         self.fc = fc
@@ -56,6 +68,27 @@ class Concrete():
         self.fy = fy
         self.Es = Es
         self.eps_y = fy/Es
+
+    def nominal_moment(self,phi_f=0.9):
+        As = self.Ast
+        fy = self.fy
+        fc = self.fc
+        b = self.b
+        d = self.d
+        self.a = As*fy/(0.5*fc*b)
+        self.Mn = As*fy*(d-self.a/2)
+        self.phi_Mn = phi_f*self.Mn
+
+    def nominal_shear(self,phi_s=0.85):
+        fc = self.fc
+        self.Vn=0.17*(fc/MPa)**0.5*self.b*self.d*MPa
+        self.phi_Vn = self.Vn*phi_s
+
+    def nominal_punch_shear(self,punch_perim,phi_s=0.85):
+        fc = self.fc
+        self.Vn_p=0.33*(fc/MPa)**0.5*punch_perim*self.d*MPa
+        self.phi_Vn_p = self.Vn_p*phi_s 
+    
     
     def stress_f(self,c,x,mayored='False'):
         'Esfuerzo en barras de acero segun su posición'
@@ -121,7 +154,7 @@ class Beam(Concrete):
             else:
                 self.Asb = d_s**2/4*math.pi*n_s
         
-    def calc_Mnv(self,phi_f=0.9):
+    def nominal_moment(self,phi_f=0.9):
         As = self.Ast
         fy = self.fy
         fc = self.fc
@@ -627,11 +660,355 @@ class Column(Concrete):
             exec('self.V1'+axis+'=V1')
             exec('self.V2'+axis+'=V2')
             exec('self.Vcol'+axis+'=Vcol')
-    
+  
 
-    
+
+class Soil():
+    def __init__(self,q_adm,gamma_s):
+        self.q_adm = q_adm
+        self.gamma_s = gamma_s
+ 
+class Foundation(Concrete):
+    '''
+    Clase general de diseño de cimentaciones
+    '''
+    def set_soil(self,q_adm,gamma_s):
+        '''
+        Parameters
+        ----------
+        q_adm : Capacidad portante del suelo.
+        Df : Profundidad de desplante
+        '''
+        self.soil = Soil(q_adm,gamma_s)
+        
+
+class Isolate_footing(Foundation):
+    '''
+    Parameters
+    ----------
+    dim1_col : dimension 1 de la columna.
+    dim2_col : dimension 2 de la columna.
+    h : Altura de zapata.
+    Fuerzas : Lista de cargas que llegan de la columna
+    [Fz,Mx,My] para cada tipo de carga: D,L,Sx,Sy,Vx,Vy 
+    (en ese orden).
+    Returns
+    -------
+    None.
+    '''
+    def __init__(self,dim1_col,dim2_col,df,h,b=1,r=0.075,gamma_c=2.4*9.81):
+        
+        self.b_col = min(dim1_col,dim2_col)
+        self.h_col=max(dim1_col,dim2_col)
+        self.df = df
+        
+        super().__init__(b,h=h,r=r,gamma_c=gamma_c)
+        
+        #PREDIMENSIONAMIENTO:
+        B=round(4*self.b_col,2)
+        L=round(B+(self.h_col-self.b_col),2)
+        self.set_foot_dimensions(B,L)
+
+        
+
+
+    def assign_forces(self,forces):
+        '''
+        Fuerzas : Lista de cargas que llegan de la columna
+        [Fz,Mx,My] para cada tipo de carga: D,L,Sx,Sy,Vx,Vy 
+        '''
+        forces.append([0,0,0])
+        self.forces=np.array(forces)
+
+        #Definiendo la matriz de combinación
+        #[D,L,SX,SY,VX,VY,PP]#POSIBILIDAD DE AUMENTAR LOS CASOS NEGATIVOS DE SISMO Y VIENTO
+        Comb=[[1,1,0,0,0,0,1],
+              [1,1,0.8,0,0,0,1],
+              [1,1,-0.8,0,0,0,1],
+              [1,1,0,0.8,0,0,1],
+              [1,1,0,-0.8,0,0,1],
+              [1,1,0,0,1,1,1],
+              [1.4,1.7,0,0,0,0,1.4],
+              [1.25,1.25,1,0,0,0,1.25],
+              [1.25,1.25,-1,0,0,0,1.25],
+              [1.25,1.25,0,1,0,0,1.25],
+              [1.25,1.25,0,-1,0,0,1.25],
+              [0.9,0,1,0,0,0,0.9],
+              [0.9,0,0,1,0,0,0.9],
+              [0.9,0,0,0,1,0,0.9],
+              [0.9,0,1,0,0,1,0.9]]
+            
+        self.C=np.array(Comb)
+
+
+    def soil_forces(self):
+        #Peso del terreno y zapata:
+        w_soil=self.soil.gamma_s*(self.B*self.L-self.b_col*self.h_col)*(self.df-self.h)
+        w_col=self.gamma_c*(self.b_col*self.h_col)*(self.df-self.h)
+        w_p=self.gamma_c*(self.B*self.L)*self.h
+        self.forces[-1][0]  = w_soil+w_col+w_p
+
+
+    def set_foot_dimensions(self,B,L):
+        '''
+        Se calculan las propiedades de area y momento
+        de inercia de la zapata para el calculo de presiones
+
+        Parameters
+        ----------
+        B : Ancho de zapata (eje x).
+        L : Largo de zapata (eje y).
+
+        Returns
+        -------
+        None.
+        '''
+        self.B = B
+        self.L = L
+        self.Lv1=(self.B-self.b_col)/2
+        self.Lv2=(self.L-self.h_col)/2
+        self.A=B*L
+        self.Izx=B*L**3/12
+        self.Izy=B**3*L/12
+
+    def ultimate_shear(self):
+        self.σ_U=np.amax(self.data_presiones[6:11])
+        self.V_u=self.σ_U*self.b*(max(self.Lv1,self.Lv2)-self.d) #d_eff < Lv1]
+
+    def ultimate_moments(self):
+        self.Mu_x=self.σ_U*self.Lv2*self.b
+        self.Mu_y=self.σ_U*self.Lv1*self.b
+        self.Mu=max(self.Mu_x,self.Mu_y)
+
+    def punch_dimensions(self):
+        d_col=self.h_col-0.06*m
+        #Lados del perimetro punzonado
+        h_pun=self.h_col+d_col/2
+        b_pun=self.b_col+d_col/2
+        #perimetro y area de punzonamiento:
+        self.punch_perim=2*(h_pun+b_pun)
+        self.punch_area=h_pun*b_pun
+
+    def ultimate_punch_shear(self):
+        try:
+            self.Vu_p=self.σ_U*(self.B*self.L-self.punch_area)
+        except:
+            self.punch_dimensions()
+            self.ultimate_shear()
+            self.Vu_p=self.σ_U*(self.B*self.L-self.punch_area)
+
+    def nominal_punch_shear(self, phi_s=0.85):
+        super().nominal_punch_shear(self.punch_perim, phi_s)
+
+
+    def soil_pressures(self,X,Y):
+        '''
+        Se calculan la presiones del suelo para una coordenada
+        dentro de la zapata, tomandose el centro de coordenadas el 
+        centro de gravedad de la zapata.
+
+        Parameters
+        ----------
+        X : coordenada X.
+        Y : coordenada Y.
+
+        Returns
+        -------
+        None.
+
+        '''
+        Coord=[[1/self.A],[Y/self.Izx],[X/self.Izy]]
+        Co=np.array(Coord)
+        self.Pres=np.dot(self.forces,Co)
+        self.Re=np.dot(self.C,self.Pres)
+
+
+    def total_pressures(self,n=0.2,nc=None,und=Pa):
+        '''
+        Se calculan todas la presiones para todas la combinaciones 
+        de carga definidas para la sección de la zapata las cuales se
+        guardan en matrices por cada tipo de combinación.
+
+        Parameters
+        ----------
+        n : opcional, dimensión máx de un elemento discretizado (en metros).
+        nc : opcional, indice de la combinación para ser ploteada.
+        und: opcional, unidades del sistema, por defecto Pa.
+
+        Returns
+        -------
+        None.
+
+        '''
+        B = self.B
+        L = self.L
+        X_list=np.linspace(-B/2,B/2,num=(int(B/n)))
+        Y_list=np.linspace(-L/2,L/2,num=(int(L/n)))
+        Mapa=np.zeros((len(self.C),len(Y_list),len(X_list)))
+        for i in range(len(Y_list)):
+            for j in range(len(X_list)):
+                self.soil_pressures(Y_list[i],X_list[j])
+                for k in range(len(self.Re)):
+                    Mapa[k][i][j]=self.Re[k]
+        self.data_presiones=Mapa
+        if nc==None:
+            pass
+        else:
+            fig, ax = plt.subplots()
+            im=ax.imshow((self.data_presiones[nc]/und),cmap = "gist_rainbow")
+            cbar = ax.figure.colorbar(im, ax = ax)
+            cbar.ax.set_ylabel("Color bar", rotation = -90, va = "bottom") 
+
+
+            
+    def press_check(self,n=0.1):
+        '''
+        Se verifica si la presión máxima a servicio cumple con la presión admisible
+        del suelo.
+
+        Parameters
+        ----------
+        B : Ancho de zapata (eje x).
+        L : Largo de zapata (eje y).
+        n : opcional, dimensión máx de un elemento discretizado (en metros).
+
+        Returns
+        -------
+        bool
+            DESCRIPTION.
+
+        '''
+        self.total_pressures(n)
+        self.σ_max_g=np.amax(self.data_presiones[0]) #presión máxima por gravedad
+        self.σ_max_sismo=np.amax(self.data_presiones[1:5]) #presión máxima por sismo
+        self.σ_min=np.amin(self.data_presiones[0:5]) #presión mínima por gravedad y sismo
+        if (self.σ_max_g<=self.soil.q_adm*0.96) and (self.σ_max_sismo<=self.soil.q_adm*1.3*0.96) and (self.σ_min>=0):
+            return True
+        else:
+            return False
+        
+
+
+    def foot_sizing(self):
+        '''
+        Realiza las verificaciones de presiones en el suelo
+        y dimensiona las secciones finales de la zapata B y L.
+        Parameters
+        ----------
+        B : Ancho de la zapata (Dirección X).
+        L : Largo de la zapata (Dirección Y).
+        Returns
+        -------
+        None.
+        '''
+        #actualizando el valor del peso de la zapata y terreno
+        B = self.B
+        L = self.L
+        self.soil_forces()
+        
+        i=0 
+        while self.press_check()==False:
+            B=round(B+0.1*m,2)
+            L=round(B+(self.h_col-self.b_col),2)
+            #actualizando el valor del peso de la zapata y terreno
+            self.set_foot_dimensions(B,L)
+            self.soil_forces()
+            i=i+1
+            if i==40: #contador para iteraciones máximas
+                break
+        self.total_pressures()
+
+
+    def shear_design(self):
+        '''
+        Diseño a cortante de la zapata, itera hast obtener la altura de la zapata
+        que cumple el diseño por cortante.
+
+        Returns
+        -------
+        None.
+
+        '''
+       
+        #Cortante ultimo y nominal
+        self.ultimate_shear()
+        self.nominal_shear()
+        i=0
+        while self.V_u>=self.phi_Vn:
+            self.h=self.h+0.05
+            self.d=self.h-self.r
+            self.nominal_shear()
+            i=i+1
+            if i==40:
+                break
+
+
+    def punch_design(self):
+        '''
+        Verificación del punzonamiento de la columna sobre la zapata.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        None.
+
+        '''
+        self.punch_dimensions()
+        self.ultimate_punch_shear()
+        self.nominal_punch_shear()
+
+        i=0
+        while self.Vu_p>=self.phi_Vn_p:
+            self.h=self.h+0.05*m
+            self.d=self.h-self.r
+            self.nominal_punch_shear()
+            i=i+1
+            if i==40:
+                break
+
+
+    def flex_design(self):
+        '''
+        Diseño a flexión de la zapata con un ancho unitario por defecto.
+
+        Returns
+        -------
+        None.
+
+        '''
+        fy = self.fy
+        fc = self.fc
+        b = self.b
+        #Momentos ultimos
+        self.ultimate_moments()
+
+        self.As_min=0.0018*self.b*self.h
+        #espaciamiento máximo 0.40cm
+
+        #se inicia con malla de 3/8" y 0.40cm de espaciamiento
+        #en set_barras se guardaran todas varillas con su espacimineto que cumplen
+        self.set_barras=[]
+        for i in bar_dic:
+            for j in esp_list:
+                #math.ceil(b/j) es el numero de barras
+                #bar_dic[i][1] es el area de una varilla de acero
+                #i: es el string con el nombre de la varilla
+                #j: es el espaciamiento de la lista de espaciamientos
+                if (2*math.ceil(b/j)*bar_dic[i][1])>=self.As_min:
+                    self.set_barras.append([i,j])
+        self.set_diseño=[]
+        for i in self.set_barras:
+            a=bar_dic[i[0]][1]*fy/(0.85*fc*b)
+            phiMn=0.90*bar_dic[i[0]][1]*(math.ceil(b/i[1]))*fy*(self.d-a/2)
+            if phiMn>self.Mu and phiMn<1.30*self.Mu:
+                self.set_diseño.append([i[0],i[1],phiMn])
+
+
+
 if __name__ == '__main__':
     pass
-    
-    
+
+
 
