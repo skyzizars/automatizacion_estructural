@@ -370,8 +370,8 @@ def create_found_seism_2(SapModel,
         case = seism_modal_cases[load][0]
         mode = int(eq_factor.query('load==@load').iloc[0,2])
         factor = eq_factor.query('load==@load').iloc[0,3]
-        SapModel.RespCombo.Add('found '+load,0)
-        SapModel.RespCombo.SetCaseList_1('found '+load,0,case,mode,factor)
+        SapModel.RespCombo.Add('f '+load,0)
+        SapModel.RespCombo.SetCaseList_1('f '+load,0,case,mode,factor)
 
 
 if __name__ == '__main__':
