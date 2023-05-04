@@ -324,23 +324,9 @@ def tabla_resumen(Z,U,S,Tp,Tl,Rox,Roy,Ia,Ip,o_type=Subsubsection):
             tabular.add_hline(2,4)
     return obj
 
-def espectro_respuesta(T,Sax,Say,Tp,Tl,Rx,Ry,o_type=Subsubsection):
-    y_max = max(max(Sax),max(Say))
-    plt.clf()
-    plt.ylim(0,y_max+0.02)
-    plt.xlim(0,4)
-    plt.plot(T,Sax,'r',label='X (R=%.2f)'%Rx)
-    plt.plot(T,Say,'b',label='Y (R=%.2f)'%Ry)
-    plt.axvline(x = Tl, color = 'g',linestyle='dotted')
-    plt.text(Tp,y_max+0.005, 'Tp', fontsize=12, color='k')
-    plt.text(Tl,y_max+0.005, 'Tl', fontsize=12, color='k')
-    plt.axvline(x = Tp, color = 'g',linestyle='dotted')
-    plt.xlabel('T (s)')
-    plt.ylabel('Sa $(m/s^2)$')
-    plt.grid(linestyle='dotted', linewidth=1)
-    plt.legend()
-    fig = plt.gcf()
-    fig.set_frameon(False)
+def espectro_respuesta(spectrum_graph,o_type=Subsubsection):
+    plt.imshow(spectrum_graph)
+    plt.axis('off')
     plt.savefig("images/espectro_respuestas.pdf",dpi=300,pad_inches=0,bbox_inches='tight')
 
     obj = def_obj(o_type,NoEscape('Espectro de respuesta de aceleraciones'))
@@ -729,24 +715,12 @@ def criterios_combinacion(o_type=Subsubsection):
 
     return obj
 
-def desplazamientos_laterales(heights,disp_x,disp_y,Rx,Ry,o_type=Subsection):
-    max_disp_x = max(disp_x)
-    max_disp_y = max(disp_y)
+def desplazamientos_laterales(disp_graph,o_type=Subsection):
     plt.clf()
-    plt.ylim(0,max(heights)*1.05)
-    plt.xlim(0,float(max(max_disp_x,max_disp_y))+0.003)
-    plt.plot(disp_x,heights,'r',label='X (R=%.2f)'%Rx)
-    plt.plot(disp_y,heights,'b',label='Y (R=%.2f)'%Ry)
-    plt.scatter(disp_x,heights,color='r',marker='x')
-    plt.scatter(disp_y,heights,color='b',marker='x')
-    plt.xlabel('Desplazamientos (m)')
-    plt.ylabel('h (m)')
-    plt.grid(linestyle='dotted', linewidth=1)
-    plt.legend()
-    fig = plt.gcf()
-    fig.set_size_inches(8, 6)
-    fig.set_frameon(False)
+    plt.imshow(disp_graph)
+    plt.axis('off')
     plt.savefig("images/desplazamientos_laterales.pdf",dpi=300,pad_inches=0,bbox_inches='tight')
+    plt.clf()
 
     obj = def_obj(o_type,'Determinación de desplazamientos laterales Art. 31 E-030')
     obj.packages.append(Package('tcolorbox'))
@@ -763,28 +737,13 @@ def desplazamientos_laterales(heights,disp_x,disp_y,Rx,Ry,o_type=Subsection):
     
     return obj
 
-def verificacion_derivas(sist_x,sist_y,heights,drifts_x,drifts_y,max_drift,Rx,Ry,o_type=Subsection):
-    max_drift_x = max(drifts_x)
-    max_drift_y = max(drifts_y)
+def verificacion_derivas(sist_x,sist_y,drift_graph,o_type=Subsection):
     plt.clf()
-    plt.ylim(0,max(heights)*1.05)
-    plt.xlim(0,max(max_drift_x,max_drift_y,max_drift)*1.02)
-    plt.plot(drifts_x,heights,'r',label='X (R=%.2f)'%Rx)
-    plt.plot(drifts_y,heights,'b',label='Y (R=%.2f)'%Ry)
-    plt.scatter(drifts_x,heights,color='r',marker='x')
-    plt.scatter(drifts_y,heights,color='b',marker='x')
-    plt.axvline(x = max_drift, color = 'c',linestyle='dotted')
-    plt.axvline(x = max_drift/2, color = 'g',linestyle='dotted')
-    plt.text(max_drift-0.001,max(heights),round(max_drift,4), fontsize=10, color='k')
-    plt.text(max_drift/2-0.001,max(heights),round(max_drift/2,4), fontsize=10, color='k')
-    plt.xlabel('Derivas')
-    plt.ylabel('h (m)')
-    plt.grid(linestyle='dotted', linewidth=1)
-    plt.legend(loc='lower right')
-    fig = plt.gcf()
-    fig.set_frameon(False)
+    plt.imshow(drift_graph)
+    plt.axis('off')
     plt.savefig("images/derivas.pdf",dpi=300,pad_inches=0,bbox_inches='tight')
     plt.clf()
+    
 
     obj=def_obj(o_type,'Verificación de derivas máximas Art. 32 E-030')
     obj.packages.append(Package('array'))
@@ -974,7 +933,7 @@ def cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,sis_estatico,o_type=Sub
 
     return obj
 
-def fuerza_cortante_min(tabla_corte_min,heights,shear_x,shear_y,Rx,Ry,o_type=Subsection):
+def fuerza_cortante_min(tabla_corte_min,graph_shear,o_type=Subsection):
     obj = def_obj(o_type,'Fuerza cortante mínima Art. 29.4 E-030')
     obj.packages.append(Package('tcolorbox'))
     obj.packages.append(Package('array'))
@@ -989,36 +948,13 @@ def fuerza_cortante_min(tabla_corte_min,heights,shear_x,shear_y,Rx,Ry,o_type=Sub
     obj.append(mbox)
 
     obj.append(NoEscape('%insertion'))
-
-    shear_x=list(shear_x['VX'].astype(float))
-    shear_x.insert(0,0)
-    shear_y=list(shear_y['VY'].astype(float))
-    shear_y.insert(0,0)
-    max_shear_x = max(shear_x)
-    max_shear_y = max(shear_y)
-
-    #Compatibilización  del array heights con el dataframe shear_x y shear_y
-    list_heights=list(reversed(heights)) #Convertir a lista e invertir posiciones
-    heights_extended = []
-    heights_extended.extend([i, i] for i in list_heights[:-1])
-    heights_extended = [item for sublist in heights_extended for item in sublist] + [0]
-
-    #Creación de la figura
+    
     plt.clf()
-    plt.ylim(0,max(heights_extended)*1.05)
-    plt.xlim(0,max(max_shear_x,max_shear_y)*1.02)
-    plt.plot(shear_x,heights_extended,'r',label='X (R=%.2f)'%Rx)
-    plt.plot(shear_y,heights_extended,'b',label='Y (R=%.2f)'%Ry)
-    plt.scatter(shear_x,heights_extended,color='r',marker='x')
-    plt.scatter(shear_y,heights_extended,color='b',marker='x')
-    plt.xlabel('Fuerza cortante (t)')
-    plt.ylabel('h (m)')
-    plt.grid(linestyle='dotted', linewidth=1)
-    plt.legend(loc='upper right')
-    fig = plt.gcf()
-    fig.set_frameon(False)
+    plt.imshow(graph_shear)
+    plt.axis('off')
     plt.savefig("images/cortantes.pdf",dpi=300,pad_inches=0,bbox_inches='tight')
     plt.clf()
+    
 
     with obj.create(Figure(position='ht!')) as fig:
         fig.append(NoEscape('\\includegraphics[width=0.8\\textwidth]{images/cortantes}'))
@@ -1147,13 +1083,16 @@ if __name__ == '__main__':
     #Desplazamientos
     disp_x = sismo.disp_x
     disp_y = sismo.disp_y
-    heights = sismo.heights
+    _,_SapModel = etb.connect_to_etabs()
+    stories  = etb.get_story_data(_SapModel)
+    seism_x = sismo.loads.seism_loads['Sismo_DinX']
+    import numpy as np
+    heights = np.array(stories['Height']).astype(float)[::-1].cumsum()
 
     #Derivas
     drifts_x = sismo.drifts_x
     drifts_y = sismo.drifts_y
     max_drift =sismo.data.max_drift_x
-    heights_drifts = sismo.heights_drifts
 
     #datos discontinuidad de diafragma
     sec_change = {'aligerado':[7.51,0.05],
@@ -1167,15 +1106,6 @@ if __name__ == '__main__':
                 'dim_X':7.51,
                 'dim_Y':15.28}
     
-    #datos cortantes por piso
-    _,_SapModel= etb.connect_to_etabs()
-    _,cortantes = etb.get_table(_SapModel,'Story Forces')
-
-    df1 = cortantes[['Story','OutputCase','Location','VX']]
-    shear_x=df1[(df1["OutputCase"]==sismo.loads.seism_loads['Sismo_DinX'])] #Filtro
-    
-    df2 = cortantes[['Story','OutputCase','Location','VY']]
-    shear_y=df2[(df2["OutputCase"]==sismo.loads.seism_loads['Sismo_DinY'])] #Filtro
     
     #Cargas sismicas
     sis_estatico = sismo.tables.static_seism
@@ -1201,7 +1131,7 @@ if __name__ == '__main__':
     f_amp = factor_amplificacion()
     f_imp = factor_importancia(categoria)
     t_resumen = tabla_resumen(Z,U,S,Tp,Tl,Rox,Roy,Ia,Ip)
-    e_resp = espectro_respuesta(T,Sax,Say,Tp,Tl,Rx,Ry)
+    e_resp = espectro_respuesta(sismo.spectrum_graph)
     p_sis = peso_sismico()
     e_accidental = excentricidad_accidental()
     a_modal = ana_modal(sismo.tables.modal)
@@ -1213,12 +1143,12 @@ if __name__ == '__main__':
     i_esquinas = irreg_esquinas_entrantes(datos_esquinas)
     analisis_din = analisis_dinamico()
     criterios_comb= criterios_combinacion()
-    desplaz_lat= desplazamientos_laterales(heights,disp_x,disp_y,Rx,Ry)
-    verif_derivas= verificacion_derivas(sist_x,sist_y,heights_drifts,drifts_x,drifts_y,max_drift,Rx,Ry)
+    desplaz_lat= desplazamientos_laterales(sismo.disp_graph)
+    verif_derivas= verificacion_derivas(sist_x,sist_y,sismo.drift_graph)
     verif_sist_est = verificacion_sist_est()
     analisis_est = analisis_estatico()
     corte_basal= cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,sis_estatico)
-    corte_basal_min = fuerza_cortante_min(sismo.tables.shear_table,heights,shear_x,shear_y,Rx,Ry)
+    corte_basal_min = fuerza_cortante_min(sismo.tables.shear_table,sismo.shear_graph)
     sep_edificios= separacion_edificios(datos_sep)
     
     obj_list = [p_sitio,f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,t_resumen,

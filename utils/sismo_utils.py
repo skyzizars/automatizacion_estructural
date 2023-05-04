@@ -3,6 +3,10 @@ import os
 sys.path.append(os.getcwd())
 import pandas as pd
 from utils import etabs_utils as etb
+import matplotlib.pyplot as plt
+import numpy as np
+from io import BytesIO
+from PIL import Image
 
 
 #Programado para etabs 2019
@@ -163,146 +167,6 @@ Factor de Reducción:
     def set_base_story(self,base_story):
         self.base_story = base_story
 
-    
-    def analisis_Cimentación_2(self, SapModel):
-        self.list_Case_Modal = pd.DataFrame(
-            [['Modal','UX'],
-             ['Modal +eY','UX'],
-             ['Modal -eY','UX'],
-             ['Modal','UY'],
-             ['Modal +eX','UY'],
-             ['Modal -eX','UY']])
-        self.List_Case_SisDin = pd.DataFrame(
-            [['SDx','UX'],
-             ['SDx +eY','UX'],
-             ['SDx -eY','UX'],
-             ['SDy','UY'],
-             ['SDy +eX','UY'],
-             ['SDy -eX','UY']])
-        #Creamos una lista para los objetos A_modal que guardan los modos correspondientes a la máxima participación segun el sentido de análisis
-        if len(self.list_Case_Modal) == len(self.List_Case_SisDin):
-            self.List_Obj_Modal = []
-            number_rows = len(self.list_Case_Modal)
-            for i in range(number_rows):
-                #Creamos el Objeto Modo
-                objeto_mode = self.identificar_Modo_Principal(SapModel, self.list_Case_Modal.iloc[i,0] , self.list_Case_Modal.iloc[i,1])
-                self.List_Obj_Modal.append(objeto_mode)
-                #Calculamos el Momento de Volteo del Modo
-                Mvmodo = self.hallar_momento_volteo(SapModel, self.list_Case_Modal.iloc[i,0], self.list_Case_Modal.iloc[i,1], self.List_Obj_Modal[i].Modo)
-                self.List_Obj_Modal[i].Mvolt_modo = Mvmodo
-                #Calculamos el Momento de Volteo del Sismo Dinámico
-                Mvsismo = self.hallar_momento_volteo(SapModel, self.List_Case_SisDin.iloc[i,0], self.List_Case_SisDin.iloc[i,1])
-                self.List_Obj_Modal[i].Mvolt_Sdin = Mvsismo
-                #Calculamos el Factor de Escala
-                if Mvmodo != 0 and Mvsismo != 0:
-                    self.List_Obj_Modal[i].Escala_din = Mvsismo/Mvmodo
-                else:
-                    self.List_Obj_Modal[i].Escala_din = 0
-            
-            #Creamos un pandas para guardar los datos un una sola tabla
-            Factor_Escala = pd.DataFrame( 
-                        columns=['Caso Modal','Modo','Sentido','% masa Part' , 'Mvolteo', 'Sismo Din', 'Mv Sismo', 'F. Escala'], # Fill columnets
-                        index=range(number_rows) # Fill rows
-                        ) 
-            for i in range(number_rows):
-                Factor_Escala.iat[i, 0] = self.List_Obj_Modal[i].Case
-                Factor_Escala.iat[i, 1] = self.List_Obj_Modal[i].Modo
-                Factor_Escala.iat[i, 2] = self.List_Obj_Modal[i].Sentido
-                Factor_Escala.iat[i, 3] = self.List_Obj_Modal[i].MasaPart
-                Factor_Escala.iat[i, 4] = self.List_Obj_Modal[i].Mvolt_modo
-                Factor_Escala.iat[i, 5] = self.List_Case_SisDin.iloc[i,0]
-                Factor_Escala.iat[i, 6] = self.List_Obj_Modal[i].Mvolt_Sdin
-                Factor_Escala.iat[i, 7] = self.List_Obj_Modal[i].Escala_din
-            
-            self.tables.Factor_Escala_Cimentacion = Factor_Escala
-
-        
-    def identificar_Modo_Principal(self, SapModel, Case = 'Modal', U = 'UX' ):
-        '''
-        Devuelve un objeto que guarda el valor del número de modo que tiene la máxima participación modal en el Sentido Indicado (UX o UY)
-        '''
-        _,modal = etb.get_table(SapModel,'Modal Participating Mass Ratios')
-        modal = modal[['Case','Mode','UX','UY','RZ']]
-        modal['Mode'] = modal.Mode.astype(int)
-        modal['UX']=modal.UX.astype(float)
-        modal['UY']=modal.UY.astype(float)
-
-        modal = modal.loc[modal['Case']==Case]
-        
-        #Si la tabla tiene datos, hallamos el modo que tiene la mayor participación en el Sentido Indicado (UX o UY)
-        if len(modal)>0:
-            A_modal = self.A_modal()
-            if U == 'UX':
-                A_modal.Modo = int(modal[modal.UX == max(modal.UX)].Mode)
-                A_modal.MasaPart = max(modal.UX)
-            elif  U == 'UY':
-                A_modal.Modo = int(modal[modal.UY == max(modal.UY)].Mode)
-                A_modal.MasaPart = max(modal.UY)
-            #Guardamos los demas datos
-            A_modal.Case = Case
-            A_modal.Sentido = U
-
-        else: #No se ha encontrado resultados que coincidan con el Case ingresado
-            A_modal = self.A_modal()
-            A_modal.Case = 'None'
-            A_modal.Modo = 0
-            A_modal.Sentido = 'None'
-            A_modal.MasaPart = 0
-
-        return A_modal
-    
-    def hallar_momento_volteo(self, SapModel, Case = 'Modal', U = 'UX', modo = -1):
-        ''''
-        Halla el valor del momento de vuelco, para un Caso modal en un sentido específico y para el modo que produce la maxima participación
-        '''
-        try:
-
-            set_load = [Case]
-            SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_load)
-            SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])
-
-            _, table = etb.get_table(SapModel,'Base Reactions')
-            table['OutputCase'] = table.OutputCase
-            table['OutputCase'] = table['OutputCase'].apply(lambda x:x.rstrip())
-            table = table[['OutputCase','StepNumber','MX','MY']]
-            if modo >= 0:
-                table['StepNumber'] =table.StepNumber.astype(int)
-            table['MX']=table.MX.astype(float)
-            table['MY']=table.MY.astype(float)
-
-            #Hallamos el momento de Volteo (Pata la direccion X se toma MY y viceversa)
-            if U == 'UX':
-                Head = 'MY'
-            elif U == 'UY':
-                Head = 'MX'
-            if modo >= 0:
-                Mvolteo = float(table[table.StepNumber == modo][Head])
-            else:
-                Mvolteo = float(table[Head])
-
-            return Mvolteo
-        
-        except:
-            return 0
-        
-
-
-    class A_modal():
-        '''
-        Esta clase guardará los datos de los modos que tiene la máxima participación modal en el sentido indicado, así como el factor de escala
-        '''
-        def __init__(self):
-            self.Case = 'Modal' #Guarda el nombre del caso modal
-            self.Modo = 1  #Guarda el número del modo que tiene la máxima participación
-            self.Sentido = '' #Guarda el sentido fundamental del modo
-            self.Escala_din = 0.0 #Guardará el factor de escala en relación con el sismo dinámico que corresponde
-            self.Mvolt_modo = 0.0 #Guarda el momento de volteo del modo sin factos de escala
-            self.Mvolt_Sdin = 0.0 #Guarda el momento del análisis dinámico correspondiente al modo
-            self.MasaPart = 0.90  #Guarda el porcentaje de la masa participativa del modo
-            
-
-
-
 
     #Sismo Estático
     def ana_modal(self,SapModel,report=False):
@@ -356,6 +220,60 @@ Factor de Reducción:
         self.data.Tx = Tx
         self.data.Ty = Ty
 
+    #Cálculo del exponente de altura
+    def get_k(self,T):
+        """Devuelve el exponente relacionado con el periodo (T). Revise
+        28.3.2 NTE 030 2020
+        
+        Parámetros
+        ----------
+        T : Periodo fundamental de vibración de la estructura (seg)
+        
+        Returns
+        -------
+        k=1, si T<=0.5 seg.
+        k=0.75+0.5*T, si T>=0.5
+        k=2, si 0.75+0.5*T>2
+        """
+        if T < 0.5:
+            return 1
+        elif 0.75+0.5*T < 2:
+            return 0.75+0.5*T
+        else:
+            return 2
+        
+    #Cálculo del Factor C
+    def get_C(self,T):
+        """Devuelve el factor de amplificacion sismica (C).Revise
+        Articulo 14 NTE 030 2020
+        
+        Parámetros
+        ----------
+        T : Periodo fundamental de vibración de la estructura (seg)
+        Tp: Periodo del suelo
+        Tl: Periodo del suelo
+        
+        Returns
+        -------
+        C=2.5, si T<Tp
+        C=2.5*Tp/T, si Tp<T<Tl
+        C=2.5*(Tp*Tl/T**2), si T>Tl
+        """
+        if T < self.data.Tp:
+            return 2.5
+        elif T < self.data.Tl:
+            return 2.5*self.data.Tp/T
+        else:
+            return 2.5*self.data.Tp*self.data.Tl/T**2
+        
+    def get_ZUCS_R(self,C,R):
+            ZUS = self.data.Z*self.data.U*self.data.S
+            if C/R>0.11:
+                return C/R*ZUS
+            else:
+                return 0.11*ZUS
+    
+
     def sismo_estatico(self,SapModel,report=False):
         '''Registra en un diccionario: el factor de Reduccion total R, los factores de 
         amplificacion sísmica en ambas direcciones de analisis, los exponentes de altura 
@@ -374,75 +292,41 @@ Factor de Reducción:
         Ip: Factor de irregularidad en planta
         Ia: Factor de irregularidad en altura
         R_o: Coeficiente basico de reduccion
-
         Returns
         -------
         Imprime los valores de 
         data: Diccionario que contiene la tabla "Modal Participating Mass Ratios", k_x,
         k_y, C_x, C_y, ZUCS_Rx y ZUCS_Ry
         '''
+        self.data.factor_R()
+        self.ana_modal(SapModel,report)
+        self.data.kx = self.get_k(self.data.Tx)
+        self.data.ky = self.get_k(self.data.Ty)
+        self.data.Cx = self.get_C(self.data.Tx)
+        self.data.Cy = self.get_C(self.data.Ty)
+        self.data.ZUCS_Rx = self.get_ZUCS_R(self.data.Cx,self.data.Rx)
+        self.data.ZUCS_Ry = self.get_ZUCS_R(self.data.Cy,self.data.Ry)
 
-        #Cálculo del exponente de altura
-        def get_k(T):
-            """Devuelve el exponente relacionado con el periodo (T). Revise
-            28.3.2 NTE 030 2020
-            
-            Parámetros
-            ----------
-            T : Periodo fundamental de vibración de la estructura (seg)
-            
-            Returns
-            -------
-            k=1, si T<=0.5 seg.
-            k=0.75+0.5*T, si T>=0.5
-            k=2, si 0.75+0.5*T>2
-            """
-            if T < 0.5:
-                return 1
-            elif 0.75+0.5*T < 2:
-                return 0.75+0.5*T
-            else:
-                return 2
-            
-        #Cálculo del Factor C
-        def get_C(T):
-            """Devuelve el factor de amplificacion sismica (C).Revise
-            Articulo 14 NTE 030 2020
-            
-            Parámetros
-            ----------
-            T : Periodo fundamental de vibración de la estructura (seg)
-            Tp: Periodo del suelo
-            Tl: Periodo del suelo
-            
-            Returns
-            -------
-            C=2.5, si T<Tp
-            C=2.5*Tp/T, si Tp<T<Tl
-            C=2.5*(Tp*Tl/T**2), si T>Tl
-            """
-            if T < self.data.Tp:
-                return 2.5
-            elif T < self.data.Tl:
-                return 2.5*self.data.Tp/T
-            else:
-                return 2.5*self.data.Tp*self.data.Tl/T**2
-            
-        def get_ZUCS_R(C,R):
-            ZUS = self.data.Z*self.data.U*self.data.S
-            if C/R>0.11:
-                return C/R*ZUS
-            else:
-                return 0.11*ZUS
+        #Análisis Sísmico Manual
+        static_seism = etb.get_table(SapModel,'Mass Summary by Story')[1][['Story','UX']]
+        static_seism['UX'] = static_seism['UX'].astype(float)*9.806
+        stories = etb.get_table(SapModel,'Story Definitions')[1][['Story','Height']]
+        static_seism = static_seism.merge(stories,left_on='Story',right_on='Story')
+        static_seism['Height'] = static_seism.loc[::-1,'Height'].astype(float).cumsum()[::-1]
+        static_seism['H^kx'] = static_seism['Height']**self.data.kx
+        static_seism['H^ky'] = static_seism['Height']**self.data.ky
+        static_seism['PxHx'] = static_seism['H^kx'] * static_seism['UX']
+        static_seism['PxHy'] = static_seism['H^ky'] * static_seism['UX']
+        static_seism['ax'] = static_seism['PxHx']/sum(static_seism['PxHx'])
+        static_seism['ay'] = static_seism['PxHx']/sum(static_seism['PxHy'])
+        self.data.Vx = self.data.ZUCS_Rx*sum(static_seism['UX'])
+        self.data.Vy = self.data.ZUCS_Ry*sum(static_seism['UX'])
+        static_seism['vx'] = static_seism['ax']*self.data.Vx
+        static_seism['vy'] = static_seism['ay']*self.data.Vy
+        static_seism = static_seism.rename(columns={'UX':'Weight'})
+        static_seism = static_seism.round({'Weight':3,'Height':2,'H^kx':2,'H^ky':2,'PxHx':3,'PxHy':3,'ax':3,'ay':3,'vx':3,'vy':3})
 
-
-        self.ana_modal(SapModel)
-        self.data.kx = get_k(self.data.Tx)
-        self.data.ky = get_k(self.data.Ty)
-        self.data.Cx = get_C(self.data.Tx)
-        self.data.Cy = get_C(self.data.Ty)
-        self.data.ZUCS_Rx = get_ZUCS_R(self.data.Cx,self.data.Rx)
-        self.data.ZUCS_Ry = get_ZUCS_R(self.data.Cy,self.data.Ry)
+        self.tables.static_seism = static_seism
 
         if report:
             #Resumen
@@ -452,9 +336,53 @@ Factor de Reducción:
             print('C en Y: {0:.2f}'.format(self.data.Cy))
 
             print('\nCoeficiente de sismo estático X: {0:.3f}'.format(self.data.ZUCS_Rx))
-            print('Coeficiente de sismo estático Y: {0:.3f}'.format(self.data.ZUCS_Rx))
+            print('Coeficiente de sismo estático Y: {0:.3f}'.format(self.data.ZUCS_Ry))
             print('Exponente de altura X: {0:.2f}'.format(self.data.kx))
-            print('Exponente de altura Y: {0:.2f}'.format(self.data.kx))
+            print('Exponente de altura Y: {0:.2f}'.format(self.data.ky))
+            print('Fuerza Cortante en X: {0:.2f}'.format(self.data.Vx))
+            print('Fuerza Cortante en Y: {0:.2f}'.format(self.data.Vy))
+
+            display(self.tables.static_seism)
+            
+            
+    
+            
+    #Espectro Dinamico
+    def dinamic_spectrum(self,report=False):
+        self.data.factor_R()
+        self.T = np.arange(0,4.1,0.1)
+        self.Sax = np.round(np.vectorize(self.get_C)(self.T)*self.get_ZUCS_R(1,self.data.Rx),decimals=3)
+        self.Say = np.round(np.vectorize(self.get_C)(self.T)*self.get_ZUCS_R(1,self.data.Ry),decimals=3)
+
+        
+        y_max = max(max(self.Sax),max(self.Say))
+        plt.ylim(0,y_max+0.02)
+        plt.xlim(0,4)
+        plt.plot(self.T,self.Sax,'r',label='X (R=%.2f)'%self.data.Rx)
+        plt.plot(self.T,self.Say,'b',label='Y (R=%.2f)'%self.data.Ry)
+        plt.axvline(x = self.data.Tl, color = 'g',linestyle='dotted')
+        plt.text(self.data.Tp,y_max+0.005, 'Tp', fontsize=12, color='k')
+        plt.text(self.data.Tl,y_max+0.005, 'Tl', fontsize=12, color='k')
+        plt.axvline(x = self.data.Tp, color = 'g',linestyle='dotted')
+        plt.xlabel('T (s)')
+        plt.ylabel('Sa $(m/s^2)$')
+        plt.grid(linestyle='dotted', linewidth=1)
+        plt.legend()
+        fig = plt.gcf()
+        fig.set_frameon(False)  
+        buf = BytesIO()
+        plt.savefig(buf, format='png',dpi=300,pad_inches=0,bbox_inches='tight')
+        buf.seek(0)
+        self.spectrum_graph = np.array(Image.open(buf))
+        buf.close()
+        plt.clf()
+        
+            
+        if report:
+            plt.imshow(self.spectrum_graph)
+            plt.axis('off')
+            plt.show()
+
 
     #Revisión por Torsión      
     def irregularidad_torsion(self,SapModel):
@@ -485,12 +413,8 @@ Factor de Reducción:
 
         stories  = etb.get_story_data(SapModel)
         table = table.merge(stories[['Story','Height']], on = 'Story')
-        if self.data.is_regular:
-            table['Drifts']=table['Max Drift'].apply(lambda x:float(x))/table['Height'].apply(lambda x:float(x))*0.75
-        else:
-            table['Drifts']=table['Max Drift'].apply(lambda x:float(x))/table['Height'].apply(lambda x:float(x))*0.85
-
-        table['Drifts'] = table.apply((lambda row: float(row['Max Drift'])*self.data.Rx if 'x' in row['OutputCase'] else float(row['Max Drift'])*self.data.Ry),axis=1)
+        table['Drifts']=table['Max Drift'].astype(float)/table['Height'].astype(float) * 0.75 if self.data.is_regular else 0.85
+        table['Drifts'] = table.apply((lambda row: row['Drifts']*self.data.Rx if 'x' in row['OutputCase'].lower() else row['Drifts']*self.data.Ry),axis=1)
 
         table['Drift < Dmax/2'] = table['Drifts'] < self.data.max_drift_x/2
         tor_reg = (table['Drift < Dmax/2']) | (table['Ratio'].apply(lambda x: float(x)) < 1.3)
@@ -550,7 +474,7 @@ Factor de Reducción:
 
     # Masa
 
-    def irregularidad_masa(self,SapModel):
+    def irregularidad_masa(self,SapModel,report=False):
         _,masa = etb.get_table(SapModel,'Mass Summary by Story')
         masa['Mass'] = masa.UX
         masa = masa[['Story','Mass']]
@@ -586,22 +510,135 @@ Factor de Reducción:
         masa = masa[['Story','Mass','1.5 Mass','story_type','is_regular']].fillna('')
         self.tables.rev_masa_table = masa
 
+        if report:
+            display(masa)
+
     # Derivas
-    def derivas(self):
-        rev_drift = self.tables.torsion_table[['Story','OutputCase','Direction','Drifts']]
+    def derivas(self,SapModel,report=False):
+        buf = BytesIO()
+        self.irregularidad_torsion(SapModel)
+        rev_drift = self.tables.torsion_table[['Story','OutputCase','Direction','Height','Drifts',]]
         rev_drift = rev_drift.assign(Drift_Check = (rev_drift['Drifts'] < self.data.max_drift_x).apply(lambda x: 'Cumple' if x else 'No Cumple'))
         self.tables.drift_table = rev_drift
 
+        cases_x = list(rev_drift.query('Direction=="X"')['OutputCase'].unique())
+        max_drift_x = rev_drift[rev_drift['OutputCase'].isin(cases_x)].query('Direction=="X"')['Drifts'].max()
+        force_x = list(rev_drift.query('Direction=="X"').query('Drifts==@max_drift_x')['OutputCase'])[0]
+        self.drifts_x = np.array(rev_drift.query('Direction=="X"').query('OutputCase==@force_x')['Drifts'])[::-1]
+        self.drifts_x  = np.append([0.],self.drifts_x)
+        heights = np.array(rev_drift.query('Direction=="X"').query('OutputCase==@force_x')['Height']).astype(float)[::-1].cumsum()
+        heights  = np.append([0.],heights)
+
+        cases_y = list(rev_drift.query('Direction=="Y"')['OutputCase'].unique())
+        max_drift_y = rev_drift[rev_drift['OutputCase'].isin(cases_y)].query('Direction=="Y"')['Drifts'].max()
+        force_y = list(rev_drift.query('Direction=="Y"').query('Drifts==@max_drift_y')['OutputCase'])[0]
+        self.drifts_y = np.array(rev_drift.query('Direction=="Y"').query('OutputCase==@force_y')['Drifts'])[::-1]
+        self.drifts_y  = np.append([0.],self.drifts_y)
+
+
+        plt.ylim(0,max(heights)*1.05)
+        plt.xlim(0,max(max_drift_x,max_drift_y,self.data.max_drift_x)+0.003)
+        plt.plot(self.drifts_x,heights,'r',label='X (R=%.2f)'%self.data.Rx)
+        plt.plot(self.drifts_y,heights,'b',label='Y (R=%.2f)'%self.data.Ry)
+        plt.scatter(self.drifts_x,heights,color='r',marker='x')
+        plt.scatter(self.drifts_y,heights,color='b',marker='x')
+        plt.axvline(x = self.data.max_drift_x/2, color = 'c',linestyle='dotted')
+        plt.axvline(x = self.data.max_drift_x, color = 'g',linestyle='dotted')
+        plt.text(self.data.max_drift_x-0.001,max(heights),self.data.max_drift_x , fontsize=10, color='k')
+        plt.text(self.data.max_drift_x/2-0.001,max(heights),self.data.max_drift_x/2, fontsize=10, color='k')
+        plt.xlabel('Derivas')
+        plt.ylabel('h (m)')
+        plt.grid(linestyle='dotted', linewidth=1)
+        plt.legend(loc='lower right')
+        fig = plt.gcf()
+        fig.set_frameon(False)
+        plt.savefig(buf, format='png',dpi=300,pad_inches=0,bbox_inches='tight')
+        buf.seek(0)
+        self.drift_graph = np.array(Image.open(buf))
+        buf.close()
+        plt.clf()
+        if report:        
+            self.show_table(rev_drift)
+            plt.imshow(self.drift_graph)
+            plt.axis('off')
+            plt.show()
+
+            
+
+    def desplazamientos(self,SapModel,report=False):
+        set_loads = [load for load in self.loads.seism_loads.values()]
+        SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_loads)
+        SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])
+
+        _ , table = etb.get_table(SapModel,'Story Max Over Avg Displacements')
+        table['OutputCase'] = table.OutputCase+' '+table.StepType
+        table = table[['Story','OutputCase','Direction','Maximum']]
+
+        stories  = etb.get_story_data(SapModel)
+        table = table.merge(stories[['Story','Height']], on = 'Story')
+        
+        self.tables.displacements = table
+
+        table['Maximum'] = table['Maximum'].astype(float)
+
+        cases_x = list(table.query('Direction=="X"')['OutputCase'].unique())
+        max_disp_x = table[table['OutputCase'].isin(cases_x)].query('Direction=="X"')['Maximum'].max()
+        force_x = list(table.query('Direction=="X"').query('Maximum==@max_disp_x')['OutputCase'])[0]
+        self.disp_x = np.array(table.query('Direction=="X"').query('OutputCase==@force_x')['Maximum'])[::-1]
+        self.disp_x  = np.append([0.],self.disp_x)
+        heights = np.array(table.query('Direction=="X"').query('OutputCase==@force_x')['Height']).astype(float)[::-1].cumsum()
+        heights  = np.append([0.],heights)
+
+        cases_y = list(table.query('Direction=="Y"')['OutputCase'].unique())
+        max_disp_y = table[table['OutputCase'].isin(cases_y)].query('Direction=="Y"')['Maximum'].max()
+        force_y = list(table.query('Direction=="Y"').query('Maximum==@max_disp_y')['OutputCase'])[0]
+        self.disp_y = np.array(table.query('Direction=="Y"').query('OutputCase==@force_y')['Maximum'])[::-1]
+        self.disp_y  = np.append([0.],self.disp_y)
+        
+        
+        plt.ylim(0,max(heights)*1.05)
+        plt.xlim(0,float(max(max_disp_x,max_disp_y))+0.003)
+        plt.plot(self.disp_x,heights,'r',label='X (R=%.2f)'%self.data.Rx)
+        plt.plot(self.disp_y,heights,'b',label='Y (R=%.2f)'%self.data.Ry)
+        plt.scatter(self.disp_x,heights,color='r',marker='x')
+        plt.scatter(self.disp_y,heights,color='b',marker='x')
+        plt.xlabel('Desplazamientos (m)')
+        plt.ylabel('h (m)')
+        plt.grid(linestyle='dotted', linewidth=1)
+        plt.legend()
+        buf = BytesIO()
+        plt.savefig(buf, format='png',dpi=300,pad_inches=0,bbox_inches='tight')
+        buf.seek(0)
+        self.disp_graph = np.array(Image.open(buf))
+        buf.close()
+        plt.clf()
+        
+
+        if report:
+            self.show_table(table)
+            plt.imshow(self.drift_graph)
+            plt.axis('off')
+            plt.show()
+         
+
+
+
     # Centros de Masas y Rigideces
 
-    def centro_masa_inercia(self,SapModel):
-        _,rev_CM_CR = etb.get_table(SapModel,'Centers Of Mass And Rigidity')
-        rev_CM_CR = rev_CM_CR[['Story','XCCM','XCR','YCCM','YCR']]
-        rev_CM_CR['DifX'] = rev_CM_CR.XCCM.apply(lambda x: float(x)) - rev_CM_CR.XCR.apply(lambda x: float(x))
-        rev_CM_CR['DifY'] = rev_CM_CR.YCCM.apply(lambda x: float(x)) - rev_CM_CR.YCR.apply(lambda x: float(x))
-        self.tables.CM_CR_table = rev_CM_CR
+    def centro_masa_inercia(self,SapModel,report=False):
+        try:
+            _,rev_CM_CR = etb.get_table(SapModel,'Centers Of Mass And Rigidity')
+            rev_CM_CR = rev_CM_CR[['Story','XCCM','XCR','YCCM','YCR']]
+            rev_CM_CR['DifX'] = rev_CM_CR.XCCM.apply(lambda x: float(x)) - rev_CM_CR.XCR.apply(lambda x: float(x))
+            rev_CM_CR['DifY'] = rev_CM_CR.YCCM.apply(lambda x: float(x)) - rev_CM_CR.YCR.apply(lambda x: float(x))
+            self.tables.CM_CR_table = rev_CM_CR
+        except:
+            print('Por favor active el cálculo del centro de Rigidez')
 
-    def min_shear(self,SapModel,story='Story1'):
+        if report:
+            display(rev_CM_CR)
+
+    def min_shear(self,SapModel,story='Story1',report=False):
         etb.set_units(SapModel,'Ton_m_C')
         seism_loads = self.loads.seism_loads
         set_loads = [load for load in seism_loads.values()]
@@ -631,15 +668,75 @@ Factor de Reducción:
             ['%',per_x,per_y],
             ['F.E.',fex,fey]])
         self.tables.shear_table = table
+
+        if report:  
+            display(table.style.hide(axis='index').hide(axis='columns'))
+            
+            
+    def graph_shear(self,SapModel,report=False):
+        import numpy as np
+        from io import BytesIO
+        from PIL import Image
+        buf = BytesIO()
+        _,table = etb.get_table(SapModel,'Story Forces')
+        stories  = etb.get_story_data(SapModel)
+        table = table.merge(stories[['Story','Height']], on = 'Story')
+        
+        seism_x = self.loads.seism_loads['Sismo_DinX']
+        shear_x = list(table.query('OutputCase==@seism_x')['VX'].astype(float))
+        shear_x.insert(0,0)
+        max_shear_x = max(shear_x)
+
+        seism_y = self.loads.seism_loads['Sismo_DinY']
+        shear_y = list(table.query('OutputCase==@seism_y')['VY'].astype(float))
+        shear_y.insert(0,0)
+        max_shear_y = max(shear_y)
+        
+        Rx = self.data.Rx
+        Ry = self.data.Ry
+              
+        #Compatibilización  del array heights con el dataframe shear_x y shear_y
+        heights = np.array(table.query('Location=="Top"').query('OutputCase==@seism_x')['Height']).astype(float)[::-1].cumsum()
+        heights_extended = [[i, i] for i in heights[::-1]]
+        heights_extended = [item for sublist in heights_extended for item in sublist] + [0]
+
+        #Creación de la figura
+        plt.clf()
+        plt.ylim(0,max(heights_extended)*1.05)
+        plt.xlim(0,max(max_shear_x,max_shear_y)*1.02)
+        plt.plot(shear_x,heights_extended,'r',label='X (R=%.2f)'%Rx)
+        plt.plot(shear_y,heights_extended,'b',label='Y (R=%.2f)'%Ry)
+        plt.scatter(shear_x,heights_extended,color='r',marker='x')
+        plt.scatter(shear_y,heights_extended,color='b',marker='x')
+        plt.xlabel('Fuerza cortante (t)')
+        plt.ylabel('h (m)')
+        plt.grid(linestyle='dotted', linewidth=1)
+        plt.legend(loc='upper right')
+        plt.savefig(buf, format='png',dpi=300,pad_inches=0,bbox_inches='tight')
+        buf.seek(0)
+        self.shear_graph = np.array(Image.open(buf))
+        buf.close()
+        plt.clf()
+        
+        if report:
+            plt.imshow(self.shear_graph)
+            plt.axis('off')
+            plt.show()
+        
+        
+
         
     def analisis_sismo(self, SapModel):
         self.sismo_estatico(SapModel)
         self.piso_blando(SapModel)
         self.irregularidad_masa(SapModel)
-        #self.centro_masa_inercia(SapModel)
+        self.centro_masa_inercia(SapModel)
         self.irregularidad_torsion(SapModel)
         self.derivas()
         self.min_shear(SapModel,self.base_story)
+        
+        
+    
 
     def generate_memoria(self):
         from pylatex import Document, Section, Subsection,Subsubsection
@@ -651,6 +748,57 @@ Factor de Reducción:
         zona = self.data.zona
         suelo = self.data.suelo
         categoria = self.data.categoria
+        Z,U,S,Tp,Tl = self.data.Z,self.data.U,self.data.S,self.data.Tp,self.data.Tl
+        Rox,Roy,Ia,Ip = self.data.Rox,self.data.Roy,self.data.Ia,self.data.Ip
+        Tx,Ty,Cx,Cy = self.data.Tx,self.data.Ty,self.data.Cx,self.data.Cy
+        kx,ky = self.data.kx,self.data.ky
+
+        p_blando_x = self.tables.piso_blando_table.query('OutputCase == @seism_x')
+        p_blando_y = self.tables.piso_blando_table.query('OutputCase == @seism_y')
+        torsion_x = self.tables.torsion_table.query('OutputCase == @seism_x')
+        torsion_y = self.tables.torsion_table.query('OutputCase == @seism_y')
+
+        sist_x = self.data.sistema_x
+        sist_y = self.data.sistema_y
+
+        # #Espectro de Respuestas
+        # T = self.T
+        # Sax = self.Sax
+        # Say = self.Say
+        # Rx = self.data.Rx
+        # Ry = self.data.Ry
+
+        #Desplazamientos
+        disp_x = self.disp_x
+        disp_y = self.disp_y
+
+        # #Derivas
+        # drifts_x = self.drifts_x
+        # drifts_y = self.drifts_y
+        # max_drift =self.data.max_drift_x
+        # heights_drifts = self.heights_drifts
+
+        #datos discontinuidad de diafragma
+        sec_change = self.data.sec_change
+        openings = self.data.openings
+        
+        #datos de esquinas entrantes
+        datos_esquinas = self.data.esquinas
+        
+        #Cargas sismicas
+        sis_estatico = self.tables.static_seism
+
+        # Datos separacion
+        _,_SapModel = etb.connect_to_etabs()
+        stories  = etb.get_story_data(_SapModel)
+        seism_x = self.loads.seism_loads['Sismo_DinX']
+        heights = np.array(stories['Height']).astype(float)[::-1].cumsum()
+        datos_sep={'altura_edificio':max(heights)*100,
+               'despl_max_X':max(disp_x)*100,
+               'despl_max_Y':max(disp_y)*100}
+        
+        
+
         geometry_options = { "left": "2.5cm", "top": "1.5cm" }
         doc = Document(geometry_options=geometry_options)
         doc.packages.append(Package('xcolor', options=['dvipsnames']))
@@ -675,7 +823,42 @@ Factor de Reducción:
         openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
                     'area_planta' : 120.41}
         # i_esquinas = smem.irreg_esquinas(doc,sec_change=sec_change, openings=openings)
-        for i in [f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,a_modal,i_rig,i_torsion]:
+        p_sitio = smem.parametros_sitio()
+        f_zona = smem.factor_zona(zona)
+        f_suelo = smem.factor_suelo(zona, suelo)
+        p_suelo = smem.periodos_suelo(suelo)   
+        s_est = smem.sist_estructural(sist_x,sist_y)
+        f_amp = smem.factor_amplificacion()
+        f_imp = smem.factor_importancia(categoria)
+        t_resumen = smem.tabla_resumen(Z,U,S,Tp,Tl,Rox,Roy,Ia,Ip)
+        e_resp = smem.espectro_respuesta(self.spectrum_graph)
+        p_sis = smem.peso_sismico()
+        e_accidental = smem.excentricidad_accidental()
+        a_modal = smem.ana_modal(self.tables.modal)
+        a_irreg = smem.analisis_irregularidades()          
+        i_rig = smem.irreg_rigidez(p_blando_x,p_blando_y)
+        i_masa = smem.irreg_masa(self.tables.rev_masa_table)        
+        i_torsion = smem.irreg_torsion(torsion_x,torsion_y)
+        i_discontinuidad = smem.irreg_discontinuidad_diaf(sec_change=sec_change, openings=openings)
+        i_esquinas = smem.irreg_esquinas_entrantes(datos_esquinas)
+        analisis_din = smem.analisis_dinamico()
+        criterios_comb= smem.criterios_combinacion()
+        desplaz_lat= smem.desplazamientos_laterales(self.disp_graph)
+        verif_derivas= smem.verificacion_derivas(sist_x,sist_y,self.drift_graph)
+        verif_sist_est = smem.verificacion_sist_est()
+        analisis_est = smem.analisis_estatico()
+        corte_basal= smem.cortante_basal(Z,U,Tx,Ty,Cx,Cy,kx,ky,S,Rox,Roy,Ia,Ip,sis_estatico)
+        corte_basal_min = smem.fuerza_cortante_min(self.tables.shear_table,self.shear_graph)
+        sep_edificios= smem.separacion_edificios(datos_sep)
+
+        obj_list = [p_sitio,f_zona,f_suelo,p_suelo,s_est,f_amp,f_imp,t_resumen,
+            e_resp,p_sis,e_accidental,a_modal,
+            a_irreg,i_rig,i_masa,i_torsion,i_discontinuidad,i_esquinas,
+            analisis_din,criterios_comb,
+            desplaz_lat,verif_derivas,verif_sist_est,
+            analisis_est,corte_basal,corte_basal_min,sep_edificios]
+
+        for i in obj_list:
             sec.append(i)
         
         doc.append(sec)
@@ -685,9 +868,7 @@ Factor de Reducción:
 
 
 if __name__ == '__main__':
-
     _,_SapModel= etb.connect_to_etabs()
-
     #Definir variables de salida 'Ton_m_C' o 'kgf_cm_C'
     etb.set_units(_SapModel,'Ton_m_C')
 
@@ -703,26 +884,41 @@ if __name__ == '__main__':
                 'Muros de Ductilidad Limita de Concreto Armado',
                 'Albañilería Armada o Confinada',
                 'Madera']
-
+     
     categorias = ['A1 aislado',
-                  'A1 no aislado',
-                  'A2',
-                  'B',
-                  'C']
-    
-    sis_loads = {'Sismo_EstX': 'Sx',
-                 'Sismo_EstY': 'Sy',
-                 'Sismo_DinX': 'SDx',
-                 'Sismo_DinY': 'SDy'}
+                      'A1 no aislado',
+                      'A2',
+                      'B',
+                      'C']
+        
+    sis_loads = {'Sismo_EstX': 'SEXX NEG',
+                     'Sismo_EstY': 'SEYY NEG',
+                     'Sismo_DinX': 'SDXX',
+                     'Sismo_DinY': 'SDYY'}
+     
+    sec_change = {'aligerado':[7.51,0.05],
+                'macisa':[2.25,0.20]}
+     
+    openings = {'aberturas':[(4.02,2.3),(1.1,2.3),(1.2,19)],
+                'area_planta' : 120.41}
+     
+    datos_esquinas={'esq_X':4.95,
+                'esq_Y':2.30,
+                'dim_X':7.51,
+                'dim_Y':15.28}
+ 
+ 
+ 
+
     zona = 4
-    suelo = 'S1'
+    suelo = 'S2'
     sist_x = sistemas[0]
     sist_y = sistemas[1]
-    categoria = categorias[4]
-    n_pisos = 4
+    categoria = categorias[2]
+    n_pisos = 6
     n_sotanos = 0
     n_azoteas = 0
-    story_base = 'Story1'
+    story_base = 'TECHO 01'
 
     sismo = Sismo_e30()
     sismo.data.factor_zona(zona)
@@ -739,8 +935,23 @@ if __name__ == '__main__':
     
     sismo.loads.set_seism_loads(sis_loads)
     sismo.set_base_story(story_base)
+    sismo.ana_modal(_SapModel)
+    sismo.sismo_estatico(_SapModel)
+    sismo.dinamic_spectrum()
+    sismo.min_shear(_SapModel,story=sismo.base_story)
+    sismo.graph_shear(_SapModel)
+    sismo.piso_blando(_SapModel)
+    sismo.irregularidad_masa(_SapModel)
+    sismo.irregularidad_torsion(_SapModel)
+    sismo.derivas(_SapModel)
+    sismo.desplazamientos(_SapModel)
+    sismo.centro_masa_inercia(_SapModel)
     
-    sismo.analisis_sismo(_SapModel)
+    sismo.data.sec_change = sec_change
+    sismo.data.openings = openings
+    sismo.data.esquinas = datos_esquinas
+    sismo.data.sistema_x = sist_x
+    sismo.data.sistema_x = sist_y
     
     tablas = sismo.tables
     sismo.generate_memoria()

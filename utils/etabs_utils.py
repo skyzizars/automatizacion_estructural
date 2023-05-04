@@ -2,6 +2,7 @@
 #from re import S
 import comtypes.client
 import pandas as pd
+import numpy as np
 
 
 def connect_to_etabs():
@@ -64,7 +65,7 @@ def get_modal_data(SapModel,clean_data='true'):
     return (modal,MP_x,MP_y,period_x,period_y,Ux,Uy)
 
 
-def set_envelopes_for_dysplay(SapModel):
+def set_envelopes_for_dysplay(SapModel,set_envelopes=True):
     IsUserBaseReactionLocation=False
     UserBaseReactionX=0
     UserBaseReactionY=0
@@ -75,8 +76,8 @@ def set_envelopes_for_dysplay(SapModel):
     IsAllBucklingModes=True
     StartBucklingMode=0
     EndBucklingMode=0
-    MultistepStatic=1
-    NonlinearStatic=1
+    MultistepStatic=1 if set_envelopes else 2
+    NonlinearStatic=1 if set_envelopes else 2
     ModalHistory=1
     DirectHistory=1
     Combo=2
@@ -86,8 +87,8 @@ def set_envelopes_for_dysplay(SapModel):
                                                         EndBucklingMode,MultistepStatic,NonlinearStatic,
                                                         ModalHistory,DirectHistory,Combo)
 
-def get_table(SapModel,table_name):
-    set_envelopes_for_dysplay(SapModel)
+def get_table(SapModel,table_name,set_envelopes=True):
+    set_envelopes_for_dysplay(SapModel,set_envelopes)
     data = SapModel.DatabaseTables.GetTableForDisplayArray(table_name,FieldKeyList='',GroupName='')
     
     if not data[2][0]:
@@ -106,6 +107,7 @@ def get_table(SapModel,table_name):
 def get_story_data(SapModel):
     _,story_data = get_table(SapModel,'Story Definitions')
     return story_data
+
 
 def set_concrete(SapModel,fc=210):
     set_units(SapModel, 'kgf_cm_C')
@@ -241,10 +243,295 @@ def draw_beam(SapModel,pi,pf,b,h):
     propName = f'Viga {b} x {h} cm'
     SapModel.FrameObj.AddByCoord(Xi,Yi,Zi,Xj,Yj,Zj,PropName=propName)
 
+def combination_CQC (r_mod = np.array([1,2,3,4]), w_frec = np.array([1,2,3,4]), β = 0.05):
+    '''
+    Esta Función Nos permite obtener la respuesta máxima a partir de los valores de las respuestas 
+    obtenidas para cada modo mediante la Combinación Cuadrática Completa:
+          ______________________
+    rn = √ Σ Σ ( rni x ρij x rnj)
+           i j 
+
+    Donde:
+    rn = representa la respuesta elástica máxima esperada para el caso "n"
+    rni = respuesta en el modo de vibración "i" para el caso "n"
+    rnj = respuesta en el modo de vibración "j" para el caso "n"
+    i,j = 1, 2, 3 ... #total de modos
+    ρij = coeficiente de correlación del modo "i" con el modo "j"
+
+    Donde:
+    ρij = 8 β^2 (1 + λ) λ^3/2
+          -----------------------------------
+          (1-λ^2)^2 + 4 β^2 λ (1 + λ)^2
+
+    λ = wj / wi  --> son las frecuencias angulares de los modos  i, j
+    β = 0.05 ---> franccion de amortiguamiento crítico se puede suponer constante para todos los modos
+        
+    '''
+    N_modos = np.shape(r_mod)[0]
+    r_max = []
+
+    #Verificamos que coincidan el numero de modos con el numero de frecuencias w
+    if N_modos != np.shape(w_frec)[0]:
+        print ("El numero de modos no coincide con el numero de frecuencias")
+        return None
+    #Verificamos que se haya ingresado un vector de Respuestas (Matriz nx1)
+    try:
+        N_gdl = np.shape(r_mod)[1]
+        if N_gdl >= 1:
+            print ("las respuestas modales deben estar ingresadas como vector")
+            return None
+    except:
+        pass
+    
+    p = np.zeros((N_modos, N_modos))
+    #Hallamos coeficiente de correlación ρij
+    for i in range(N_modos):
+            for j in range(N_modos):
+                λ = w_frec[j]/w_frec[i]
+                p[i,j] = (8*(β**2)*(1+λ)*(λ**(3/2)))/(((1-(λ**2))**2) + (4*(β**2)*λ*(1+λ)**2)) 
+
+    #Hallamos la sumatoria
+    Sum_2 = 0  #Inicializamos la variable que acumulará la sumatoria total
+    for i in range(N_modos):
+        Sum_1 = 0
+        for j in range(N_modos):
+            Sum_1 += r_mod[i]*p[i,j]*r_mod[j]
+        Sum_2 += Sum_1
+    r_total = Sum_2**0.5   
+    r_max = r_total         #Si queremos que la respuesta sea un vector de 1x1 -->  [resp]
+    r_max = float(r_total)  #Si queremos que la respuesta sea un valor numérico --->  resp
+    return r_max
+
+
+# Generación de casos sismico
+def create_seism_cases(SapModel,
+                       mass_sources={'MsSrc':['x','y'],
+                                     'MsSrc eX+':['x'],
+                                     'MsSrc eX-':['x'],
+                                     'MsSrc eY+':['y'],
+                                     'MsSrc eY-':['y'],},
+                       spectres={'Espectro XX':'x','Espectro YY':'y'}):
+    '''
+    Crea cases de sismo dinámico, 
+    requiere:
+    mass sources con excentricidad
+    y espectros de respuestas definidos en el programa
+    input: mass_sources = dict{name:[list_e_irections]}
+           spectres = dict{name:direction}
+    '''
+    pass
+
+
+
+# Generacion de cargas a exportar
+def create_found_seism(SapModel,
+                       seism_cases =   {'SDx':'x',
+                                        'SDx +eY':'x',
+                                        'SDx -eY':'x',
+                                        'SDy':'y',
+                                        'SDy +eX':'y',
+                                        'SDy -eX':'y'}):
+    '''
+    crea cargas sísmicas equivalentes para análisis de la cimentación
+    son asignadas al centro de masas (método 1)
+    input:
+    seism_cases: dict{case:direction}
+    '''
+    set_load = list(seism_cases.keys())
+    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_load)
+    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([]) 
+    _,shear_table = get_table(SapModel,'Story Forces')
+    shear_table = shear_table.query('Location == "Top"')[['Story','OutputCase','VX','VY']]
+
+    _,mass_center = get_table(SapModel,'Centers Of Mass And Rigidity')
+    mass_center = mass_center[['Story','Diaphragm','XCM','YCM']]
+
+    shear_table = shear_table.merge(mass_center,on='Story')
+
+    _,joint_table = get_table(SapModel,'Joint Assignments - Diaphragms')
+    joint_table = mass_center.merge(joint_table,on=['Diaphragm','Story'])
+
+    SapModel.SetModelIsLocked(False)
+
+    #Creacion de CM
+    CM_dict = {}
+    for story in shear_table['Story'].unique():
+        X = float(shear_table.query('Story==@story').iloc[0,5])
+        Y = float(shear_table.query('Story==@story').iloc[0,6])
+        Z = SapModel.PointObj.GetCoordCartesian(
+            joint_table.query('Story == @story').iloc[0,5])[2]
+        diaph = joint_table.query('Story == @story').iloc[0,1]
+        CM_dict[story] = SapModel.PointObj.AddCartesian(X,Y,Z)[0]
+        SapModel.PointObj.SetDiaphragm(CM_dict[story],3,diaph)
+
+    #Creación de cargas
+    for load in seism_cases.keys():
+        data = shear_table.query('OutputCase==@load')
+        data = data.assign(FX=data.loc[:,'VX'].astype(float) - data.loc[:,'VX'].astype(float).shift(1).fillna(0),
+                           FY=data.loc[:,'VY'].astype(float) - data.loc[:,'VY'].astype(float).shift(1).fillna(0))
+        
+        SapModel.LoadPatterns.Add('f ' +load,5)
+        
+        for story, p_name in CM_dict.items():
+            VX = data.query('Story==@story')['FX'].iloc[0]
+            VY = data.query('Story==@story')['FY'].iloc[0]
+            if seism_cases[load] == 'x':
+                SapModel.PointObj.SetLoadForce(p_name,'f ' +load,[VX,0,0,0,0,0],Replace=True)
+            elif seism_cases[load] == 'y':
+                SapModel.PointObj.SetLoadForce(p_name,'f ' +load,[0,VY,0,0,0,0],Replace=True)
+
+
+
+def create_found_seism_2(SapModel,
+                         seism_modal_cases =   {'SDx':('Modal','x'),
+                                                'SDx +eY':('Modal +eY','x'),
+                                                'SDx -eY':('Modal -eY','x'),
+                                                'SDy':('Modal','y'),
+                                                'SDy +eX':('Modal +eX','y'),
+                                                'SDy -eX':('Modal -eX','y')}):
+    
+    '''
+    crea cargas sísmicas equivalentes para análisis de la cimentación
+    combos equivalentes a partir del modo 1 (mérodo 2)
+    input:
+    seism_modal_cases: dict{case:(modal_name,direction)}
+    '''
+
+    #Identificamos los modos principales
+    _,modal = get_table(SapModel,'Modal Participating Mass Ratios')
+    modal = modal[['Case','Mode','UX','UY','RZ']]
+    modal['Mode'] = modal.Mode.astype(int)
+    modal['UX']=modal.UX.astype(float)
+    mode_x = str(modal[modal.UX == max(modal.UX)].Mode.iloc[0])
+    modal['UY']=modal.UY.astype(float)
+    mode_y = str(modal[modal.UY == max(modal.UY)].Mode.iloc[0])
+
+    #Cálculo de los momentos de volteo
+    set_load = list(seism_modal_cases.keys()) + [i[0] for i in seism_modal_cases.values()]
+    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_load)
+    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])                          
+    _, table = get_table(SapModel,'Base Reactions',set_envelopes=False)
+    table = table[['OutputCase','StepNumber','MX','MY']].query('StepNumber==@mode_x or StepNumber==@mode_y or StepNumber==""')
+    table['over_moment'] = np.maximum(abs(table['MX'].astype(float)), abs(table['MY'].astype(float)))
+    table = table[['OutputCase','StepNumber','over_moment']]
+    
+    #Calculo del factor de amplificacion en tuplas
+    eq_factor = pd.DataFrame([(load,
+                            case:=seism_modal_cases[load][0],
+                            mode:=mode_x if seism_modal_cases[load][1] == 'x' else mode_y,
+                            (table.query('OutputCase==@load')['over_moment'].iloc[0] /
+                            table.query('OutputCase==@case and StepNumber==@mode')['over_moment'].iloc[0]))  
+                            for load in seism_modal_cases.keys()],
+                            columns=['load','case','mode','factor'])
+    
+    #Extraccion de puntos en base
+    modal_cases = [i[0] for i in seism_modal_cases.values()]
+    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(modal_cases)
+    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([]) 
+    _,point_table = get_table(SapModel,'Joint Reactions',set_envelopes=False)
+    point_table = (point_table.query('StepNumber == @mode_x or StepNumber == @mode_y')
+                   [['OutputCase','StepNumber','UniqueName','FX','FY','FZ','MX','MY','MZ']])
+    point_table[['FX','FY','FZ','MX','MY','MZ']].astype(float)
+    
+
+    
+    SapModel.SetModelIsLocked(False)
+    #Creación de cases
+    for load in seism_modal_cases.keys():
+        SapModel.LoadPatterns.Add('found '+load,5)
+        case = seism_modal_cases[load][0]
+        point_loads = (point_table.query('OutputCase==@case')
+                       .query('StepNumber == @mode_x' if seism_modal_cases[load][1] == 'x'
+                              else'StepNumber == @mode_y' ))
+        factor = eq_factor.query('load==@load').iloc[0,3]
+        for p_name in point_loads.UniqueName:
+            p_loads = (point_loads.query('UniqueName==@p_name')
+                            [['FX','FY','FZ','MX','MY','MZ']].iloc[0])
+            p_loads = [float(load)*float(factor) for load in p_loads]
+            SapModel.PointObj.SetLoadForce(p_name,'found ' +load,p_loads,Replace=True)
+
+
+
+
+def create_found_seism_3(SapModel,
+                         seism_modal_cases =   {'SDx':('Modal','x'),
+                                                'SDx +eY':('Modal +eY','x'),
+                                                'SDx -eY':('Modal -eY','x'),
+                                                'SDy':('Modal','y'),
+                                                'SDy +eX':('Modal +eX','y'),
+                                                'SDy -eX':('Modal -eX','y')}):
+    
+    '''
+    Escala el analisis modal para análisis de la cimentación
+    combos equivalentes a partir del modo 1 (mérodo 2)
+    input:
+    seism_modal_cases: dict{case:(modal_name,direction)}
+    ''' 
+
+    #Identificamos los modos principales
+    _,modal = get_table(SapModel,'Modal Participating Mass Ratios')
+    modal = modal[['Case','Mode','UX','UY','RZ']]
+    modal['Mode'] = modal.Mode.astype(int)
+    modal['UX']=modal.UX.astype(float)
+    mode_x = str(modal[modal.UX == max(modal.UX)].Mode.iloc[0])
+    modal['UY']=modal.UY.astype(float)
+    mode_y = str(modal[modal.UY == max(modal.UY)].Mode.iloc[0])
+
+    #Cálculo de los momentos de volteo
+    set_load = list(seism_modal_cases.keys()) + [i[0] for i in seism_modal_cases.values()]
+    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_load)
+    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])                          
+    _, table = get_table(SapModel,'Base Reactions',set_envelopes=False)
+    table = table[['OutputCase','StepNumber','MX','MY']].query('StepNumber==@mode_x or StepNumber==@mode_y or StepNumber==""')
+    table['over_moment'] = np.maximum(abs(table['MX'].astype(float)), abs(table['MY'].astype(float)))
+    table = table[['OutputCase','StepNumber','over_moment']]
+    
+    #Calculo del factor de amplificacion en tuplas
+    eq_factor = pd.DataFrame([(load,
+                            case:=seism_modal_cases[load][0],
+                            mode:=mode_x if seism_modal_cases[load][1] == 'x' else mode_y,
+                            (table.query('OutputCase==@load')['over_moment'].iloc[0] /
+                            table.query('OutputCase==@case and StepNumber==@mode')['over_moment'].iloc[0]))  
+                            for load in seism_modal_cases.keys()],
+                            columns=['load','case','mode','factor'])
+    
+    #Extraccion de puntos en base
+    modal_cases = [i[0] for i in seism_modal_cases.values()]
+    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(modal_cases)
+    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([]) 
+    _,point_table = get_table(SapModel,'Joint Reactions',set_envelopes=False)
+    point_table = (point_table.query('StepNumber == @mode_x or StepNumber == @mode_y')
+                   [['OutputCase','StepNumber','UniqueName','FX','FY','FZ','MX','MY','MZ']])
+    point_table[['FX','FY','FZ','MX','MY','MZ']].astype(float)
+    
+
+    
+    SapModel.SetModelIsLocked(False)
+    #Creación de cases
+    for load in seism_modal_cases.keys():
+        SapModel.LoadPatterns.Add('found '+load,5)
+        case = seism_modal_cases[load][0]
+        point_loads = (point_table.query('OutputCase==@case')
+                       .query('StepNumber == @mode_x' if seism_modal_cases[load][1] == 'x'
+                              else'StepNumber == @mode_y' ))
+        factor = eq_factor.query('load==@load').iloc[0,3]
+        for p_name in point_loads.UniqueName:
+            p_loads = (point_loads.query('UniqueName==@p_name')
+                            [['FX','FY','FZ','MX','MY','MZ']].iloc[0])
+            p_loads = [float(load)*float(factor) for load in p_loads]
+            SapModel.PointObj.SetLoadForce(p_name,'found ' +load,p_loads,Replace=True)
+
+
+
 
 if __name__ == '__main__':
     _,SapModel = connect_to_etabs()
     #SapModel.SetModelIsLocked(False)
     #print(set_envelopes_for_dysplay(SapModel))
-    _,table = get_table(SapModel,'Story Forces')
+    #_,table = get_table(SapModel,'Story Forces')
+
+    # create_found_seism_2(SapModel,seism_modal_cases =   {'SDx':('Modal','x'),
+    #                                                    'SDy':('Modal','y')})
+    
+    create_found_seism_2(SapModel)
 
