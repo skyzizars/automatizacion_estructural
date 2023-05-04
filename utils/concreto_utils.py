@@ -696,7 +696,7 @@ class Isolate_footing(Foundation):
     -------
     None.
     '''
-    def __init__(self,dim1_col,dim2_col,df,h,b=1,r=0.075,gamma_c=2.4*9.81):
+    def __init__(self,dim1_col,dim2_col,df,h,b=1*m,r=0.01*m,gamma_c=2.4*9.81):
         
         self.b_col = min(dim1_col,dim2_col)
         self.h_col=max(dim1_col,dim2_col)
