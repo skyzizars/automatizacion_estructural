@@ -350,7 +350,7 @@ def create_found_seism_2(SapModel,
     set_load = list(seism_modal_cases.keys()) + [i[0] for i in seism_modal_cases.values()]
     SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_load)
     SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])                          
-    _, table = get_table(SapModel,'Base Reactions')
+    _, table = get_table(SapModel,'Base Reactions',set_envelopes=False)
     table = table[['OutputCase','StepNumber','MX','MY']].query('StepNumber==@mode_x or StepNumber==@mode_y or StepNumber==""')
     table['over_moment'] = np.maximum(abs(table['MX'].astype(float)), abs(table['MY'].astype(float)))
     table = table[['OutputCase','StepNumber','over_moment']]
@@ -364,14 +364,104 @@ def create_found_seism_2(SapModel,
                             for load in seism_modal_cases.keys()],
                             columns=['load','case','mode','factor'])
     
+    #Extraccion de puntos en base
+    modal_cases = [i[0] for i in seism_modal_cases.values()]
+    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(modal_cases)
+    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([]) 
+    _,point_table = get_table(SapModel,'Joint Reactions',set_envelopes=False)
+    point_table = (point_table.query('StepNumber == @mode_x or StepNumber == @mode_y')
+                   [['OutputCase','StepNumber','UniqueName','FX','FY','FZ','MX','MY','MZ']])
+    point_table[['FX','FY','FZ','MX','MY','MZ']].astype(float)
+    
+
+    
     SapModel.SetModelIsLocked(False)
-    #Creación de combos
+    #Creación de cases
     for load in seism_modal_cases.keys():
+        SapModel.LoadPatterns.Add('found '+load,5)
         case = seism_modal_cases[load][0]
-        mode = int(eq_factor.query('load==@load').iloc[0,2])
+        point_loads = (point_table.query('OutputCase==@case')
+                       .query('StepNumber == @mode_x' if seism_modal_cases[load][1] == 'x'
+                              else'StepNumber == @mode_y' ))
         factor = eq_factor.query('load==@load').iloc[0,3]
-        SapModel.RespCombo.Add('found '+load,0)
-        SapModel.RespCombo.SetCaseList_1('found '+load,0,case,mode,factor)
+        for p_name in point_loads.UniqueName:
+            p_loads = (point_loads.query('UniqueName==@p_name')
+                            [['FX','FY','FZ','MX','MY','MZ']].iloc[0])
+            p_loads = [float(load)*float(factor) for load in p_loads]
+            SapModel.PointObj.SetLoadForce(p_name,'found ' +load,p_loads,Replace=True)
+
+
+
+
+def create_found_seism_3(SapModel,
+                         seism_modal_cases =   {'SDx':('Modal','x'),
+                                                'SDx +eY':('Modal +eY','x'),
+                                                'SDx -eY':('Modal -eY','x'),
+                                                'SDy':('Modal','y'),
+                                                'SDy +eX':('Modal +eX','y'),
+                                                'SDy -eX':('Modal -eX','y')}):
+    
+    '''
+    Escala el analisis modal para análisis de la cimentación
+    combos equivalentes a partir del modo 1 (mérodo 2)
+    input:
+    seism_modal_cases: dict{case:(modal_name,direction)}
+    ''' 
+
+    #Identificamos los modos principales
+    _,modal = get_table(SapModel,'Modal Participating Mass Ratios')
+    modal = modal[['Case','Mode','UX','UY','RZ']]
+    modal['Mode'] = modal.Mode.astype(int)
+    modal['UX']=modal.UX.astype(float)
+    mode_x = str(modal[modal.UX == max(modal.UX)].Mode.iloc[0])
+    modal['UY']=modal.UY.astype(float)
+    mode_y = str(modal[modal.UY == max(modal.UY)].Mode.iloc[0])
+
+    #Cálculo de los momentos de volteo
+    set_load = list(seism_modal_cases.keys()) + [i[0] for i in seism_modal_cases.values()]
+    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_load)
+    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])                          
+    _, table = get_table(SapModel,'Base Reactions',set_envelopes=False)
+    table = table[['OutputCase','StepNumber','MX','MY']].query('StepNumber==@mode_x or StepNumber==@mode_y or StepNumber==""')
+    table['over_moment'] = np.maximum(abs(table['MX'].astype(float)), abs(table['MY'].astype(float)))
+    table = table[['OutputCase','StepNumber','over_moment']]
+    
+    #Calculo del factor de amplificacion en tuplas
+    eq_factor = pd.DataFrame([(load,
+                            case:=seism_modal_cases[load][0],
+                            mode:=mode_x if seism_modal_cases[load][1] == 'x' else mode_y,
+                            (table.query('OutputCase==@load')['over_moment'].iloc[0] /
+                            table.query('OutputCase==@case and StepNumber==@mode')['over_moment'].iloc[0]))  
+                            for load in seism_modal_cases.keys()],
+                            columns=['load','case','mode','factor'])
+    
+    #Extraccion de puntos en base
+    modal_cases = [i[0] for i in seism_modal_cases.values()]
+    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(modal_cases)
+    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([]) 
+    _,point_table = get_table(SapModel,'Joint Reactions',set_envelopes=False)
+    point_table = (point_table.query('StepNumber == @mode_x or StepNumber == @mode_y')
+                   [['OutputCase','StepNumber','UniqueName','FX','FY','FZ','MX','MY','MZ']])
+    point_table[['FX','FY','FZ','MX','MY','MZ']].astype(float)
+    
+
+    
+    SapModel.SetModelIsLocked(False)
+    #Creación de cases
+    for load in seism_modal_cases.keys():
+        SapModel.LoadPatterns.Add('found '+load,5)
+        case = seism_modal_cases[load][0]
+        point_loads = (point_table.query('OutputCase==@case')
+                       .query('StepNumber == @mode_x' if seism_modal_cases[load][1] == 'x'
+                              else'StepNumber == @mode_y' ))
+        factor = eq_factor.query('load==@load').iloc[0,3]
+        for p_name in point_loads.UniqueName:
+            p_loads = (point_loads.query('UniqueName==@p_name')
+                            [['FX','FY','FZ','MX','MY','MZ']].iloc[0])
+            p_loads = [float(load)*float(factor) for load in p_loads]
+            SapModel.PointObj.SetLoadForce(p_name,'found ' +load,p_loads,Replace=True)
+
+
 
 
 if __name__ == '__main__':
@@ -380,6 +470,8 @@ if __name__ == '__main__':
     #print(set_envelopes_for_dysplay(SapModel))
     #_,table = get_table(SapModel,'Story Forces')
 
-    create_found_seism_2(SapModel,seism_modal_cases =   {'SDx':('Modal','x'),
-                                                       'SDy':('Modal','y')})
+    # create_found_seism_2(SapModel,seism_modal_cases =   {'SDx':('Modal','x'),
+    #                                                    'SDy':('Modal','y')})
+    
+    create_found_seism_2(SapModel)
 
