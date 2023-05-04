@@ -243,6 +243,64 @@ def draw_beam(SapModel,pi,pf,b,h):
     propName = f'Viga {b} x {h} cm'
     SapModel.FrameObj.AddByCoord(Xi,Yi,Zi,Xj,Yj,Zj,PropName=propName)
 
+def combination_CQC (r_mod = np.array([1,2,3,4]), w_frec = np.array([1,2,3,4]), β = 0.05):
+    '''
+    Esta Función Nos permite obtener la respuesta máxima a partir de los valores de las respuestas 
+    obtenidas para cada modo mediante la Combinación Cuadrática Completa:
+          ______________________
+    rn = √ Σ Σ ( rni x ρij x rnj)
+           i j 
+
+    Donde:
+    rn = representa la respuesta elástica máxima esperada para el caso "n"
+    rni = respuesta en el modo de vibración "i" para el caso "n"
+    rnj = respuesta en el modo de vibración "j" para el caso "n"
+    i,j = 1, 2, 3 ... #total de modos
+    ρij = coeficiente de correlación del modo "i" con el modo "j"
+
+    Donde:
+    ρij = 8 β^2 (1 + λ) λ^3/2
+          -----------------------------------
+          (1-λ^2)^2 + 4 β^2 λ (1 + λ)^2
+
+    λ = wj / wi  --> son las frecuencias angulares de los modos  i, j
+    β = 0.05 ---> franccion de amortiguamiento crítico se puede suponer constante para todos los modos
+        
+    '''
+    N_modos = np.shape(r_mod)[0]
+    r_max = []
+
+    #Verificamos que coincidan el numero de modos con el numero de frecuencias w
+    if N_modos != np.shape(w_frec)[0]:
+        print ("El numero de modos no coincide con el numero de frecuencias")
+        return None
+    #Verificamos que se haya ingresado un vector de Respuestas (Matriz nx1)
+    try:
+        N_gdl = np.shape(r_mod)[1]
+        if N_gdl >= 1:
+            print ("las respuestas modales deben estar ingresadas como vector")
+            return None
+    except:
+        pass
+    
+    p = np.zeros((N_modos, N_modos))
+    #Hallamos coeficiente de correlación ρij
+    for i in range(N_modos):
+            for j in range(N_modos):
+                λ = w_frec[j]/w_frec[i]
+                p[i,j] = (8*(β**2)*(1+λ)*(λ**(3/2)))/(((1-(λ**2))**2) + (4*(β**2)*λ*(1+λ)**2)) 
+
+    #Hallamos la sumatoria
+    Sum_2 = 0  #Inicializamos la variable que acumulará la sumatoria total
+    for i in range(N_modos):
+        Sum_1 = 0
+        for j in range(N_modos):
+            Sum_1 += r_mod[i]*p[i,j]*r_mod[j]
+        Sum_2 += Sum_1
+    r_total = Sum_2**0.5   
+    r_max = r_total         #Si queremos que la respuesta sea un vector de 1x1 -->  [resp]
+    r_max = float(r_total)  #Si queremos que la respuesta sea un valor numérico --->  resp
+    return r_max
 
 
 # Generación de casos sismico
@@ -262,6 +320,8 @@ def create_seism_cases(SapModel,
            spectres = dict{name:direction}
     '''
     pass
+
+
 
 # Generacion de cargas a exportar
 def create_found_seism(SapModel,
