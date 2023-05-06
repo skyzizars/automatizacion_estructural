@@ -6,34 +6,41 @@ import numpy as np
 from scipy import interpolate
 
 
-def connect_to_etabs():
+
+def connect_to_csi(prog):
     try:
         #create API helper object
-        helper = comtypes.client.CreateObject('ETABSv1.Helper')
-        helper = helper.QueryInterface(comtypes.gen.ETABSv1.cHelper)
+        
+        helper = comtypes.client.CreateObject(f'{prog}v1.Helper')
+        exec(f'helper = helper.QueryInterface(comtypes.gen.{prog}v1.cHelper)')
         #attach to a running instance of ETABS
-        EtabsObject = helper.GetObject("CSI.ETABS.API.ETABSObject")
+        EtabsObject = helper.GetObject(f"CSI.{prog}.API.ETABSObject")
         #create SapModel object
         SapModel = EtabsObject.SapModel
         
         try:
             set_envelopes_for_dysplay(SapModel)
         except:
-            EtabsObject=comtypes.client.GetActiveObject("CSI.ETABS.API.ETABSObject")
+            EtabsObject=comtypes.client.GetActiveObject(f"CSI.{prog}.API.ETABSObject")
             SapModel=EtabsObject.SapModel
             try:
-                get_table(SapModel,'Modal Participating Mass Ratios')
+                set_envelopes_for_dysplay(SapModel)
             except:
-                print('Lo sentimos no es posible concetarnos al API de ETABS')
+                print('Lo sentimos no es posible concetarnos al API de ETABS')  
                 return None,None
         
         return EtabsObject, SapModel
         
     except:
-        print('No es posible conectarse a ETABS')
+        print(f'No es posible conectarse a {prog}')
         return None,None
 
 
+def connect_to_etabs():
+    return connect_to_csi('ETABS')
+
+def connect_to_safe():
+    return connect_to_csi('SAFE')
     
 
 def set_units(SapModel,unit):
@@ -448,13 +455,14 @@ def create_found_seism_2(SapModel,
         for p_name in point_loads.UniqueName:
             p_loads = (point_loads.query('UniqueName==@p_name')
                             [['FX','FY','FZ','MX','MY','MZ']].iloc[0])
-            p_loads = [float(load)*float(factor) for load in p_loads]
+            p_loads = [float(load)*float(factor)*-1 for load in p_loads]
             SapModel.PointObj.SetLoadForce(p_name,'found ' +load,p_loads,Replace=True)
 
 
 
 
 def create_found_seism_3(SapModel,
+                         n_Modes,
                          seism_modal_cases =   {'SDx':('Modal','x'),
                                                 'SDx +eY':('Modal +eY','x'),
                                                 'SDx -eY':('Modal -eY','x'),
