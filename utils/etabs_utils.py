@@ -3,36 +3,44 @@
 import comtypes.client
 import pandas as pd
 import numpy as np
+from scipy import interpolate
 
 
-def connect_to_etabs():
+
+def connect_to_csi(prog):
     try:
         #create API helper object
-        helper = comtypes.client.CreateObject('ETABSv1.Helper')
-        helper = helper.QueryInterface(comtypes.gen.ETABSv1.cHelper)
+        
+        helper = comtypes.client.CreateObject(f'{prog}v1.Helper')
+        exec(f'helper = helper.QueryInterface(comtypes.gen.{prog}v1.cHelper)')
         #attach to a running instance of ETABS
-        EtabsObject = helper.GetObject("CSI.ETABS.API.ETABSObject")
+        EtabsObject = helper.GetObject(f"CSI.{prog}.API.ETABSObject")
         #create SapModel object
         SapModel = EtabsObject.SapModel
         
         try:
             set_envelopes_for_dysplay(SapModel)
         except:
-            EtabsObject=comtypes.client.GetActiveObject("CSI.ETABS.API.ETABSObject")
+            EtabsObject=comtypes.client.GetActiveObject(f"CSI.{prog}.API.ETABSObject")
             SapModel=EtabsObject.SapModel
             try:
-                get_table(SapModel,'Modal Participating Mass Ratios')
+                set_envelopes_for_dysplay(SapModel)
             except:
-                print('Lo sentimos no es posible concetarnos al API de ETABS')
+                print('Lo sentimos no es posible concetarnos al API de ETABS')  
                 return None,None
         
         return EtabsObject, SapModel
         
     except:
-        print('No es posible conectarse a ETABS')
+        print(f'No es posible conectarse a {prog}')
         return None,None
 
 
+def connect_to_etabs():
+    return connect_to_csi('ETABS')
+
+def connect_to_safe():
+    return connect_to_csi('SAFE')
     
 
 def set_units(SapModel,unit):
@@ -447,13 +455,14 @@ def create_found_seism_2(SapModel,
         for p_name in point_loads.UniqueName:
             p_loads = (point_loads.query('UniqueName==@p_name')
                             [['FX','FY','FZ','MX','MY','MZ']].iloc[0])
-            p_loads = [float(load)*float(factor) for load in p_loads]
+            p_loads = [float(load)*float(factor)*-1 for load in p_loads]
             SapModel.PointObj.SetLoadForce(p_name,'found ' +load,p_loads,Replace=True)
 
 
 
 
 def create_found_seism_3(SapModel,
+                         n_Modes,
                          seism_modal_cases =   {'SDx':('Modal','x'),
                                                 'SDx +eY':('Modal +eY','x'),
                                                 'SDx -eY':('Modal -eY','x'),
@@ -463,63 +472,114 @@ def create_found_seism_3(SapModel,
     
     '''
     Escala el analisis modal para análisis de la cimentación
-    combos equivalentes a partir del modo 1 (mérodo 2)
+    combos equivalentes a partir de las fuerzas cortantes (Método3)
     input:
     seism_modal_cases: dict{case:(modal_name,direction)}
     ''' 
-
+    #Aceleración de la gravedad
+    a_g = 9.806
     #Identificamos los modos principales
     _,modal = get_table(SapModel,'Modal Participating Mass Ratios')
-    modal = modal[['Case','Mode','UX','UY','RZ']]
-    modal['Mode'] = modal.Mode.astype(int)
+    modal = modal[['Case','Mode','UX','UY','RZ','Period']]
+    modal['Mode'] = modal.Mode.astype(str)
     modal['UX']=modal.UX.astype(float)
-    mode_x = str(modal[modal.UX == max(modal.UX)].Mode.iloc[0])
     modal['UY']=modal.UY.astype(float)
-    mode_y = str(modal[modal.UY == max(modal.UY)].Mode.iloc[0])
+    modal['Period']=modal.Period.astype(float)
+    modos_i = modal.Mode.unique()
 
-    #Cálculo de los momentos de volteo
-    set_load = list(seism_modal_cases.keys()) + [i[0] for i in seism_modal_cases.values()]
-    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(set_load)
+    #Asignamos el espectro de aceleraciones para cada direccion
+    a_x = SapModel.Func.GetValues('ESPECTRO E.030-2018') #Se debe colocar el nombre del Spectrum definido en etabs
+    a_y = SapModel.Func.GetValues('ESPECTRO E.030-2018') #Se debe colocar el nombre del Spectrum definido en etabs
+    
+    espectro_x = interpolate.interp1d(a_x[1], a_x[2], kind='linear')
+    espectro_y = interpolate.interp1d(a_y[1], a_y[2], kind='linear')
+  
+
+    #Tabla de Fuerzas para los modos
+    set_load = [i[0] for i in seism_modal_cases.values()]
+    unique_load =[]
+    [unique_load.append(load) for load in set_load if load not in unique_load]
+    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(unique_load)
     SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])                          
-    _, table = get_table(SapModel,'Base Reactions',set_envelopes=False)
-    table = table[['OutputCase','StepNumber','MX','MY']].query('StepNumber==@mode_x or StepNumber==@mode_y or StepNumber==""')
-    table['over_moment'] = np.maximum(abs(table['MX'].astype(float)), abs(table['MY'].astype(float)))
-    table = table[['OutputCase','StepNumber','over_moment']]
+    _,table = get_table(SapModel,'Base Reactions',set_envelopes=False)
+    table = table[['OutputCase','StepNumber','FX','FY']]
+    table['FX'] = abs(table.FX.astype(float))
+    table['FY'] = abs(table.FY.astype(float))
+    table = table[['OutputCase','StepNumber','FX','FY']]
+    _,table_Mass = get_table(SapModel,'Mass Summary by Story')
+    mass = table_Mass['UX'].astype(float).sum() - float(table_Mass.loc[table_Mass['Story']=='Base']['UX']) #RESTAMOS LA MASA DE LA BASE
+
+    #Listas temporales
+    list_Case = []
+    list_Mode = []
+    list_Shear_etbx = []
+    list_Shear_etby = []
+    list_Shear_sgx = []
+    list_Shear_sgy = []
+    list_factor_x = []
+    list_factor_y = []
     
-    #Calculo del factor de amplificacion en tuplas
-    eq_factor = pd.DataFrame([(load,
-                            case:=seism_modal_cases[load][0],
-                            mode:=mode_x if seism_modal_cases[load][1] == 'x' else mode_y,
-                            (table.query('OutputCase==@load')['over_moment'].iloc[0] /
-                            table.query('OutputCase==@case and StepNumber==@mode')['over_moment'].iloc[0]))  
-                            for load in seism_modal_cases.keys()],
-                            columns=['load','case','mode','factor'])
+    for modo in modos_i:
+        #Cálculo de las cortantes para el modo i
+        for load in unique_load:
+            t_modoi = float(modal.query('Mode==@modo and Case==@load').loc[:,'Period'].iloc[0])
+            acel_x, acel_y = espectro_x(t_modoi), espectro_y(t_modoi)
+            mass_modx = float(modal.query('Mode==@modo and Case==@load').loc[:,'UX'].iloc[0])
+            mass_mody = float(modal.query('Mode==@modo and Case==@load').loc[:,'UY'].iloc[0])
+            shear_etb_x = float(table.query('StepNumber==@modo and OutputCase==@load').loc[:,'FX'].iloc[0])
+            shear_etb_y = float(table.query('StepNumber==@modo and OutputCase==@load').loc[:,'FY'].iloc[0])
+            shear_calc_x = acel_x*mass*mass_modx*a_g
+            shear_calc_y = acel_y*mass*mass_mody*a_g
+            factor_x = shear_calc_x/shear_etb_x
+            factor_y = shear_calc_y/shear_etb_y
+            #Guardamos los resultados
+            list_Case.append(load)
+            list_Mode.append(modo)
+            list_Shear_etbx.append(shear_etb_x)
+            list_Shear_etby.append(shear_etb_y)
+            list_Shear_sgx.append(shear_calc_x)
+            list_Shear_sgy.append(shear_calc_y)
+            list_factor_x.append(factor_x)
+            list_factor_y.append(factor_y)
     
+    tb_factor = pd.DataFrame({'Case': list_Case,
+                              'Mode': list_Mode,
+                              'VX_etb': list_Shear_etbx, 
+                              'VX_calc': list_Shear_sgx,
+                              'factor_X': list_factor_x,
+                              'VY_etb': list_Shear_etby, 
+                              'VY_calc': list_Shear_sgy,
+                              'factor_Y': list_factor_y})
+    print(tb_factor[['Case','Mode','VX_calc','factor_X','VY_calc','factor_Y']])
+
     #Extraccion de puntos en base
-    modal_cases = [i[0] for i in seism_modal_cases.values()]
-    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(modal_cases)
+    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(unique_load)
     SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([]) 
     _,point_table = get_table(SapModel,'Joint Reactions',set_envelopes=False)
-    point_table = (point_table.query('StepNumber == @mode_x or StepNumber == @mode_y')
-                   [['OutputCase','StepNumber','UniqueName','FX','FY','FZ','MX','MY','MZ']])
+    point_table = (point_table.query('StepNumber !=""')
+                [['OutputCase','StepNumber','UniqueName','FX','FY','FZ','MX','MY','MZ']])
     point_table[['FX','FY','FZ','MX','MY','MZ']].astype(float)
-    
 
-    
     SapModel.SetModelIsLocked(False)
+    direction = ['x','y']
+   
     #Creación de cases
-    for load in seism_modal_cases.keys():
-        SapModel.LoadPatterns.Add('found '+load,5)
-        case = seism_modal_cases[load][0]
-        point_loads = (point_table.query('OutputCase==@case')
-                       .query('StepNumber == @mode_x' if seism_modal_cases[load][1] == 'x'
-                              else'StepNumber == @mode_y' ))
-        factor = eq_factor.query('load==@load').iloc[0,3]
-        for p_name in point_loads.UniqueName:
-            p_loads = (point_loads.query('UniqueName==@p_name')
-                            [['FX','FY','FZ','MX','MY','MZ']].iloc[0])
-            p_loads = [float(load)*float(factor) for load in p_loads]
-            SapModel.PointObj.SetLoadForce(p_name,'found ' +load,p_loads,Replace=True)
+    for modo in modos_i:
+        for load in unique_load:
+            point_loads = (point_table.query('OutputCase==@load').query('StepNumber == @modo'))
+            for eje in direction:
+                carga = 'f('+load+')_'+modo+eje
+                SapModel.LoadPatterns.Add(carga,5)    
+                if eje == 'x':
+                    factor = tb_factor.query('Case==@load and Mode==@modo').iloc[0,4]
+                elif eje == 'y':
+                    factor = tb_factor.query('Case==@load and Mode==@modo').iloc[0,7]
+
+                for p_name in point_loads.UniqueName:
+                    p_loads = (point_loads.query('UniqueName==@p_name')
+                                    [['FX','FY','FZ','MX','MY','MZ']].iloc[0])
+                    p_loads = [float(load)*-1*float(factor) for load in p_loads]
+                    SapModel.PointObj.SetLoadForce(p_name,carga,p_loads,Replace=True)
 
 
 
