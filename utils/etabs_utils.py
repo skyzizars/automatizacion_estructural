@@ -251,7 +251,7 @@ def draw_beam(SapModel,pi,pf,b,h):
     propName = f'Viga {b} x {h} cm'
     SapModel.FrameObj.AddByCoord(Xi,Yi,Zi,Xj,Yj,Zj,PropName=propName)
 
-def combination_CQC (r_mod = np.array([1,2,3,4]), w_frec = np.array([1,2,3,4]), β = 0.05):
+def combination_CQC (r_mod, w_frec, β = 0.05):
     '''
     Esta Función Nos permite obtener la respuesta máxima a partir de los valores de las respuestas 
     obtenidas para cada modo mediante la Combinación Cuadrática Completa:
@@ -309,26 +309,6 @@ def combination_CQC (r_mod = np.array([1,2,3,4]), w_frec = np.array([1,2,3,4]), 
     r_max = r_total         #Si queremos que la respuesta sea un vector de 1x1 -->  [resp]
     r_max = float(r_total)  #Si queremos que la respuesta sea un valor numérico --->  resp
     return r_max
-
-
-# Generación de casos sismico
-def create_seism_cases(SapModel,
-                       mass_sources={'MsSrc':['x','y'],
-                                     'MsSrc eX+':['x'],
-                                     'MsSrc eX-':['x'],
-                                     'MsSrc eY+':['y'],
-                                     'MsSrc eY-':['y'],},
-                       spectres={'Espectro XX':'x','Espectro YY':'y'}):
-    '''
-    Crea cases de sismo dinámico, 
-    requiere:
-    mass sources con excentricidad
-    y espectros de respuestas definidos en el programa
-    input: mass_sources = dict{name:[list_e_irections]}
-           spectres = dict{name:direction}
-    '''
-    pass
-
 
 
 # Generacion de cargas a exportar
@@ -462,13 +442,15 @@ def create_found_seism_2(SapModel,
 
 
 def create_found_seism_3(SapModel,
-                         n_Modes,
+                         n_Modes=12,
                          seism_modal_cases =   {'SDx':('Modal','x'),
                                                 'SDx +eY':('Modal +eY','x'),
                                                 'SDx -eY':('Modal -eY','x'),
                                                 'SDy':('Modal','y'),
                                                 'SDy +eX':('Modal +eX','y'),
-                                                'SDy -eX':('Modal -eX','y')}):
+                                                'SDy -eX':('Modal -eX','y')},
+                        spectres = {'x' : 'ESPECTRO E.030-2018',
+                                    'y' : 'ESPECTRO E.030-2018'}):
     
     '''
     Escala el analisis modal para análisis de la cimentación
@@ -488,8 +470,8 @@ def create_found_seism_3(SapModel,
     modos_i = modal.Mode.unique()
 
     #Asignamos el espectro de aceleraciones para cada direccion
-    a_x = SapModel.Func.GetValues('ESPECTRO E.030-2018') #Se debe colocar el nombre del Spectrum definido en etabs
-    a_y = SapModel.Func.GetValues('ESPECTRO E.030-2018') #Se debe colocar el nombre del Spectrum definido en etabs
+    a_x = SapModel.Func.GetValues(spectres['x']) #Se debe colocar el nombre del Spectrum definido en etabs
+    a_y = SapModel.Func.GetValues(spectres['y']) #Se debe colocar el nombre del Spectrum definido en etabs
     
     espectro_x = interpolate.interp1d(a_x[1], a_x[2], kind='linear')
     espectro_y = interpolate.interp1d(a_y[1], a_y[2], kind='linear')
@@ -497,27 +479,26 @@ def create_found_seism_3(SapModel,
 
     #Tabla de Fuerzas para los modos
     set_load = [i[0] for i in seism_modal_cases.values()]
-    unique_load =[]
-    [unique_load.append(load) for load in set_load if load not in unique_load]
+    unique_load =list(set(set_load))
     SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(unique_load)
     SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])                          
     _,table = get_table(SapModel,'Base Reactions',set_envelopes=False)
     table = table[['OutputCase','StepNumber','FX','FY']]
-    table['FX'] = abs(table.FX.astype(float))
-    table['FY'] = abs(table.FY.astype(float))
+    table['FX'] = table.FX.astype(float)
+    table['FY'] = table.FY.astype(float)
     table = table[['OutputCase','StepNumber','FX','FY']]
     _,table_Mass = get_table(SapModel,'Mass Summary by Story')
-    mass = table_Mass['UX'].astype(float).sum() - float(table_Mass.loc[table_Mass['Story']=='Base']['UX']) #RESTAMOS LA MASA DE LA BASE
+    mass = table_Mass['UX'].astype(float).sum() - float(table_Mass[table_Mass['Story']=='Base']['UX'].iloc[0]) #RESTAMOS LA MASA DE LA BASE
 
     #Listas temporales
-    list_Case = []
-    list_Mode = []
-    list_Shear_etbx = []
-    list_Shear_etby = []
-    list_Shear_sgx = []
-    list_Shear_sgy = []
-    list_factor_x = []
-    list_factor_y = []
+    tb_factor = pd.DataFrame({'Case': [],
+                              'Mode': [],
+                              'VX_etb': [], 
+                              'VX_calc': [],
+                              'factor_X': [],
+                              'VY_etb': [], 
+                              'VY_calc': [],
+                              'factor_Y': []})
     
     for modo in modos_i:
         #Cálculo de las cortantes para el modo i
@@ -533,24 +514,8 @@ def create_found_seism_3(SapModel,
             factor_x = shear_calc_x/shear_etb_x
             factor_y = shear_calc_y/shear_etb_y
             #Guardamos los resultados
-            list_Case.append(load)
-            list_Mode.append(modo)
-            list_Shear_etbx.append(shear_etb_x)
-            list_Shear_etby.append(shear_etb_y)
-            list_Shear_sgx.append(shear_calc_x)
-            list_Shear_sgy.append(shear_calc_y)
-            list_factor_x.append(factor_x)
-            list_factor_y.append(factor_y)
+            tb_factor.loc[len(tb_factor)] = [load,modo,shear_etb_x,shear_calc_x,factor_x,shear_etb_y,shear_calc_y,factor_y]
     
-    tb_factor = pd.DataFrame({'Case': list_Case,
-                              'Mode': list_Mode,
-                              'VX_etb': list_Shear_etbx, 
-                              'VX_calc': list_Shear_sgx,
-                              'factor_X': list_factor_x,
-                              'VY_etb': list_Shear_etby, 
-                              'VY_calc': list_Shear_sgy,
-                              'factor_Y': list_factor_y})
-    print(tb_factor[['Case','Mode','VX_calc','factor_X','VY_calc','factor_Y']])
 
     #Extraccion de puntos en base
     SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(unique_load)
@@ -584,6 +549,7 @@ def create_found_seism_3(SapModel,
 
 
 
+
 if __name__ == '__main__':
     _,SapModel = connect_to_etabs()
     #SapModel.SetModelIsLocked(False)
@@ -593,5 +559,8 @@ if __name__ == '__main__':
     # create_found_seism_2(SapModel,seism_modal_cases =   {'SDx':('Modal','x'),
     #                                                    'SDy':('Modal','y')})
     
-    create_found_seism_2(SapModel)
+    import time
 
+    tiempo_inicial = time.time()
+    create_found_seism_3(SapModel)
+    print(time.time()-tiempo_inicial)
