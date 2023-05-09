@@ -462,7 +462,7 @@ def create_found_seism_2(SapModel,
 
 
 def create_found_seism_3(SapModel,
-                         n_Modes,
+                         n_Modes=12,
                          seism_modal_cases =   {'SDx':('Modal','x'),
                                                 'SDx +eY':('Modal +eY','x'),
                                                 'SDx -eY':('Modal -eY','x'),
@@ -562,24 +562,77 @@ def create_found_seism_3(SapModel,
 
     SapModel.SetModelIsLocked(False)
     direction = ['x','y']
-   
+    tabla_fload_3 = [] #Esta tabla guardara datos como Case, Modo, direccion, facilitando la combinacion CQC
+
     #Creación de cases
     for modo in modos_i:
-        for load in unique_load:
+        for case in unique_load:
             point_loads = (point_table.query('OutputCase==@load').query('StepNumber == @modo'))
+            
             for eje in direction:
-                carga = 'f('+load+')_'+modo+eje
+                carga = 'f('+case+')_'+modo+eje
                 SapModel.LoadPatterns.Add(carga,5)    
                 if eje == 'x':
-                    factor = tb_factor.query('Case==@load and Mode==@modo').iloc[0,4]
+                    factor = tb_factor.query('Case==@case and Mode==@modo').iloc[0,4]
                 elif eje == 'y':
-                    factor = tb_factor.query('Case==@load and Mode==@modo').iloc[0,7]
-
+                    factor = tb_factor.query('Case==@case and Mode==@modo').iloc[0,7]
+                
                 for p_name in point_loads.UniqueName:
                     p_loads = (point_loads.query('UniqueName==@p_name')
                                     [['FX','FY','FZ','MX','MY','MZ']].iloc[0])
                     p_loads = [float(load)*-1*float(factor) for load in p_loads]
                     SapModel.PointObj.SetLoadForce(p_name,carga,p_loads,Replace=True)
+                list_Fload_3 = [carga, case, modo, eje]
+                tabla_fload_3.append(list_Fload_3)
+    tabla_fload_3 = pd.DataFrame(tabla_fload_3,columns=['OutputCase', 'Case', 'Mode', 'Direction'])
+    return tabla_fload_3
+
+def Shear_Base_Metod3 (SapModel, tabla_fload_3=pd.DataFrame([])):
+    Loads = list(tabla_fload_3['OutputCase'].unique())
+    Cases = list(tabla_fload_3['Case'].unique())
+    _,modal = get_table(SapModel,'Modal Participating Mass Ratios')
+    modal = modal[['Case','Mode','Period']]
+    modal['Period']=modal.Period.astype(float)
+    modal['Mode']=modal.Mode.astype(int)
+    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(Loads)
+    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])
+    _,table = get_table(SapModel,'Base Reactions',set_envelopes=False)
+    table = table[['OutputCase','FX','FY']]
+    table['FX'] = table.FX.astype(float)
+    table['FY'] = table.FY.astype(float)
+    #Agregamos la columna de los modos y direccion a la tabla de reacciones
+    table_V = pd.merge(table, tabla_fload_3, left_on='OutputCase', right_on='OutputCase', how= 'outer')
+    table_V ['Mode']=table_V.Mode.astype(int)
+    # print(table_V)
+    Tabla_Vbasal = []
+
+    for case in Cases:
+        #ordenamos de menor a mayor los modos
+        modal_sort = modal.query('Case==@case').sort_values('Mode')
+        Periodos = np.array(list(modal_sort['Period']))
+        w_frec = 2*3.14159265/Periodos
+        #Para la direccion X
+        table_sort = table_V.query('Case==@case and Direction=="x"').sort_values('Mode')
+        List_SDX_Vx = np.array(list(table_sort['FX']))
+        List_SDX_Vy = np.array(list(table_sort['FY']))
+        #Realizamos la combinacion CQC
+        Vx_SDX = combination_CQC(List_SDX_Vx, w_frec, 0.05)
+        Vy_SDX = combination_CQC(List_SDX_Vy, w_frec, 0.05)
+        Lista_SDX = ['SDin_X',case,Vx_SDX,Vy_SDX]
+        Tabla_Vbasal.append(Lista_SDX)
+        #Para la direccion Y
+        table_sort = table_V.query('Case==@case and Direction=="y"').sort_values('Mode')
+        List_SDY_Vx = np.array(list(table_sort['FX']))
+        List_SDY_Vy = np.array(list(table_sort['FY']))
+        #Realizamos la combinacion CQC
+        Vx_SDY = combination_CQC(List_SDY_Vx, w_frec, 0.05)
+        Vy_SDY = combination_CQC(List_SDY_Vy, w_frec, 0.05)
+        Lista_SDY = ['SDin_Y',case,Vx_SDY,Vy_SDY]
+        Tabla_Vbasal.append(Lista_SDY)
+    
+    Tabla_Vbasal = pd.DataFrame(Tabla_Vbasal,columns=['Sismo', 'Case', 'VX', 'VY'])
+    print (Tabla_Vbasal)
+
 
 
 
