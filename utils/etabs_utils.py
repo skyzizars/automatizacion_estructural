@@ -470,8 +470,8 @@ def create_found_seism_3(SapModel,
     modos_i = modal.Mode.unique()
 
     #Asignamos el espectro de aceleraciones para cada direccion
-    a_x = SapModel.Func.GetValues(spectres['x']) #Se debe colocar el nombre del Spectrum definido en etabs
-    a_y = SapModel.Func.GetValues(spectres['y']) #Se debe colocar el nombre del Spectrum definido en etabs
+    a_x = SapModel.Func.GetValues(spectres['x']) 
+    a_y = SapModel.Func.GetValues(spectres['y']) 
     
     espectro_x = interpolate.interp1d(a_x[1], a_x[2], kind='linear')
     espectro_y = interpolate.interp1d(a_y[1], a_y[2], kind='linear')
