@@ -251,7 +251,7 @@ def draw_beam(SapModel,pi,pf,b,h):
     propName = f'Viga {b} x {h} cm'
     SapModel.FrameObj.AddByCoord(Xi,Yi,Zi,Xj,Yj,Zj,PropName=propName)
 
-def combination_CQC (r_mod, T, β = 0.05):
+def comb_CQC (r_mod, T, β = 0.05):
     '''
     Esta Función Nos permite obtener la respuesta máxima a partir de los valores de las respuestas 
     obtenidas para cada modo mediante la Combinación Cuadrática Completa:
@@ -280,7 +280,7 @@ def combination_CQC (r_mod, T, β = 0.05):
     T = np.array(T)
 
     # Hallar las frecuencias a partir de los periodos
-    ω = 1/T
+    ω = 2*3.14159265/T
 
     #Verificamos que coincidan el numero de modos con el numero de peridos ω
     if np.shape(r_mod)[0] != np.shape(T)[0]:
@@ -288,12 +288,13 @@ def combination_CQC (r_mod, T, β = 0.05):
         return None        
     
     #Hallamos coeficiente de rho_matrix
-    rho = np.vectorize(lambda β , λ : (8*(β**2)*(1+λ)*(λ**(3/2)))/(((1-(λ**2))**2) + (4*(β**2)*λ*(1+λ)**2))) 
-    λ_matrix = ω[:, np.newaxis]/ω
+    rho = np.vectorize(lambda β , λ : 
+                       (8*(β**2)*(1+λ)*(λ**(3/2)))/(((1-(λ**2))**2) + (4*(β**2)*λ*(1+λ)**2))) 
+    λ_matrix = ω/ω[:, np.newaxis]
     rho_matrix = rho(β,λ_matrix)
 
     #Sumatoria total
-    return np.sum(r_mod[:, np.newaxis]*r_mod*rho_matrix)
+    return np.sum(r_mod[:, np.newaxis]*r_mod*rho_matrix)**0.5
 
 
 
@@ -448,12 +449,10 @@ def create_found_seism_3(SapModel,
     a_g = 9.806
     #Identificamos los modos principales
     _,modal = get_table(SapModel,'Modal Participating Mass Ratios')
-    modal = modal[['Case','Mode','UX','UY','RZ','Period']]
-    modal['Mode'] = modal.Mode.astype(str)
+    modal = modal[['Case','Mode','UX','UY','Period']]
     modal['UX']=modal.UX.astype(float)
     modal['UY']=modal.UY.astype(float)
     modal['Period']=modal.Period.astype(float)
-    modos_i = modal.Mode.unique()
 
     #Asignamos el espectro de aceleraciones para cada direccion
     a_x = SapModel.Func.GetValues(spectres['x']) 
@@ -467,122 +466,57 @@ def create_found_seism_3(SapModel,
     set_load = [i[0] for i in seism_modal_cases.values()]
     unique_load =list(set(set_load))
     SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(unique_load)
-    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])                          
+    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay(unique_load)                          
     _,table = get_table(SapModel,'Base Reactions',set_envelopes=False)
     table = table[['OutputCase','StepNumber','FX','FY']]
     table['FX'] = table.FX.astype(float)
     table['FY'] = table.FY.astype(float)
-    table = table[['OutputCase','StepNumber','FX','FY']]
     _,table_Mass = get_table(SapModel,'Mass Summary by Story')
     mass = table_Mass['UX'].astype(float).sum() - float(table_Mass[table_Mass['Story']=='Base']['UX'].iloc[0]) #RESTAMOS LA MASA DE LA BASE
 
-    #Listas temporales
-    tb_factor = pd.DataFrame({'Case': [],
-                              'Mode': [],
-                              'VX_etb': [], 
-                              'VX_calc': [],
-                              'factor_X': [],
-                              'VY_etb': [], 
-                              'VY_calc': [],
-                              'factor_Y': []})
+    #Agregando las fuerzas a la tabla principal
+    modal = modal.merge(table, right_on=['OutputCase','StepNumber'],left_on=['Case','Mode']).drop(['OutputCase','StepNumber'], axis=1)
+    #Calculando Factores
+    modal['VX'] = modal['Period'].apply(espectro_x)*mass*modal['UX']*a_g
+    modal['VY'] = modal['Period'].apply(espectro_y)*mass*modal['UY']*a_g
+    modal['FactorX'] = abs(modal['FX']/modal['VX']) 
+    modal['FactorY'] = abs(modal['FY']/modal['VY'])
     
-    for modo in modos_i:
-        #Cálculo de las cortantes para el modo i
-        for load in unique_load:
-            t_modoi = float(modal.query('Mode==@modo and Case==@load').loc[:,'Period'].iloc[0])
-            acel_x, acel_y = espectro_x(t_modoi), espectro_y(t_modoi)
-            mass_modx = float(modal.query('Mode==@modo and Case==@load').loc[:,'UX'].iloc[0])
-            mass_mody = float(modal.query('Mode==@modo and Case==@load').loc[:,'UY'].iloc[0])
-            shear_etb_x = float(table.query('StepNumber==@modo and OutputCase==@load').loc[:,'FX'].iloc[0])
-            shear_etb_y = float(table.query('StepNumber==@modo and OutputCase==@load').loc[:,'FY'].iloc[0])
-            shear_calc_x = acel_x*mass*mass_modx*a_g
-            shear_calc_y = acel_y*mass*mass_mody*a_g
-            factor_x = shear_calc_x/shear_etb_x
-            factor_y = shear_calc_y/shear_etb_y
-            #Guardamos los resultados
-            tb_factor.loc[len(tb_factor)] = [load,modo,shear_etb_x,shear_calc_x,factor_x,shear_etb_y,shear_calc_y,factor_y]
+    #Verificación Cortante en la base
+    seims_loads = [i for i in seism_modal_cases.keys()]
+    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(seims_loads)
+    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay(seims_loads)
+    _,shear_table = get_table(SapModel,'Base Reactions')
+    shear_table = shear_table[['OutputCase','FX','FY']]
+    shear_table['FX'] = shear_table.FX.astype(float)
+    shear_table['FY'] = shear_table.FY.astype(float)
+
+    #Añadir cases y sentidos a la tabla
+    shear_table['Case'] = shear_table.OutputCase.apply(lambda x: seism_modal_cases[x][0])
+    shear_table['Direction'] = shear_table.OutputCase.apply(lambda x: seism_modal_cases[x][1])
+
+    #Calculamos los cortes mediante CQC
+    shear_table = (shear_table.merge(modal.groupby('Case')
+                                    .apply(lambda row: comb_CQC(row['VX'], row['Period']))
+                                    .reset_index(),on='Case').rename(columns={0:'VX'}))
+    shear_table = (shear_table.merge(modal.groupby('Case')
+                        .apply(lambda row: comb_CQC(row['VY'], row['Period']))
+                        .reset_index(),on='Case').rename(columns={0:'VY'}))
     
+    #Calculamos el factor de escalamiento por cortante basal
+    shear_table['Factor'] = shear_table.apply(lambda row: row.VX/row.FX if row.Direction == 'x' else row.VY/row.FY, axis=1)
 
-    #Extraccion de puntos en base
-    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(unique_load)
-    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([]) 
-    _,point_table = get_table(SapModel,'Joint Reactions',set_envelopes=False)
-    point_table = (point_table.query('StepNumber !=""')
-                [['OutputCase','StepNumber','UniqueName','FX','FY','FZ','MX','MY','MZ']])
-    point_table[['FX','FY','FZ','MX','MY','MZ']].astype(float)
+    #Agregamos el factor calculado a la tabla principal
+    modal = modal.merge(shear_table[['OutputCase','Case','Factor','Direction']],on='Case')
 
-    SapModel.SetModelIsLocked(False)
-    direction = ['x','y']
-    tabla_fload_3 = [] #Esta tabla guardara datos como Case, Modo, direccion, facilitando la combinacion CQC
+    #Calculamos el factor final
+    modal['FoundFactor'] = modal.apply(lambda row: row['Factor']*row['FactorX'] if row.Direction == 'x' else row['Factor']*row['FactorY'],axis=1)
 
-    #Creación de cases
-    for modo in modos_i:
-        for case in unique_load:
-            point_loads = (point_table.query('OutputCase==@load').query('StepNumber == @modo'))
-            
-            for eje in direction:
-                carga = 'f('+case+')_'+modo+eje
-                SapModel.LoadPatterns.Add(carga,5)    
-                if eje == 'x':
-                    factor = tb_factor.query('Case==@case and Mode==@modo').iloc[0,4]
-                elif eje == 'y':
-                    factor = tb_factor.query('Case==@case and Mode==@modo').iloc[0,7]
-                
-                for p_name in point_loads.UniqueName:
-                    p_loads = (point_loads.query('UniqueName==@p_name')
-                                    [['FX','FY','FZ','MX','MY','MZ']].iloc[0])
-                    p_loads = [float(load)*-1*float(factor) for load in p_loads]
-                    SapModel.PointObj.SetLoadForce(p_name,carga,p_loads,Replace=True)
-                list_Fload_3 = [carga, case, modo, eje]
-                tabla_fload_3.append(list_Fload_3)
-    tabla_fload_3 = pd.DataFrame(tabla_fload_3,columns=['OutputCase', 'Case', 'Mode', 'Direction'])
-    return tabla_fload_3
-
-def Shear_Base_Metod3 (SapModel, tabla_fload_3=pd.DataFrame([])):
-    Loads = list(tabla_fload_3['OutputCase'].unique())
-    Cases = list(tabla_fload_3['Case'].unique())
-    _,modal = get_table(SapModel,'Modal Participating Mass Ratios')
-    modal = modal[['Case','Mode','Period']]
-    modal['Period']=modal.Period.astype(float)
+    #Tabla final
     modal['Mode']=modal.Mode.astype(int)
-    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(Loads)
-    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])
-    _,table = get_table(SapModel,'Base Reactions',set_envelopes=False)
-    table = table[['OutputCase','FX','FY']]
-    table['FX'] = table.FX.astype(float)
-    table['FY'] = table.FY.astype(float)
-    #Agregamos la columna de los modos y direccion a la tabla de reacciones
-    table_V = pd.merge(table, tabla_fload_3, left_on='OutputCase', right_on='OutputCase', how= 'outer')
-    table_V ['Mode']=table_V.Mode.astype(int)
-    # print(table_V)
-    Tabla_Vbasal = []
+    found_factors = modal[['OutputCase','Case','Direction','Mode','FoundFactor']].sort_values(by=['OutputCase','Mode']).reset_index(drop=True)
 
-    for case in Cases:
-        #ordenamos de menor a mayor los modos
-        modal_sort = modal.query('Case==@case').sort_values('Mode')
-        Periodos = np.array(list(modal_sort['Period']))
-        w_frec = 2*3.14159265/Periodos
-        #Para la direccion X
-        table_sort = table_V.query('Case==@case and Direction=="x"').sort_values('Mode')
-        List_SDX_Vx = np.array(list(table_sort['FX']))
-        List_SDX_Vy = np.array(list(table_sort['FY']))
-        #Realizamos la combinacion CQC
-        Vx_SDX = combination_CQC(List_SDX_Vx, w_frec, 0.05)
-        Vy_SDX = combination_CQC(List_SDX_Vy, w_frec, 0.05)
-        Lista_SDX = ['SDin_X',case,Vx_SDX,Vy_SDX]
-        Tabla_Vbasal.append(Lista_SDX)
-        #Para la direccion Y
-        table_sort = table_V.query('Case==@case and Direction=="y"').sort_values('Mode')
-        List_SDY_Vx = np.array(list(table_sort['FX']))
-        List_SDY_Vy = np.array(list(table_sort['FY']))
-        #Realizamos la combinacion CQC
-        Vx_SDY = combination_CQC(List_SDY_Vx, w_frec, 0.05)
-        Vy_SDY = combination_CQC(List_SDY_Vy, w_frec, 0.05)
-        Lista_SDY = ['SDin_Y',case,Vx_SDY,Vy_SDY]
-        Tabla_Vbasal.append(Lista_SDY)
-    
-    Tabla_Vbasal = pd.DataFrame(Tabla_Vbasal,columns=['Sismo', 'Case', 'VX', 'VY'])
-    print (Tabla_Vbasal)
+    return found_factors
 
 
 
@@ -601,5 +535,5 @@ if __name__ == '__main__':
     import time
 
     tiempo_inicial = time.time()
-    create_found_seism_3(SapModel)
+    print(create_found_seism_3(SapModel))
     print(time.time()-tiempo_inicial)
