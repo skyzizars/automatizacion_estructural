@@ -291,7 +291,7 @@ def combination_CQC (r_mod, T, β = 0.05):
     rho = np.vectorize(lambda β , λ : (8*(β**2)*(1+λ)*(λ**(3/2)))/(((1-(λ**2))**2) + (4*(β**2)*λ*(1+λ)**2))) 
     λ_matrix = ω[:, np.newaxis]/ω
     rho_matrix = rho(β,λ_matrix)
-    
+
     #Sumatoria total
     return np.sum(r_mod[:, np.newaxis]*r_mod*rho_matrix)
 
