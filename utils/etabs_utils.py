@@ -251,7 +251,7 @@ def draw_beam(SapModel,pi,pf,b,h):
     propName = f'Viga {b} x {h} cm'
     SapModel.FrameObj.AddByCoord(Xi,Yi,Zi,Xj,Yj,Zj,PropName=propName)
 
-def combination_CQC (r_mod, w_frec, β = 0.05):
+def combination_CQC (r_mod, T, β = 0.05):
     '''
     Esta Función Nos permite obtener la respuesta máxima a partir de los valores de las respuestas 
     obtenidas para cada modo mediante la Combinación Cuadrática Completa:
@@ -275,40 +275,26 @@ def combination_CQC (r_mod, w_frec, β = 0.05):
     β = 0.05 ---> franccion de amortiguamiento crítico se puede suponer constante para todos los modos
         
     '''
-    N_modos = np.shape(r_mod)[0]
-    r_max = []
+    # Convertir r_mod y T a array
+    r_mod = np.array(r_mod)
+    T = np.array(T)
 
-    #Verificamos que coincidan el numero de modos con el numero de frecuencias w
-    if N_modos != np.shape(w_frec)[0]:
-        print ("El numero de modos no coincide con el numero de frecuencias")
-        return None
-    #Verificamos que se haya ingresado un vector de Respuestas (Matriz nx1)
-    try:
-        N_gdl = np.shape(r_mod)[1]
-        if N_gdl >= 1:
-            print ("las respuestas modales deben estar ingresadas como vector")
-            return None
-    except:
-        pass
+    # Hallar las frecuencias a partir de los periodos
+    ω = 1/T
+
+    #Verificamos que coincidan el numero de modos con el numero de peridos ω
+    if np.shape(r_mod)[0] != np.shape(T)[0]:
+        print ("El numero de modos no coincide con el numero de Periodos")
+        return None        
     
-    p = np.zeros((N_modos, N_modos))
-    #Hallamos coeficiente de correlación ρij
-    for i in range(N_modos):
-            for j in range(N_modos):
-                λ = w_frec[j]/w_frec[i]
-                p[i,j] = (8*(β**2)*(1+λ)*(λ**(3/2)))/(((1-(λ**2))**2) + (4*(β**2)*λ*(1+λ)**2)) 
+    #Hallamos coeficiente de rho_matrix
+    rho = np.vectorize(lambda β , λ : (8*(β**2)*(1+λ)*(λ**(3/2)))/(((1-(λ**2))**2) + (4*(β**2)*λ*(1+λ)**2))) 
+    λ_matrix = ω[:, np.newaxis]/ω
+    rho_matrix = rho(β,λ_matrix)
+    
+    #Sumatoria total
+    return np.sum(r_mod[:, np.newaxis]*r_mod*rho_matrix)
 
-    #Hallamos la sumatoria
-    Sum_2 = 0  #Inicializamos la variable que acumulará la sumatoria total
-    for i in range(N_modos):
-        Sum_1 = 0
-        for j in range(N_modos):
-            Sum_1 += r_mod[i]*p[i,j]*r_mod[j]
-        Sum_2 += Sum_1
-    r_total = Sum_2**0.5   
-    r_max = r_total         #Si queremos que la respuesta sea un vector de 1x1 -->  [resp]
-    r_max = float(r_total)  #Si queremos que la respuesta sea un valor numérico --->  resp
-    return r_max
 
 
 # Generacion de cargas a exportar
