@@ -447,7 +447,7 @@ def create_found_seism_3(SapModel,
     ''' 
     #Aceleración de la gravedad
     a_g = 9.806
-    #Identificamos los modos principales
+    #Extracción de modos
     _,modal = get_table(SapModel,'Modal Participating Mass Ratios')
     modal = modal[['Case','Mode','UX','UY','Period']]
     modal['UX']=modal.UX.astype(float)
@@ -457,10 +457,8 @@ def create_found_seism_3(SapModel,
     #Asignamos el espectro de aceleraciones para cada direccion
     a_x = SapModel.Func.GetValues(spectres['x']) 
     a_y = SapModel.Func.GetValues(spectres['y']) 
-    
     espectro_x = interpolate.interp1d(a_x[1], a_x[2], kind='linear')
     espectro_y = interpolate.interp1d(a_y[1], a_y[2], kind='linear')
-  
 
     #Tabla de Fuerzas para los modos
     set_load = [i[0] for i in seism_modal_cases.values()]
@@ -490,11 +488,9 @@ def create_found_seism_3(SapModel,
     shear_table = shear_table[['OutputCase','FX','FY']]
     shear_table['FX'] = shear_table.FX.astype(float)
     shear_table['FY'] = shear_table.FY.astype(float)
-
     #Añadir cases y sentidos a la tabla
     shear_table['Case'] = shear_table.OutputCase.apply(lambda x: seism_modal_cases[x][0])
     shear_table['Direction'] = shear_table.OutputCase.apply(lambda x: seism_modal_cases[x][1])
-
     #Calculamos los cortes mediante CQC
     shear_table = (shear_table.merge(modal.groupby('Case')
                                     .apply(lambda row: comb_CQC(row['VX'], row['Period']))
@@ -502,29 +498,39 @@ def create_found_seism_3(SapModel,
     shear_table = (shear_table.merge(modal.groupby('Case')
                         .apply(lambda row: comb_CQC(row['VY'], row['Period']))
                         .reset_index(),on='Case').rename(columns={0:'VY'}))
-    
     #Calculamos el factor de escalamiento por cortante basal
     shear_table['Factor'] = shear_table.apply(lambda row: row.VX/row.FX if row.Direction == 'x' else row.VY/row.FY, axis=1)
 
     #Agregamos el factor calculado a la tabla principal
     modal = modal.merge(shear_table[['OutputCase','Case','Factor','Direction']],on='Case')
-
     #Calculamos el factor final
     modal['FoundFactor'] = modal.apply(lambda row: row['Factor']*row['FactorX'] if row.Direction == 'x' else row['Factor']*row['FactorY'],axis=1)
-
     #Tabla final
     modal['Mode']=modal.Mode.astype(int)
-    found_factors = modal[['OutputCase','Case','Direction','Mode','FoundFactor']].sort_values(by=['OutputCase','Mode']).reset_index(drop=True)
+    found_factors = modal[['OutputCase','Case','Direction','Mode','FoundFactor','Period']].sort_values(by=['OutputCase','Mode']).reset_index(drop=True)
 
     return found_factors
 
-
+def export_factors(SapModelSafe,found_factors):
+    '''
+    input
+    foun_factors → df que contenga las columnas: 'OutputCase','Case','Direction','Mode','FoundFactor','Period'
+    '''
+    for load in found_factors.OutputCase.unique():
+        data = found_factors.query('OutputCase==@load')
+        SapModelSafe.LoadCases.StaticLinear.SetCase('periods '+load)
+        modes = [data.Case.iloc[0]+'_MODE'+str(i) for i in data.Mode]
+        SapModelSafe.LoadCases.StaticLinear.SetLoads('periods '+load,data.shape[0],['Load']*data.shape[0],modes,list(data.Period))
+        for _, row in data.iterrows():
+            SapModelSafe.LoadCases.StaticLinear.SetCase('found '+load+' Mode'+str(row.Mode))
+            SapModelSafe.LoadCases.StaticLinear.SetLoads('found '+load+' Mode'+str(row.Mode),1,['Load'],[row.Case+'_MODE'+str(row.Mode)],[row.FoundFactor])
 
 
 
 
 if __name__ == '__main__':
     _,SapModel = connect_to_etabs()
+    _,SapModelSafe = connect_to_safe()
     #SapModel.SetModelIsLocked(False)
     #print(set_envelopes_for_dysplay(SapModel))
     #_,table = get_table(SapModel,'Story Forces')
@@ -535,5 +541,6 @@ if __name__ == '__main__':
     import time
 
     tiempo_inicial = time.time()
-    print(create_found_seism_3(SapModel))
+    found_factors = create_found_seism_3(SapModel)
+    export_factors(SapModelSafe,found_factors)
     print(time.time()-tiempo_inicial)
