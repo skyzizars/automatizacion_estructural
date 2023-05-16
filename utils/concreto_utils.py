@@ -686,8 +686,8 @@ class Isolate_footing(Foundation):
     '''
     Parameters
     ----------
-    dim1_col : dimension 1 de la columna.
-    dim2_col : dimension 2 de la columna.
+    dimX_col : dimension x de la columna.
+    dimY_col : dimension y de la columna.
     h : Altura de zapata.
     Fuerzas : Lista de cargas que llegan de la columna
     [Fz,Mx,My] para cada tipo de carga: D,L,Sx,Sy,Vx,Vy 
@@ -696,11 +696,11 @@ class Isolate_footing(Foundation):
     -------
     None.
     '''
-    def __init__(self,dim1_col,dim2_col,df,h,b=1,r=0.075,gamma_c=2.4*9.81):
+    def __init__(self,dimX_col,dimY_col,df,h,b=1,r=0.075,gamma_c=2.4*9.81):
         
-        self.b_col = min(dim1_col,dim2_col)
-        self.h_col=max(dim1_col,dim2_col)
-        self.df = df
+        self.b_col = dimX_col  #Dimensión en X de la Columna que llega a la zapata
+        self.h_col= dimY_col   #Dimensión en Y de la Columna que llega a la zapata
+        self.df = df            #Altura de desplante
         
         super().__init__(b,h=h,r=r,gamma_c=gamma_c)
         
@@ -753,12 +753,10 @@ class Isolate_footing(Foundation):
         '''
         Se calculan las propiedades de area y momento
         de inercia de la zapata para el calculo de presiones
-
         Parameters
         ----------
         B : Ancho de zapata (eje x).
         L : Largo de zapata (eje y).
-
         Returns
         -------
         None.
@@ -781,21 +779,28 @@ class Isolate_footing(Foundation):
         self.Mu=max(self.Mu_x,self.Mu_y)
 
     def punch_dimensions(self):
-        d_col=self.h_col-0.06*m
         #Lados del perimetro punzonado
-        h_pun=self.h_col+d_col/2
-        b_pun=self.b_col+d_col/2
+        self.h_pun=self.h_col+self.d/2 #Para la dimension en Y 
+        self.b_pun=self.b_col+self.d/2 #Para la dimension en X
         #perimetro y area de punzonamiento:
-        self.punch_perim=2*(h_pun+b_pun)
-        self.punch_area=h_pun*b_pun
+        self.punch_perim=2*(self.h_pun+self.b_pun)
+        self.punch_area=self.h_pun*self.b_pun
 
     def ultimate_punch_shear(self):
-        try:
-            self.Vu_p=self.σ_U*(self.B*self.L-self.punch_area)
-        except:
-            self.punch_dimensions()
-            self.ultimate_shear()
-            self.Vu_p=self.σ_U*(self.B*self.L-self.punch_area)
+        self.punch_pressures() #Hallamos las presiones en las esquinas del área de punzonamiento PARA CADA COMBINACION
+        V_punch = []
+        for caso in range (np.shape(self.punch_presiones)[0]):
+            p_p = self.punch_presiones[caso][:][:]
+            #Hallamos el promedio de las 4 esquinas
+            prom_caso = np.average(p_p)
+            #Reaccion que genera el area de punzonamiento
+            Reaccion = prom_caso*self.punch_area 
+            #Hallamos el Corte por Punzonamiento
+            V_punch.append(self.Pu_push[caso]-Reaccion)
+
+        self.V_punch = np.array(V_punch) #Vector de los cortantes de punzonamiento
+        self.Vu_puz = np.amax(self.V_punch) # Cortante última por punzonamiento
+
 
     def nominal_punch_shear(self, phi_s=0.85):
         super().nominal_punch_shear(self.punch_perim, phi_s)
@@ -806,16 +811,13 @@ class Isolate_footing(Foundation):
         Se calculan la presiones del suelo para una coordenada
         dentro de la zapata, tomandose el centro de coordenadas el 
         centro de gravedad de la zapata.
-
         Parameters
         ----------
         X : coordenada X.
         Y : coordenada Y.
-
         Returns
         -------
         None.
-
         '''
         Coord=[[1/self.A],[Y/self.Izx],[X/self.Izy]]
         Co=np.array(Coord)
@@ -823,60 +825,85 @@ class Isolate_footing(Foundation):
         self.Re=np.dot(self.C,self.Pres)
 
 
-    def total_pressures(self,n=0.2,nc=None,und=Pa):
+    def areas_pressures(self, Case = 1, n=0.2):
         '''
         Se calculan todas la presiones para todas la combinaciones 
         de carga definidas para la sección de la zapata las cuales se
         guardan en matrices por cada tipo de combinación.
-
         Parameters
         ----------
         n : opcional, dimensión máx de un elemento discretizado (en metros).
-        nc : opcional, indice de la combinación para ser ploteada.
-        und: opcional, unidades del sistema, por defecto Pa.
-
+        Case:
+            1: Para obtener las presiones en las esquinas del área total de la zapata
+            2: Para obtener las presiones en las esquinas del área punzonada de la zapata
         Returns
         -------
         None.
-
         '''
-        B = self.B
-        L = self.L
-        X_list=np.linspace(-B/2,B/2,num=(int(B/n)))
-        Y_list=np.linspace(-L/2,L/2,num=(int(L/n)))
+        
+        if Case == 1:
+            DimX, DimY = self.B, self.L
+            numx = int(DimX/n)   
+            numy = int(DimY/n)
+        elif Case == 2:
+            DimX, DimY = self.b_pun, self.h_pun
+            numx = 2   #Solo evaluamos la presion en las esquinas
+            numy = 2   #Solo evaluamos la presion en las esquinas
+
+        X_list=np.linspace(-DimX/2,DimX/2,num=numx)
+        Y_list=np.linspace(-DimY/2,DimY/2,num=numy)
+
         Mapa=np.zeros((len(self.C),len(Y_list),len(X_list)))
         for i in range(len(Y_list)):
             for j in range(len(X_list)):
                 self.soil_pressures(Y_list[i],X_list[j])
                 for k in range(len(self.Re)):
                     Mapa[k][i][j]=self.Re[k]
-        self.data_presiones=Mapa
+        return Mapa
+
+    def total_pressures(self,n=0.20, nc=None, und=Pa):
+        '''
+        nc : opcional, indice de la combinación para ser ploteada.
+        und: opcional, unidades del sistema, por defecto Pa.
+        '''
+        #Obtenemos las presiones Totales
+        self.data_presiones = self.areas_pressures(Case=1, n=n)
         if nc==None:
             pass
         else:
             fig, ax = plt.subplots()
             im=ax.imshow((self.data_presiones[nc]/und),cmap = "gist_rainbow")
             cbar = ax.figure.colorbar(im, ax = ax)
-            cbar.ax.set_ylabel("Color bar", rotation = -90, va = "bottom") 
+            cbar.ax.set_ylabel("Color bar", rotation = -90, va = "bottom")
 
+    def punch_pressures(self):
+        #Obtenemos las presiones en las esquinas del área de punzonamiento
+        presiones_pun = self.areas_pressures(Case=2)
+        #Elegimos solo las combinaciones de diseño
+        self.punch_presiones = presiones_pun[6:11]
+        #Hallamos solo las cargas axiales de diseño que llegan al base de las columnas
+        Vector_F=[[1],[0],[0]]
+        Fo=np.array(Vector_F)
+        Pu_colum=np.dot(self.forces,Fo)
+        Pu_push=np.dot(self.C,Pu_colum)
+        #Elegimos solo las combinaciones de diseño
+        self.Pu_push = Pu_push[6:11]
+        
 
             
     def press_check(self,n=0.1):
         '''
         Se verifica si la presión máxima a servicio cumple con la presión admisible
         del suelo.
-
         Parameters
         ----------
         B : Ancho de zapata (eje x).
         L : Largo de zapata (eje y).
         n : opcional, dimensión máx de un elemento discretizado (en metros).
-
         Returns
         -------
         bool
             DESCRIPTION.
-
         '''
         self.total_pressures(n)
         self.σ_max_g=np.amax(self.data_presiones[0]) #presión máxima por gravedad
@@ -887,7 +914,6 @@ class Isolate_footing(Foundation):
         else:
             return False
         
-
 
     def foot_sizing(self):
         '''
@@ -923,11 +949,9 @@ class Isolate_footing(Foundation):
         '''
         Diseño a cortante de la zapata, itera hast obtener la altura de la zapata
         que cumple el diseño por cortante.
-
         Returns
         -------
         None.
-
         '''
        
         #Cortante ultimo y nominal
@@ -946,21 +970,18 @@ class Isolate_footing(Foundation):
     def punch_design(self):
         '''
         Verificación del punzonamiento de la columna sobre la zapata.
-
         Parameters
         ----------
-
         Returns
         -------
         None.
-
         '''
         self.punch_dimensions()
         self.ultimate_punch_shear()
         self.nominal_punch_shear()
 
         i=0
-        while self.Vu_p>=self.phi_Vn_p:
+        while self.Vu_puz>=self.phi_Vn_p:
             self.h=self.h+0.05*m
             self.d=self.h-self.r
             self.nominal_punch_shear()
@@ -972,11 +993,9 @@ class Isolate_footing(Foundation):
     def flex_design(self):
         '''
         Diseño a flexión de la zapata con un ancho unitario por defecto.
-
         Returns
         -------
         None.
-
         '''
         fy = self.fy
         fc = self.fc
