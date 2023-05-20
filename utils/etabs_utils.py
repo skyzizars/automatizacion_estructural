@@ -428,9 +428,9 @@ def create_found_seism_2(SapModel,
 
 
 
-def create_found_seism_3(SapModel,
+def create_found_seism_3(SapModel,g=9.806,
                          n_Modes=12,
-                         seism_modal_cases =   {'SDx':('Modal','x'),
+                        seism_modal_cases =   {'SDx':('Modal','x'),
                                                 'SDx +eY':('Modal +eY','x'),
                                                 'SDx -eY':('Modal -eY','x'),
                                                 'SDy':('Modal','y'),
@@ -445,8 +445,8 @@ def create_found_seism_3(SapModel,
     input:
     seism_modal_cases: dict{case:(modal_name,direction)}
     ''' 
-    #Aceleración de la gravedad
-    a_g = 9.806
+    #Unidades de Trabajo
+    set_units(SapModel, 'Ton_m_C') 
     #Extracción de modos
     _,modal = get_table(SapModel,'Modal Participating Mass Ratios')
     modal = modal[['Case','Mode','UX','UY','Period']]
@@ -469,16 +469,17 @@ def create_found_seism_3(SapModel,
     table = table[['OutputCase','StepNumber','FX','FY']]
     table['FX'] = table.FX.astype(float)
     table['FY'] = table.FY.astype(float)
+    #Calculo de masa
     _,table_Mass = get_table(SapModel,'Mass Summary by Story')
     mass = table_Mass['UX'].astype(float).sum() - float(table_Mass[table_Mass['Story']=='Base']['UX'].iloc[0]) #RESTAMOS LA MASA DE LA BASE
 
     #Agregando las fuerzas a la tabla principal
     modal = modal.merge(table, right_on=['OutputCase','StepNumber'],left_on=['Case','Mode']).drop(['OutputCase','StepNumber'], axis=1)
     #Calculando Factores
-    modal['VX'] = modal['Period'].apply(espectro_x)*mass*modal['UX']*a_g
-    modal['VY'] = modal['Period'].apply(espectro_y)*mass*modal['UY']*a_g
-    modal['FactorX'] = abs(modal['FX']/modal['VX']) 
-    modal['FactorY'] = abs(modal['FY']/modal['VY'])
+    modal['VX'] = modal['Period'].apply(espectro_x)*mass*modal['UX']*g
+    modal['VY'] = modal['Period'].apply(espectro_y)*mass*modal['UY']*g
+    modal['FactorX'] = abs(modal['VX']/modal['FX']) 
+    modal['FactorY'] = abs(modal['VY']/modal['FY'])
     
     #Verificación Cortante en la base
     seims_loads = [i for i in seism_modal_cases.keys()]
@@ -498,8 +499,9 @@ def create_found_seism_3(SapModel,
     shear_table = (shear_table.merge(modal.groupby('Case')
                         .apply(lambda row: comb_CQC(row['VY'], row['Period']))
                         .reset_index(),on='Case').rename(columns={0:'VY'}))
+    
     #Calculamos el factor de escalamiento por cortante basal
-    shear_table['Factor'] = shear_table.apply(lambda row: row.VX/row.FX if row.Direction == 'x' else row.VY/row.FY, axis=1)
+    shear_table['Factor'] = shear_table.apply(lambda row: row.FX/row.VX if row.Direction == 'x' else row.FY/row.VY, axis=1)
 
     #Agregamos el factor calculado a la tabla principal
     modal = modal.merge(shear_table[['OutputCase','Case','Factor','Direction']],on='Case')
@@ -509,7 +511,7 @@ def create_found_seism_3(SapModel,
     modal['Mode']=modal.Mode.astype(int)
     found_factors = modal[['OutputCase','Case','Direction','Mode','FoundFactor','Period']].sort_values(by=['OutputCase','Mode']).reset_index(drop=True)
 
-    return found_factors
+    return (found_factors,shear_table,modal)
 
 def export_factors(SapModelSafe,found_factors):
     '''
@@ -541,6 +543,17 @@ if __name__ == '__main__':
     import time
 
     tiempo_inicial = time.time()
-    found_factors = create_found_seism_3(SapModel)
+    found_factors,shear_table,modal = create_found_seism_3(SapModel,
+                                        g=1,
+                                         seism_modal_cases =   
+                                         {  'SismoX':('Modal','x'),
+                                            'Sismo+X':('Modal+X','x'),
+                                            'Sismo-X':('Modal-X','x'),
+                                            'SismoY':('Modal','y'),
+                                            'Sismo+Y':('Modal+Y','y'),
+                                            'Sismo-Y':('Modal-Y','y')},
+                                        spectres = {'x' : 'C para espectro',
+                                                    'y' : 'C para espectro'})
     export_factors(SapModelSafe,found_factors)
     print(time.time()-tiempo_inicial)
+    print(shear_table)
