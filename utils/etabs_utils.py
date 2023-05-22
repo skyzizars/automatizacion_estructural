@@ -251,7 +251,7 @@ def draw_beam(SapModel,pi,pf,b,h):
     propName = f'Viga {b} x {h} cm'
     SapModel.FrameObj.AddByCoord(Xi,Yi,Zi,Xj,Yj,Zj,PropName=propName)
 
-def combination_CQC (r_mod, w_frec, β = 0.05):
+def comb_CQC (r_mod, T, β = 0.05):
     '''
     Esta Función Nos permite obtener la respuesta máxima a partir de los valores de las respuestas 
     obtenidas para cada modo mediante la Combinación Cuadrática Completa:
@@ -275,40 +275,27 @@ def combination_CQC (r_mod, w_frec, β = 0.05):
     β = 0.05 ---> franccion de amortiguamiento crítico se puede suponer constante para todos los modos
         
     '''
-    N_modos = np.shape(r_mod)[0]
-    r_max = []
+    # Convertir r_mod y T a array
+    r_mod = np.array(r_mod)
+    T = np.array(T)
 
-    #Verificamos que coincidan el numero de modos con el numero de frecuencias w
-    if N_modos != np.shape(w_frec)[0]:
-        print ("El numero de modos no coincide con el numero de frecuencias")
-        return None
-    #Verificamos que se haya ingresado un vector de Respuestas (Matriz nx1)
-    try:
-        N_gdl = np.shape(r_mod)[1]
-        if N_gdl >= 1:
-            print ("las respuestas modales deben estar ingresadas como vector")
-            return None
-    except:
-        pass
+    # Hallar las frecuencias a partir de los periodos
+    ω = 2*3.14159265/T
+
+    #Verificamos que coincidan el numero de modos con el numero de peridos ω
+    if np.shape(r_mod)[0] != np.shape(T)[0]:
+        print ("El numero de modos no coincide con el numero de Periodos")
+        return None        
     
-    p = np.zeros((N_modos, N_modos))
-    #Hallamos coeficiente de correlación ρij
-    for i in range(N_modos):
-            for j in range(N_modos):
-                λ = w_frec[j]/w_frec[i]
-                p[i,j] = (8*(β**2)*(1+λ)*(λ**(3/2)))/(((1-(λ**2))**2) + (4*(β**2)*λ*(1+λ)**2)) 
+    #Hallamos coeficiente de rho_matrix
+    rho = np.vectorize(lambda β , λ : 
+                       (8*(β**2)*(1+λ)*(λ**(3/2)))/(((1-(λ**2))**2) + (4*(β**2)*λ*(1+λ)**2))) 
+    λ_matrix = ω/ω[:, np.newaxis]
+    rho_matrix = rho(β,λ_matrix)
 
-    #Hallamos la sumatoria
-    Sum_2 = 0  #Inicializamos la variable que acumulará la sumatoria total
-    for i in range(N_modos):
-        Sum_1 = 0
-        for j in range(N_modos):
-            Sum_1 += r_mod[i]*p[i,j]*r_mod[j]
-        Sum_2 += Sum_1
-    r_total = Sum_2**0.5   
-    r_max = r_total         #Si queremos que la respuesta sea un vector de 1x1 -->  [resp]
-    r_max = float(r_total)  #Si queremos que la respuesta sea un valor numérico --->  resp
-    return r_max
+    #Sumatoria total
+    return np.sum(r_mod[:, np.newaxis]*r_mod*rho_matrix)**0.5
+
 
 
 # Generacion de cargas a exportar
@@ -441,9 +428,9 @@ def create_found_seism_2(SapModel,
 
 
 
-def create_found_seism_3(SapModel,
+def create_found_seism_3(SapModel,g=9.806,
                          n_Modes=12,
-                         seism_modal_cases =   {'SDx':('Modal','x'),
+                        seism_modal_cases =   {'SDx':('Modal','x'),
                                                 'SDx +eY':('Modal +eY','x'),
                                                 'SDx -eY':('Modal -eY','x'),
                                                 'SDy':('Modal','y'),
@@ -458,100 +445,94 @@ def create_found_seism_3(SapModel,
     input:
     seism_modal_cases: dict{case:(modal_name,direction)}
     ''' 
-    #Aceleración de la gravedad
-    a_g = 9.806
-    #Identificamos los modos principales
+    #Unidades de Trabajo
+    set_units(SapModel, 'Ton_m_C') 
+    #Extracción de modos
     _,modal = get_table(SapModel,'Modal Participating Mass Ratios')
-    modal = modal[['Case','Mode','UX','UY','RZ','Period']]
-    modal['Mode'] = modal.Mode.astype(str)
+    modal = modal[['Case','Mode','UX','UY','Period']]
     modal['UX']=modal.UX.astype(float)
     modal['UY']=modal.UY.astype(float)
     modal['Period']=modal.Period.astype(float)
-    modos_i = modal.Mode.unique()
 
     #Asignamos el espectro de aceleraciones para cada direccion
-    a_x = SapModel.Func.GetValues(spectres['x']) #Se debe colocar el nombre del Spectrum definido en etabs
-    a_y = SapModel.Func.GetValues(spectres['y']) #Se debe colocar el nombre del Spectrum definido en etabs
-    
+    a_x = SapModel.Func.GetValues(spectres['x']) 
+    a_y = SapModel.Func.GetValues(spectres['y']) 
     espectro_x = interpolate.interp1d(a_x[1], a_x[2], kind='linear')
     espectro_y = interpolate.interp1d(a_y[1], a_y[2], kind='linear')
-  
 
     #Tabla de Fuerzas para los modos
     set_load = [i[0] for i in seism_modal_cases.values()]
     unique_load =list(set(set_load))
     SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(unique_load)
-    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([])                          
+    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay(unique_load)                          
     _,table = get_table(SapModel,'Base Reactions',set_envelopes=False)
     table = table[['OutputCase','StepNumber','FX','FY']]
     table['FX'] = table.FX.astype(float)
     table['FY'] = table.FY.astype(float)
-    table = table[['OutputCase','StepNumber','FX','FY']]
+    #Calculo de masa
     _,table_Mass = get_table(SapModel,'Mass Summary by Story')
     mass = table_Mass['UX'].astype(float).sum() - float(table_Mass[table_Mass['Story']=='Base']['UX'].iloc[0]) #RESTAMOS LA MASA DE LA BASE
 
-    #Listas temporales
-    tb_factor = pd.DataFrame({'Case': [],
-                              'Mode': [],
-                              'VX_etb': [], 
-                              'VX_calc': [],
-                              'factor_X': [],
-                              'VY_etb': [], 
-                              'VY_calc': [],
-                              'factor_Y': []})
+    #Agregando las fuerzas a la tabla principal
+    modal = modal.merge(table, right_on=['OutputCase','StepNumber'],left_on=['Case','Mode']).drop(['OutputCase','StepNumber'], axis=1)
+    #Calculando Factores
+    modal['VX'] = modal['Period'].apply(espectro_x)*mass*modal['UX']*g
+    modal['VY'] = modal['Period'].apply(espectro_y)*mass*modal['UY']*g
+    modal['FactorX'] = abs(modal['VX']/modal['FX']) 
+    modal['FactorY'] = abs(modal['VY']/modal['FY'])
     
-    for modo in modos_i:
-        #Cálculo de las cortantes para el modo i
-        for load in unique_load:
-            t_modoi = float(modal.query('Mode==@modo and Case==@load').loc[:,'Period'].iloc[0])
-            acel_x, acel_y = espectro_x(t_modoi), espectro_y(t_modoi)
-            mass_modx = float(modal.query('Mode==@modo and Case==@load').loc[:,'UX'].iloc[0])
-            mass_mody = float(modal.query('Mode==@modo and Case==@load').loc[:,'UY'].iloc[0])
-            shear_etb_x = float(table.query('StepNumber==@modo and OutputCase==@load').loc[:,'FX'].iloc[0])
-            shear_etb_y = float(table.query('StepNumber==@modo and OutputCase==@load').loc[:,'FY'].iloc[0])
-            shear_calc_x = acel_x*mass*mass_modx*a_g
-            shear_calc_y = acel_y*mass*mass_mody*a_g
-            factor_x = shear_calc_x/shear_etb_x
-            factor_y = shear_calc_y/shear_etb_y
-            #Guardamos los resultados
-            tb_factor.loc[len(tb_factor)] = [load,modo,shear_etb_x,shear_calc_x,factor_x,shear_etb_y,shear_calc_y,factor_y]
+    #Verificación Cortante en la base
+    seims_loads = [i for i in seism_modal_cases.keys()]
+    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(seims_loads)
+    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay(seims_loads)
+    _,shear_table = get_table(SapModel,'Base Reactions')
+    shear_table = shear_table[['OutputCase','FX','FY']]
+    shear_table['FX'] = shear_table.FX.astype(float)
+    shear_table['FY'] = shear_table.FY.astype(float)
+    #Añadir cases y sentidos a la tabla
+    shear_table['Case'] = shear_table.OutputCase.apply(lambda x: seism_modal_cases[x][0])
+    shear_table['Direction'] = shear_table.OutputCase.apply(lambda x: seism_modal_cases[x][1])
+    #Calculamos los cortes mediante CQC
+    shear_table = (shear_table.merge(modal.groupby('Case')
+                                    .apply(lambda row: comb_CQC(row['VX'], row['Period']))
+                                    .reset_index(),on='Case').rename(columns={0:'VX'}))
+    shear_table = (shear_table.merge(modal.groupby('Case')
+                        .apply(lambda row: comb_CQC(row['VY'], row['Period']))
+                        .reset_index(),on='Case').rename(columns={0:'VY'}))
     
+    #Calculamos el factor de escalamiento por cortante basal
+    shear_table['Factor'] = shear_table.apply(lambda row: row.FX/row.VX if row.Direction == 'x' else row.FY/row.VY, axis=1)
 
-    #Extraccion de puntos en base
-    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(unique_load)
-    SapModel.DatabaseTables.SetLoadCombinationsSelectedForDisplay([]) 
-    _,point_table = get_table(SapModel,'Joint Reactions',set_envelopes=False)
-    point_table = (point_table.query('StepNumber !=""')
-                [['OutputCase','StepNumber','UniqueName','FX','FY','FZ','MX','MY','MZ']])
-    point_table[['FX','FY','FZ','MX','MY','MZ']].astype(float)
+    #Agregamos el factor calculado a la tabla principal
+    modal = modal.merge(shear_table[['OutputCase','Case','Factor','Direction']],on='Case')
+    #Calculamos el factor final
+    modal['FoundFactor'] = modal.apply(lambda row: row['Factor']*row['FactorX'] if row.Direction == 'x' else row['Factor']*row['FactorY'],axis=1)
+    #Tabla final
+    modal['Mode']=modal.Mode.astype(int)
+    found_factors = modal[['OutputCase','Case','Direction','Mode','FoundFactor','Period']].sort_values(by=['OutputCase','Mode']).reset_index(drop=True)
 
-    SapModel.SetModelIsLocked(False)
-    direction = ['x','y']
-   
-    #Creación de cases
-    for modo in modos_i:
-        for load in unique_load:
-            point_loads = (point_table.query('OutputCase==@load').query('StepNumber == @modo'))
-            for eje in direction:
-                carga = 'f('+load+')_'+modo+eje
-                SapModel.LoadPatterns.Add(carga,5)    
-                if eje == 'x':
-                    factor = tb_factor.query('Case==@load and Mode==@modo').iloc[0,4]
-                elif eje == 'y':
-                    factor = tb_factor.query('Case==@load and Mode==@modo').iloc[0,7]
+    return (found_factors)
 
-                for p_name in point_loads.UniqueName:
-                    p_loads = (point_loads.query('UniqueName==@p_name')
-                                    [['FX','FY','FZ','MX','MY','MZ']].iloc[0])
-                    p_loads = [float(load)*-1*float(factor) for load in p_loads]
-                    SapModel.PointObj.SetLoadForce(p_name,carga,p_loads,Replace=True)
-
+def export_factors(SapModelSafe,found_factors):
+    '''
+    input
+    foun_factors → df que contenga las columnas: 'OutputCase','Case','Direction','Mode','FoundFactor','Period'
+    '''
+    for load in found_factors.OutputCase.unique():
+        data = found_factors.query('OutputCase==@load')
+        SapModelSafe.LoadCases.StaticLinear.SetCase('periods '+load)
+        modes = [data.Case.iloc[0]+'_MODE'+str(i) for i in data.Mode]
+        SapModelSafe.LoadCases.StaticLinear.SetLoads('periods '+load,data.shape[0],['Load']*data.shape[0],modes,list(data.Period))
+        for _, row in data.iterrows():
+            SapModelSafe.LoadCases.StaticLinear.SetCase('found '+load+' Mode'+str(row.Mode))
+            SapModelSafe.LoadCases.StaticLinear.SetLoads('found '+load+' Mode'+str(row.Mode),1,['Load'],[row.Case+'_MODE'+str(row.Mode)],[row.FoundFactor])
 
 
 
 
 if __name__ == '__main__':
     _,SapModel = connect_to_etabs()
+    _,SapModelSafe = connect_to_safe()
     #SapModel.SetModelIsLocked(False)
     #print(set_envelopes_for_dysplay(SapModel))
     #_,table = get_table(SapModel,'Story Forces')
@@ -562,5 +543,16 @@ if __name__ == '__main__':
     import time
 
     tiempo_inicial = time.time()
-    create_found_seism_3(SapModel)
+    found_factors,shear_table,modal = create_found_seism_3(SapModel,
+                                        g=1,
+                                         seism_modal_cases =   
+                                         {  'SismoX':('Modal','x'),
+                                            'Sismo+X':('Modal+X','x'),
+                                            'Sismo-X':('Modal-X','x'),
+                                            'SismoY':('Modal','y'),
+                                            'Sismo+Y':('Modal+Y','y'),
+                                            'Sismo-Y':('Modal-Y','y')},
+                                        spectres = {'x' : 'C para espectro',
+                                                    'y' : 'C para espectro'})
+    export_factors(SapModelSafe,found_factors)
     print(time.time()-tiempo_inicial)
